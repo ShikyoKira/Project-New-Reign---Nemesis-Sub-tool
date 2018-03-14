@@ -1,0 +1,274 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{22FA8BFD-A152-499A-95CE-097483C4F374}</ProjectGuid>
+    <RootNamespace>T2</RootNamespace>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v140</PlatformToolset>
+    <CharacterSet>NotSet</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v140</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <PlatformToolset>v140</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <PlatformToolset>v140</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <IncludePath>C:/Program Files/boost/boost_1_66_0/msvc/lib;$(IncludePath)</IncludePath>
+    <LibraryPath>C:/Program Files/boost/boost_1_66_0/msvc/lib;$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <SDLCheck>true</SDLCheck>
+      <AdditionalIncludeDirectories>C:/Program Files/boost/boost_1_66_0/msvc/include/boost-1_66;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_DEPRECATE</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>C:/Program Files/boost/boost_1_66_0/msvc/lib</AdditionalLibraryDirectories>
+      <StackReserveSize>10000000</StackReserveSize>
+      <StackCommitSize>10000</StackCommitSize>
+      <HeapReserveSize>10000000</HeapReserveSize>
+      <HeapCommitSize>10000</HeapCommitSize>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <AdditionalIncludeDirectories>C:/Program Files/boost/boost_1_66_0/msvc/include/boost-1_66;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>C:/Program Files/boost/boost_1_66_0/msvc/include/boost-1_66;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>C:/Program Files/boost/boost_1_66_0/msvc/include/boost-1_66;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="bsboneswitchgenerator.cpp" />
+    <ClCompile Include="bsboneswitchgeneratorbonedata.cpp" />
+    <ClCompile Include="bscomputeaddboneanimmodifier.cpp" />
+    <ClCompile Include="bscyclicblendtransitiongenerator.cpp" />
+    <ClCompile Include="bsdecomposevectormodifier.cpp" />
+    <ClCompile Include="bsdirectatmodifier.cpp" />
+    <ClCompile Include="bsdisttriggermodifier.cpp" />
+    <ClCompile Include="bseventeveryneventsmodifier.cpp" />
+    <ClCompile Include="bseventondeactivatemodifier.cpp" />
+    <ClCompile Include="bseventonfalsetotruemodifier.cpp" />
+    <ClCompile Include="bsgettimestepmodifier.cpp" />
+    <ClCompile Include="bsinterpvaluemodifier.cpp" />
+    <ClCompile Include="bsisactivemodifier.cpp" />
+    <ClCompile Include="bsistatemanagermodifier.cpp" />
+    <ClCompile Include="bsistatetagginggenerator.cpp" />
+    <ClCompile Include="bslimbikmodifier.cpp" />
+    <ClCompile Include="bslookatmodifier.cpp" />
+    <ClCompile Include="bsmodifyoncemodifier.cpp" />
+    <ClCompile Include="bspassbytargettriggermodifier.cpp" />
+    <ClCompile Include="bsragdollcontactlistenermodifier.cpp" />
+    <ClCompile Include="bsspeedsamplermodifier.cpp" />
+    <ClCompile Include="bssynchronizedclipgenerator.cpp" />
+    <ClCompile Include="bstimermodifier.cpp" />
+    <ClCompile Include="bstweenermodifier.cpp" />
+    <ClCompile Include="Global-Addon.cpp" />
+    <ClCompile Include="hkbattachmentmodifier.cpp" />
+    <ClCompile Include="hkbattributemodifier.cpp" />
+    <ClCompile Include="hkbbehaviorgraphdata.cpp" />
+    <ClCompile Include="hkbbehaviorgraphstringdata.cpp" />
+    <ClCompile Include="hkbbehaviorreferencegenerator.cpp" />
+    <ClCompile Include="hkbblendergenerator.cpp" />
+    <ClCompile Include="hkbblendergeneratorchild.cpp" />
+    <ClCompile Include="hkbblendingtransitioneffect.cpp" />
+    <ClCompile Include="hkbboneindexarray.cpp" />
+    <ClCompile Include="hkbboneweightarray.cpp" />
+    <ClCompile Include="hkbclipgenerator.cpp" />
+    <ClCompile Include="hkbcliptriggerarray.cpp" />
+    <ClCompile Include="hkbcombinetransformsmodifier.cpp" />
+    <ClCompile Include="hkbcomputedirectionmodifier.cpp" />
+    <ClCompile Include="hkbcomputerotationfromaxisanglemodifier.cpp" />
+    <ClCompile Include="hkbcomputerotationtotargetmodifier.cpp" />
+    <ClCompile Include="hkbdampingmodifier.cpp" />
+    <ClCompile Include="hkbdelayedmodifier.cpp" />
+    <ClCompile Include="hkbdetectclosetogroundmodifier.cpp" />
+    <ClCompile Include="hkbevaluateexpressionmodifier.cpp" />
+    <ClCompile Include="hkbevaluatehandlemodifier.cpp" />
+    <ClCompile Include="hkbeventdrivenmodifier.cpp" />
+    <ClCompile Include="hkbeventrangedataarray.cpp" />
+    <ClCompile Include="hkbeventsfromrangemodifier.cpp" />
+    <ClCompile Include="hkbexpressiondataarray.cpp" />
+    <ClCompile Include="hkbextractragdollposemodifier.cpp" />
+    <ClCompile Include="hkbfootikcontrolsmodifier.cpp" />
+    <ClCompile Include="hkbgethandleonbonemodifier.cpp" />
+    <ClCompile Include="hkbgetupmodifier.cpp" />
+    <ClCompile Include="hkbgetworldfrommodelmodifier.cpp" />
+    <ClCompile Include="hkbhandikcontrolsmodifier.cpp" />
+    <ClCompile Include="hkbkeyframebonesmodifier.cpp" />
+    <ClCompile Include="hkblookatmodifier.cpp" />
+    <ClCompile Include="hkbmanualselectorgenerator.cpp" />
+    <ClCompile Include="hkbmirrormodifier.cpp" />
+    <ClCompile Include="hkbmodifiergenerator.cpp" />
+    <ClCompile Include="hkbmodifierlist.cpp" />
+    <ClCompile Include="hkbmovecharactermodifier.cpp" />
+    <ClCompile Include="hkbpoweredragdollcontrolmodifier.cpp" />
+    <ClCompile Include="hkbproxymodifier.cpp" />
+    <ClCompile Include="hkbrigidbodyragdollcontrolsmodifier.cpp" />
+    <ClCompile Include="hkbrotatecharactermodifier.cpp" />
+    <ClCompile Include="hkbsensehandlemodifier.cpp" />
+    <ClCompile Include="hkbtimermodifier.cpp" />
+    <ClCompile Include="hkbtransformvectormodifier.cpp" />
+    <ClCompile Include="hkbtwistmodifier.cpp" />
+    <ClCompile Include="hkrootlevelcontainer.cpp" />
+    <ClCompile Include="hkbstatemachineeventpropertyarray.cpp" />
+    <ClCompile Include="hkbstatemachinestateinfo.cpp" />
+    <ClCompile Include="hkbstatemachinetransitioninfoarray.cpp" />
+    <ClCompile Include="hkbexpressioncondition.cpp" />
+    <ClCompile Include="hkbstringeventpayload.cpp" />
+    <ClCompile Include="hkbvariablebindingset.cpp" />
+    <ClCompile Include="hkbvariablevalueset.cpp" />
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="hkbbehaviorgraph.cpp" />
+    <ClCompile Include="hkbstatemachine.cpp" />
+    <ClCompile Include="Global.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="bsboneswitchgenerator.h" />
+    <ClInclude Include="bsboneswitchgeneratorbonedata.h" />
+    <ClInclude Include="bscomputeaddboneanimmodifier.h" />
+    <ClInclude Include="bscyclicblendtransitiongenerator.h" />
+    <ClInclude Include="bsdecomposevectormodifier.h" />
+    <ClInclude Include="bsdirectatmodifier.h" />
+    <ClInclude Include="bsdisttriggermodifier.h" />
+    <ClInclude Include="bseventeveryneventsmodifier.h" />
+    <ClInclude Include="bseventondeactivatemodifier.h" />
+    <ClInclude Include="bseventonfalsetotruemodifier.h" />
+    <ClInclude Include="bsgettimestepmodifier.h" />
+    <ClInclude Include="bsinterpvaluemodifier.h" />
+    <ClInclude Include="bsisactivemodifier.h" />
+    <ClInclude Include="bsistatemanagermodifier.h" />
+    <ClInclude Include="bsistatetagginggenerator.h" />
+    <ClInclude Include="bslimbikmodifier.h" />
+    <ClInclude Include="bslookatmodifier.h" />
+    <ClInclude Include="bsmodifyoncemodifier.h" />
+    <ClInclude Include="bspassbytargettriggermodifier.h" />
+    <ClInclude Include="bsragdollcontactlistenermodifier.h" />
+    <ClInclude Include="bsspeedsamplermodifier.h" />
+    <ClInclude Include="bssynchronizedclipgenerator.h" />
+    <ClInclude Include="bstimermodifier.h" />
+    <ClInclude Include="bstweenermodifier.h" />
+    <ClInclude Include="Global-Addon.h" />
+    <ClInclude Include="Global.h" />
+    <ClInclude Include="Global-Type.h" />
+    <ClInclude Include="hkbattachmentmodifier.h" />
+    <ClInclude Include="hkbattributemodifier.h" />
+    <ClInclude Include="hkbbehaviorreferencegenerator.h" />
+    <ClInclude Include="hkbblendergenerator.h" />
+    <ClInclude Include="hkbblendergeneratorchild.h" />
+    <ClInclude Include="hkbblendingtransitioneffect.h" />
+    <ClInclude Include="hkbboneindexarray.h" />
+    <ClInclude Include="hkbboneweightarray.h" />
+    <ClInclude Include="hkbclipgenerator.h" />
+    <ClInclude Include="hkbcliptriggerarray.h" />
+    <ClInclude Include="hkbcombinetransformsmodifier.h" />
+    <ClInclude Include="hkbcomputedirectionmodifier.h" />
+    <ClInclude Include="hkbcomputerotationfromaxisanglemodifier.h" />
+    <ClInclude Include="hkbcomputerotationtotargetmodifier.h" />
+    <ClInclude Include="hkbdampingmodifier.h" />
+    <ClInclude Include="hkbdelayedmodifier.h" />
+    <ClInclude Include="hkbdetectclosetogroundmodifier.h" />
+    <ClInclude Include="hkbevaluateexpressionmodifier.h" />
+    <ClInclude Include="hkbevaluatehandlemodifier.h" />
+    <ClInclude Include="hkbeventdrivenmodifier.h" />
+    <ClInclude Include="hkbeventrangedataarray.h" />
+    <ClInclude Include="hkbeventsfromrangemodifier.h" />
+    <ClInclude Include="hkbexpressioncondition.h" />
+    <ClInclude Include="hkbexpressiondataarray.h" />
+    <ClInclude Include="hkbextractragdollposemodifier.h" />
+    <ClInclude Include="hkbfootikcontrolsmodifier.h" />
+    <ClInclude Include="hkbgethandleonbonemodifier.h" />
+    <ClInclude Include="hkbgetupmodifier.h" />
+    <ClInclude Include="hkbgetworldfrommodelmodifier.h" />
+    <ClInclude Include="hkbhandikcontrolsmodifier.h" />
+    <ClInclude Include="hkbkeyframebonesmodifier.h" />
+    <ClInclude Include="hkblookatmodifier.h" />
+    <ClInclude Include="hkbmanualselectorgenerator.h" />
+    <ClInclude Include="hkbmirrormodifier.h" />
+    <ClInclude Include="hkbmodifiergenerator.h" />
+    <ClInclude Include="hkbmodifierlist.h" />
+    <ClInclude Include="hkbmovecharactermodifier.h" />
+    <ClInclude Include="hkbpoweredragdollcontrolmodifier.h" />
+    <ClInclude Include="hkbproxymodifier.h" />
+    <ClInclude Include="hkbrigidbodyragdollcontrolsmodifier.h" />
+    <ClInclude Include="hkbrotatecharactermodifier.h" />
+    <ClInclude Include="hkbsensehandlemodifier.h" />
+    <ClInclude Include="hkbtimermodifier.h" />
+    <ClInclude Include="hkbtransformvectormodifier.h" />
+    <ClInclude Include="hkbtwistmodifier.h" />
+    <ClInclude Include="hkrootlevelcontainer.h" />
+    <ClInclude Include="hkbbehaviorgraphdata.h" />
+    <ClInclude Include="hkbbehaviorgraphstringdata.h" />
+    <ClInclude Include="hkbstatemachineeventpropertyarray.h" />
+    <ClInclude Include="hkbstatemachinestateinfo.h" />
+    <ClInclude Include="hkbstatemachinetransitioninfoarray.h" />
+    <ClInclude Include="hkbstringeventpayload.h" />
+    <ClInclude Include="hkbvariablebindingset.h" />
+    <ClInclude Include="hkbstatemachine.h" />
+    <ClInclude Include="hkbbehaviorgraph.h" />
+    <ClInclude Include="hkbvariablevalueset.h" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
