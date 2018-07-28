@@ -19,9 +19,10 @@ hkbmanualselectorgenerator::hkbmanualselectorgenerator(string filepath, string i
 			nonCompare(filepath, id);
 		}
 	}
-	else
+	else if (!Error)
 	{
 		string dummyID = CrossReferencing(id, address, functionlayer, compare);
+
 		if (compare)
 		{
 			Dummy(dummyID);
@@ -41,7 +42,6 @@ hkbmanualselectorgenerator::hkbmanualselectorgenerator(string filepath, string i
 		else
 		{
 			IsNegated = true;
-
 			address = region[id];
 		}
 	}
@@ -55,7 +55,6 @@ void hkbmanualselectorgenerator::nonCompare(string filepath, string id)
 	}
 
 	unordered_map<string, bool> IsReferenceExist;
-	vector<string> storeline;
 	string line;
 	bool pauseline = false;
 
@@ -63,7 +62,7 @@ void hkbmanualselectorgenerator::nonCompare(string filepath, string id)
 	{
 		usize size = FunctionLineOriginal[id].size();
 
-		for (int i = 0; i < size; i++)
+		for (usize i = 0; i < size; i++)
 		{
 			line = FunctionLineOriginal[id][i];
 
@@ -73,17 +72,20 @@ void hkbmanualselectorgenerator::nonCompare(string filepath, string id)
 				{
 					usize tempint = 0;
 					usize size = count(line.begin(), line.end(), '#');
+
 					for (unsigned int i = 0; i < size; i++)
 					{
-						int position = line.find("#", tempint);
+						usize position = line.find("#", tempint);
 						tempint = line.find("#", position + 1);
 						string tempgenerator = line.substr(position, tempint - position - 1);
 						generator.push_back(tempgenerator);
+
 						if (!IsReferenceExist[tempgenerator])
 						{
 							referencingIDs[tempgenerator].push_back(id);
 							IsReferenceExist[tempgenerator] = true;
 						}
+
 						parent[tempgenerator] = id;
 					}
 				}
@@ -94,24 +96,24 @@ void hkbmanualselectorgenerator::nonCompare(string filepath, string id)
 				{
 					children = stoi(line.substr(43, line.length() - 45));
 					generator.reserve(children);
+					elements[id + "T"] = children;
 					pauseline = true;
 				}
 				else if (line.find("<hkparam name=\"variableBindingSet\">", 0) != string::npos)
 				{
 					variablebindingset = line.substr(38, line.find("</hkparam>") - 38);
+
 					if (variablebindingset != "null")
 					{
+						parent[variablebindingset] = id;
 						referencingIDs[variablebindingset].push_back(id);
 					}
-					parent[variablebindingset] = id;
 				}
 				else if (line.find("<hkparam name=\"name\">", 0) != string::npos)
 				{
 					name = line.substr(24, line.find("</hkparam>") - 24);
 				}
 			}
-
-			storeline.push_back(line);
 		}
 	}
 	else
@@ -120,21 +122,7 @@ void hkbmanualselectorgenerator::nonCompare(string filepath, string id)
 		Error = true;
 	}
 
-	ofstream output("temp/" + id + ".txt");
-	if (output.is_open())
-	{
-		for (unsigned int i = 0; i < storeline.size(); i++)
-		{
-			output << storeline[i] << "\n";
-		}
-		output.close();
-	}
-	else
-	{
-		cout << "ERROR: hkbManualSelectorGenerator Outputfile(File: " << filepath << ", ID: " << id << ")" << endl;
-		Error = true;
-	}
-
+	FunctionLineTemp[id] = FunctionLineOriginal[id];
 	RecordID(id, address); // record address for compare purpose and idcount without updating referenceID
 
 	address = name + "(m" + to_string(regioncount[name]) + ")=>";
@@ -164,7 +152,7 @@ void hkbmanualselectorgenerator::Compare(string filepath, string id)
 	{
 		usize size = FunctionLineEdited[id].size();
 
-		for (int i = 0; i < size; i++)
+		for (usize i = 0; i < size; i++)
 		{
 			line = FunctionLineEdited[id][i];
 
@@ -179,9 +167,10 @@ void hkbmanualselectorgenerator::Compare(string filepath, string id)
 				{
 					int curgen = 1;
 					usize size = count(line.begin(), line.end(), '#');
+
 					for (unsigned int i = 0; i < size; i++)
 					{
-						int position = 0;
+						usize position = 0;
 						usize tempint = 0;
 
 						for (int j = 0; j < curgen; j++)
@@ -223,6 +212,7 @@ void hkbmanualselectorgenerator::Compare(string filepath, string id)
 				else if (line.find("<hkparam name=\"variableBindingSet\">", 0) != string::npos)
 				{
 					variablebindingset = line.substr(38, line.find("</hkparam>") - 38);
+
 					if (variablebindingset != "null")
 					{
 						if (!exchangeID[variablebindingset].empty())
@@ -231,6 +221,7 @@ void hkbmanualselectorgenerator::Compare(string filepath, string id)
 							variablebindingset = exchangeID[variablebindingset];
 							line.replace(tempint, line.find("</hkparam>") - tempint, variablebindingset);
 						}
+
 						parent[variablebindingset] = id;
 						referencingIDs[variablebindingset].push_back(id);
 					}
@@ -250,17 +241,16 @@ void hkbmanualselectorgenerator::Compare(string filepath, string id)
 	if (IsOldFunction(filepath, id, address)) // is this new function or old
 	{
 		IsForeign[id] = false;
-
 		string tempid;
-		if (!addressChange[address].empty())
+
+		if (addressChange.find(address) != addressChange.end())
 		{
-			tempid = addressID[addressChange[address]];
+			tempaddress = addressChange[address];
 			addressChange.erase(addressChange.find(address));
+			address = tempaddress;
 		}
-		else
-		{
-			tempid = addressID[address];
-		}
+
+		tempid = addressID[address];
 		elements[tempid] = children;
 		exchangeID[id] = tempid;
 
@@ -273,31 +263,17 @@ void hkbmanualselectorgenerator::Compare(string filepath, string id)
 		{
 			referencingIDs[variablebindingset].pop_back();
 			referencingIDs[variablebindingset].push_back(tempid);
+			parent[variablebindingset] = tempid;
 		}
 
 		for (unsigned int i = 0; i < generator.size(); i++)
 		{
 			referencingIDs[generator[i]].pop_back();
 			referencingIDs[generator[i]].push_back(tempid);
+			parent[generator[i]] = tempid;
 		}
 
-		string inputfile = "temp/" + tempid + ".txt";
-		vector<string> storeline;
-		storeline.reserve(FileLineCount(inputfile));
-		ifstream input(inputfile);
-		if (input.is_open())
-		{
-			while (getline(input, line))
-			{
-				storeline.push_back(line);
-			}
-			input.close();
-		}
-		else
-		{
-			cout << "ERROR: hkbManualSelectorGenerator Inputfile(File: " << filepath << ", newID: " << id << ", oldID: " << tempid << ")" << endl;
-			Error = true;
-		}
+		vector<string> storeline = FunctionLineTemp[tempid];
 
 		// stage 3
 		int curline = 1;
@@ -313,8 +289,15 @@ void hkbmanualselectorgenerator::Compare(string filepath, string id)
 			{
 				if ((newline[i].find("<hkparam name=\"generators\" numelements=", 0) != string::npos) && (newline[i].find(storeline[curline], 0) == string::npos))
 				{
-					IsNewChild = true;
+					int numelement1 = stoi(boost::regex_replace(string(newline[i]), boost::regex("[^0-9]*([0-9]+).*"), string("\\1")));
+					int numelement2 = stoi(boost::regex_replace(string(storeline[curline]), boost::regex("[^0-9]*([0-9]+).*"), string("\\1")));
+
+					if (numelement1 != numelement2)
+					{
+						IsNewChild = true;
+					}
 				}
+
 				newstoreline.push_back(newline[i]);
 				curline++;
 			}
@@ -328,6 +311,7 @@ void hkbmanualselectorgenerator::Compare(string filepath, string id)
 						{
 							newstoreline.push_back(newchild[j]);
 						}
+
 						newstoreline.push_back(newline[i]);
 						curline++;
 					}
@@ -343,7 +327,7 @@ void hkbmanualselectorgenerator::Compare(string filepath, string id)
 
 					if (size < size2)
 					{
-						int position = 0;
+						usize position = 0;
 						usize tempint = 0;
 
 						for (unsigned int j = 0; j < size + 1; j++)
@@ -351,6 +335,7 @@ void hkbmanualselectorgenerator::Compare(string filepath, string id)
 							position = newline[i].find("#", tempint);
 							tempint = newline[i].find("#", position + 1);
 						}
+
 						newstoreline.push_back(newline[i].substr(0, position - 1));
 						newchild.push_back("				" + newline[i].substr(position, -1));
 					}
@@ -369,21 +354,8 @@ void hkbmanualselectorgenerator::Compare(string filepath, string id)
 			}
 		}
 
-		ofstream output("new/" + tempid + ".txt"); // output stored function data
-		if (output.is_open())
-		{
-			for (unsigned int i = 0; i < newstoreline.size(); i++)
-			{
-				output << newstoreline[i] << "\n";
-			}
-			output.close();
-		}
-		else
-		{
-			cout << "ERROR: hkbManualSelectorGenerator Outputfile(File: " << filepath << ", newID: " << id << ", oldID: " << tempid << ")" << endl;
-			Error = true;
-		}
-		
+		FunctionLineNew[tempid] = newstoreline;
+
 		if ((Debug) && (!Error))
 		{
 			cout << "Comparing hkbManualSelectorGenerator(newID: " << id << ") with hkbManualSelectorGenerator(oldID: " << tempid << ") is complete!" << endl;
@@ -394,22 +366,7 @@ void hkbmanualselectorgenerator::Compare(string filepath, string id)
 	else
 	{
 		IsForeign[id] = true;
-
-		ofstream output("new/" + id + ".txt"); // output stored function data
-		if (output.is_open())
-		{
-			for (unsigned int i = 0; i < newline.size(); i++)
-			{
-				output << newline[i] << "\n";
-			}
-			output.close();
-		}
-		else
-		{
-			cout << "ERROR: hkbManualSelectorGenerator Outputfile(File: " << filepath << ", ID: " << id << ")" << endl;
-			Error = true;
-		}
-
+		FunctionLineNew[id] = newline;
 		address = tempaddress;
 	}
 
@@ -428,15 +385,15 @@ void hkbmanualselectorgenerator::Dummy(string id)
 		cout << "--------------------------------------------------------------" << endl << "Dummy hkbManualSelectorGenerator(ID: " << id << ") has been initialized!" << endl;
 	}
 
-	string line;
-	string filepath = "new/" + id + ".txt";
-	ifstream file(filepath);
 	bool pauseline = false;
+	string line;
 
-	if (file.is_open())
+	if (FunctionLineNew[id].size() > 0)
 	{
-		while (getline(file, line))
+		for (unsigned int i = 0; i < FunctionLineNew[id].size(); ++i)
 		{
+			line = FunctionLineNew[id][i];
+
 			if (pauseline)
 			{
 				if (line.find("</hkparam>", 0) != string::npos)
@@ -447,15 +404,18 @@ void hkbmanualselectorgenerator::Dummy(string id)
 				{
 					usize tempint = 0;
 					usize size = count(line.begin(), line.end(), '#');
+
 					for (unsigned int i = 0; i < size; i++)
 					{
-						int position = line.find("#", tempint);
+						usize position = line.find("#", tempint);
 						tempint = line.find("#", position + 1);
 						string tempgenerator = line.substr(position, tempint - position - 1);
+
 						if (!exchangeID[tempgenerator].empty())
 						{
 							tempgenerator = exchangeID[tempgenerator];
 						}
+
 						parent[tempgenerator] = id;
 						generator.push_back(tempgenerator);
 					}
@@ -467,12 +427,14 @@ void hkbmanualselectorgenerator::Dummy(string id)
 				if (line.find("<hkparam name=\"variableBindingSet\">", 0) != string::npos)
 				{
 					variablebindingset = line.substr(38, line.find("</hkparam>") - 38);
+
 					if (variablebindingset != "null")
 					{
 						if (!exchangeID[variablebindingset].empty())
 						{
 							variablebindingset = exchangeID[variablebindingset];
 						}
+
 						parent[variablebindingset] = id;
 					}
 				}
@@ -485,11 +447,10 @@ void hkbmanualselectorgenerator::Dummy(string id)
 				}
 			}
 		}
-		file.close();
 	}
 	else
 	{
-		cout << "ERROR: Dummy hkbManualSelectorGenerator Inputfile(File: " << filepath << ", ID: " << id << ")" << endl;
+		cout << "ERROR: Dummy hkbManualSelectorGenerator Inputfile(ID: " << id << ")" << endl;
 		Error = true;
 	}
 
@@ -536,25 +497,35 @@ bool hkbmanualselectorgenerator::IsBindingNull()
 string hkbmanualselectorgenerator::GetClass(string id, string inputfile)
 {
 	string line;
+	char charline[2000];
 	string classname = "<hkobject name=\"" + id;
-	ifstream input(inputfile);
+	FILE* input;
+	fopen_s(&input, inputfile.c_str(), "r");
 
-	if (input.is_open())
+	if (input)
 	{
-		while (getline(input, line))
+		while (fgets(charline, 2000, input))
 		{
+			if (charline[strlen(charline) - 1] == '\n')
+			{
+				charline[strlen(charline) - 1] = '\0';
+			}
+
+			line = charline;
+
 			if (line.find(classname, 0) != string::npos)
 			{
 				int tempint = line.find("class") + 7;
 				return line.substr(tempint, line.find("signature") - tempint - 2);
 			}
 		}
+
+		fclose(input);
 	}
 	else
 	{
 		cout << "ERROR: GetClass Inputfile(" << id << ", " << inputfile << ")" << endl;
 	}
-	input.close();
 
 	cout << "ERROR: GetClass(" << id << ", " << inputfile << ")" << endl;
 	Error = true;
@@ -572,52 +543,109 @@ bool hkbmanualselectorgenerator::IsNegate()
 	return IsNegated;
 }
 
-void hkbManualSelectorGeneratorExport(string originalfile, string editedfile, string id)
+void hkbManualSelectorGeneratorExport(string id)
 {
 	//stage 1 reading
 	vector<string> storeline1;
+	storeline1.reserve(FunctionLineTemp[id].size());
 	string line;
-	ifstream origfile(originalfile);
 
-	if (origfile.is_open())
+	if (FunctionLineTemp[id].size() > 0)
 	{
-		while (getline(origfile, line))
+		bool start = false;
+
+		for (unsigned int i = 0; i < FunctionLineTemp[id].size(); ++i)
 		{
-			if ((line.find("<hkobject>", 0) == string::npos) && (line.find("</hkobject>", 0) == string::npos) && (line.find("</hkparam>", 0) == string::npos || line.find("</hkparam>", 0) > 10))
+			line = FunctionLineTemp[id][i];
+
+			if (start)
+			{
+				if (line.find("</hkparam>") != string::npos)
+				{
+					start = false;
+				}
+				else
+				{
+					stringstream sstream(line);
+					istream_iterator<string> ssbegin(sstream);
+					istream_iterator<string> ssend;
+					vector<string> curElements(ssbegin, ssend);
+					copy(curElements.begin(), curElements.end(), curElements.begin());
+
+					for (auto& element : curElements)
+					{
+						storeline1.push_back("				" + element);
+					}
+				}
+			}
+			else if ((line.find("<hkobject>", 0) == string::npos) && (line.find("</hkobject>", 0) == string::npos) && (line.find("</hkparam>", 0) == string::npos || line.find("</hkparam>", 0) > 10))
 			{
 				storeline1.push_back(line);
 			}
+
+			if (line.find("numelements=\"") != string::npos)
+			{
+				start = true;
+			}
 		}
-		origfile.close();
 	}
 	else
 	{
-		cout << "ERROR: Edit hkbManualSelectorGenerator Input Not Found (Original File: " << originalfile << ")" << endl;
+		cout << "ERROR: Edit hkbManualSelectorGenerator Input Not Found (ID: " << id << ")" << endl;
 		Error = true;
 	}
 
 	//stage 2 reading and identifying edits
 	vector<string> storeline2;
-	ifstream editfile(editedfile);
+	storeline2.reserve(FunctionLineNew[id].size());
 
-	if (editfile.is_open())
+	if (FunctionLineNew[id].size() > 0)
 	{
-		while (getline(editfile, line))
+		bool start = false;
+
+		for (unsigned int i = 0; i < FunctionLineNew[id].size(); ++i)
 		{
-			if ((line.find("<hkobject>", 0) == string::npos) && (line.find("</hkobject>", 0) == string::npos) && (line.find("</hkparam>", 0) == string::npos || line.find("</hkparam>", 0) > 10))
+			line = FunctionLineNew[id][i];
+
+			if (start)
+			{
+				if (line.find("</hkparam>") != string::npos)
+				{
+					start = false;
+				}
+				else
+				{
+					stringstream sstream(line);
+					istream_iterator<string> ssbegin(sstream);
+					istream_iterator<string> ssend;
+					vector<string> curElements(ssbegin, ssend);
+					copy(curElements.begin(), curElements.end(), curElements.begin());
+
+					for (auto& element : curElements)
+					{
+						storeline2.push_back("				" + element);
+					}
+				}
+			}
+			else if ((line.find("<hkobject>", 0) == string::npos) && (line.find("</hkobject>", 0) == string::npos) && (line.find("</hkparam>", 0) == string::npos || line.find("</hkparam>", 0) > 10))
 			{
 				storeline2.push_back(line);
 			}
+
+			if (line.find("numelements=\"") != string::npos)
+			{
+				start = true;
+			}
 		}
-		editfile.close();
 	}
 	else
 	{
-		cout << "ERROR: Edit hkbManualSelectorGenerator Output Not Found (Edited File: " << editedfile << ")" << endl;
+		cout << "ERROR: Edit hkbManualSelectorGenerator Output Not Found (ID: " << id << ")" << endl;
 		Error = true;
 	}
 
 	vector<string> output;
+	vector<string> oriline;
 	bool open = false;
 	bool IsChanged = false;
 	bool IsEdited = false;
@@ -630,87 +658,78 @@ void hkbManualSelectorGeneratorExport(string originalfile, string editedfile, st
 	{
 		if (storeline1[curline].find("<hkparam name=\"selectedGeneratorIndex\">", 0) == string::npos) // existing variable value
 		{
-			if ((storeline1[curline].find(storeline2[i], 0) != string::npos) && (storeline1[curline].length() == storeline2[i].length()))
-			{
-				if (open)
-				{
-					if (IsChanged)
-					{
-						closepoint = curline;
-						if (closepoint != openpoint)
-						{
-							output.push_back("<!-- ORIGINAL -->");
-							for (int j = openpoint; j < closepoint; j++)
-							{
-								if ((storeline1[j].find("<hkparam name=\"selectedGeneratorIndex\">", 0) != string::npos) && ((j != openpoint) || (IsOpenOut)))
-								{
-									output.push_back("			</hkparam>");
-									IsOpenOut = false;
-								}
-								output.push_back(storeline1[j]);
-							}
-						}
-						IsChanged = false;
-					}
-					output.push_back("<!-- CLOSE -->");
-					open = false;
-				}
-			}
-			else
+			if (storeline2[i].find("<hkparam name=\"selectedGeneratorIndex\">", 0) != string::npos)
 			{
 				if (!open)
 				{
-
 					output.push_back("<!-- MOD_CODE ~" + modcode + "~ OPEN -->");
-					openpoint = curline;
-					IsChanged = true;
 					IsEdited = true;
-					open = true;
 				}
+
+				while (storeline1[curline].find("<hkparam name=\"selectedGeneratorIndex\">", 0) == string::npos)
+				{
+					output.push_back("");
+					oriline.push_back(storeline1[curline]);
+					++curline;
+				}
+				
+				output.push_back("<!-- ORIGINAL -->");
+				output.insert(output.end(), oriline.begin(), oriline.end());
+				output.push_back("<!-- CLOSE -->");
+				oriline.clear();
+				--i;
+				open = false;
 			}
-			curline++;
-		}
-		else
-		{
-			if (storeline2[i].find("<hkparam name=\"selectedGeneratorIndex\">", 0) != string::npos)
+			else
 			{
-				if ((storeline1[curline].find(storeline2[i], 0) != string::npos) && (storeline1[curline].length() == storeline2[i].length()))
+				if (storeline1[curline] == storeline2[i])
 				{
 					if (open)
 					{
-						if (IsChanged)
-						{
-							closepoint = curline;
-							if (closepoint != openpoint)
-							{
-								output.push_back("<!-- ORIGINAL -->");
-								for (int j = openpoint; j < closepoint; j++)
-								{
-									if ((storeline1[j].find("<hkparam name=\"selectedGeneratorIndex\">", 0) != string::npos) && ((j != openpoint) || (IsOpenOut)))
-									{
-										output.push_back("			</hkparam>");
-										IsOpenOut = false;
-									}
-									output.push_back(storeline1[j]);
-								}
-							}
-							IsChanged = false;
-						}
+						output.push_back("<!-- ORIGINAL -->");
+						output.insert(output.end(), oriline.begin(), oriline.end());
 						output.push_back("<!-- CLOSE -->");
+						oriline.clear();
 						open = false;
 					}
+
+					output.push_back(storeline1[curline]);
 				}
 				else
 				{
 					if (!open)
 					{
 						output.push_back("<!-- MOD_CODE ~" + modcode + "~ OPEN -->");
-						openpoint = curline;
-						IsChanged = true;
 						IsEdited = true;
 						open = true;
 					}
+
+					output.push_back(storeline2[i]);
+					oriline.push_back(storeline1[curline]);
 				}
+
+				curline++;
+			}
+		}
+		else
+		{
+			if (storeline2[i].find("<hkparam name=\"selectedGeneratorIndex\">", 0) != string::npos)
+			{
+				output.push_back("			</hkparam>");
+
+				if (storeline1[curline] == storeline2[i])
+				{
+					output.push_back(storeline1[curline]);
+				}
+				else
+				{
+					output.push_back("<!-- MOD_CODE ~" + modcode + "~ OPEN -->");
+					output.push_back(storeline2[i]);
+					oriline.push_back(storeline1[curline]);
+					IsEdited = true;
+					open = true;
+				}
+
 				curline++;
 			}
 			else
@@ -718,88 +737,57 @@ void hkbManualSelectorGeneratorExport(string originalfile, string editedfile, st
 				if (!open)
 				{
 					output.push_back("<!-- MOD_CODE ~" + modcode + "~ OPEN -->");
-					openpoint = curline;
-					IsOpenOut = true;
-					IsChanged = true;
 					IsEdited = true;
-					open = true;
 				}
-			}
-		}
 
-		if (storeline2[i].find("<hkparam name=\"selectedGeneratorIndex\">", 0) != string::npos) // merging with new element or existing data or itself
-		{
-			if (open)
-			{
-				if (output.back().find("OPEN", 0) != string::npos)
+				while (storeline2[i].find("<hkparam name=\"selectedGeneratorIndex\">", 0) == string::npos)
 				{
-					output.pop_back();
-					output.push_back("			</hkparam>");
-					output.push_back("<!-- MOD_CODE ~" + modcode + "~ OPEN -->");
 					output.push_back(storeline2[i]);
+					++i;
 				}
-				else
-				{
-					output.push_back("			</hkparam>");
-					output.push_back(storeline2[i]);
-				}
+
+				output.push_back("<!-- CLOSE -->");
+				oriline.clear();
+				open = false;
+				--i;
 			}
-			else
-			{
-				output.push_back("			</hkparam>");
-				output.push_back(storeline2[i]);
-			}
-		}
-		else
-		{
-			output.push_back(storeline2[i]);
 		}
 	}
 
 	if (open) // close unclosed edits
 	{
-		if (IsChanged)
-		{
-			closepoint = curline;
-			if (closepoint != openpoint)
-			{
-				output.push_back("<!-- ORIGINAL -->");
-				for (int j = openpoint; j < closepoint; j++)
-				{
-					if ((storeline1[j].find("<hkparam name=\"selectedGeneratorIndex\">", 0) != string::npos) && ((j != openpoint) || (IsOpenOut)))
-					{
-						output.push_back("			</hkparam>");
-						IsOpenOut = false;
-					}
-					output.push_back(storeline1[j]);
-				}
-			}
-			IsChanged = false;
-		}
+		output.push_back("<!-- ORIGINAL -->");
+		output.insert(output.end(), oriline.begin(), oriline.end());
 		output.push_back("<!-- CLOSE -->");
+		oriline.clear();
 		open = false;
 	}
 
 	NemesisReaderFormat(output);
 
 	// stage 3 output if it is edited
-	string filename = "cache/" + modcode + "/" + shortFileName + "/" + id + ".txt";
+	string filename = "mod/" + modcode + "/" + shortFileName + "/" + id + ".txt";
+
 	if (IsEdited)
 	{
 		ofstream outputfile(filename);
+
 		if (outputfile.is_open())
 		{
+			FunctionWriter fwrite(&outputfile);
+
 			for (unsigned int i = 0; i < output.size(); i++)
 			{
-				outputfile << output[i] << "\n";
+				fwrite << output[i] << "\n";
 			}
-			outputfile << "		</hkobject>" << "\n";
+
+			fwrite << "		</hkobject>" << "\n";
 			outputfile.close();
 
 		}
 		else
 		{
-			cout << "ERROR: Edit hkbManualSelectorGenerator Output Not Found (New Edited File: " << editedfile << ")" << endl;
+			cout << "ERROR: Edit hkbManualSelectorGenerator Output Not Found (File: " << filename << ")" << endl;
 			Error = true;
 		}
 	}

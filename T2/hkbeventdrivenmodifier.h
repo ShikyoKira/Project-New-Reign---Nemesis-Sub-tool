@@ -31,6 +31,6 @@ private:
 	bool IsNegated = false;
 };
 
-extern void hkbEventDrivenModifierExport(std::string originalfile, std::string editedfile, std::string id);
+extern void hkbEventDrivenModifierExport(std::string id);
 
 #endif

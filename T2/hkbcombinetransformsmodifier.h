@@ -28,6 +28,6 @@ private:
 	bool IsNegated = false;
 };
 
-extern void hkbCombineTransformsModifierExport(std::string originalfile, std::string editedfile, std::string id);
+extern void hkbCombineTransformsModifierExport(std::string id);
 
 #endif

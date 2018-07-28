@@ -28,6 +28,6 @@ private:
 	bool IsNegated = false;
 };
 
-extern void hkbTwistModifierExport(std::string originalfile, std::string editedfile, std::string id);
+extern void hkbTwistModifierExport(std::string id);
 
 #endif

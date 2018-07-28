@@ -32,6 +32,6 @@ private:
 	bool IsNegated = false;
 };
 
-extern void BSDistTriggerModifierExport(std::string originalfile, std::string editedfile, std::string id);
+extern void BSDistTriggerModifierExport(std::string id);
 
 #endif

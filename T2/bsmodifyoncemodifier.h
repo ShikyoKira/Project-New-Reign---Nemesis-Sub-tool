@@ -33,6 +33,6 @@ private:
 	bool IsNegated = false;
 };
 
-extern void BSModifyOnceModifierExport(std::string originalfile, std::string editedfile, std::string id);
+extern void BSModifyOnceModifierExport(std::string id);
 
 #endif

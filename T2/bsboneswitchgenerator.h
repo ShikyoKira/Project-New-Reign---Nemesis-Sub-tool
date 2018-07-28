@@ -29,6 +29,7 @@ public:
 private:
 	std::string address;
 	std::string tempaddress;
+	std::string name;
 	std::vector<std::string> bonedata;
 	std::string variablebindingset;
 	std::string generator;
@@ -36,6 +37,6 @@ private:
 	bool IsNegated = false;
 };
 
-extern void BSBoneSwitchGeneratorExport(std::string originalfile, std::string editedfile, std::string id);
+extern void BSBoneSwitchGeneratorExport(std::string id);
 
 #endif

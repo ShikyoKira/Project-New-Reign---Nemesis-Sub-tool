@@ -28,6 +28,6 @@ private:
 	bool IsNegated = false;
 };
 
-extern void hkbComputeRotationToTargetModifierExport(std::string originalfile, std::string editedfile, std::string id);
+extern void hkbComputeRotationToTargetModifierExport(std::string id);
 
 #endif

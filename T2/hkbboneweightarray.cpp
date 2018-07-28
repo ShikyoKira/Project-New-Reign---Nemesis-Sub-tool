@@ -21,10 +21,30 @@ hkbboneweightarray::hkbboneweightarray(string filepath, string id, string preadd
 	}
 	else if (!Error)
 	{
+		bool statusChange = false;
+
+		if (IsForeign[id])
+		{
+			statusChange = true;
+		}
+
 		string dummyID = CrossReferencing(id, address, functionlayer, compare, true);
+
 		if (compare)
 		{
-			IsNegated = true;
+			if (statusChange)
+			{
+				Dummy(dummyID);
+			}
+
+			if (IsForeign[id])
+			{
+				address = preaddress;
+			}
+			else if (!statusChange)
+			{
+				IsNegated = true;
+			}
 		}
 		else
 		{
@@ -44,27 +64,25 @@ void hkbboneweightarray::nonCompare(string filepath, string id)
 		cout << "--------------------------------------------------------------" << endl << "hkbBoneWeightArray(ID: " << id << ") has been initialized!" << endl;
 	}
 
-	vector<string> storeline;
 	string line;
 
 	if (!FunctionLineOriginal[id].empty())
 	{
 		usize size = FunctionLineOriginal[id].size();
 
-		for (int i = 0; i < size; i++)
+		for (usize i = 0; i < size; ++i)
 		{
 			line = FunctionLineOriginal[id][i];
 
 			if (line.find("<hkparam name=\"variableBindingSet\">", 0) != string::npos)
 			{
 				variablebindingset = line.substr(38, line.find("</hkparam>") - 38);
+
 				if (variablebindingset != "null")
 				{
 					referencingIDs[variablebindingset].push_back(id);
 				}
 			}
-
-			storeline.push_back(line);
 		}
 	}
 	else
@@ -73,21 +91,7 @@ void hkbboneweightarray::nonCompare(string filepath, string id)
 		Error = true;
 	}
 
-	ofstream output("temp/" + id + ".txt");
-	if (output.is_open())
-	{
-		for (unsigned int i = 0; i < storeline.size(); i++)
-		{
-			output << storeline[i] << "\n";
-		}
-		output.close();
-	}
-	else
-	{
-		cout << "ERROR: hkbBoneWeightArray Outputfile(File: " << filepath << ", ID: " << id << ")" << endl;
-		Error = true;
-	}
-
+	FunctionLineTemp[id] = FunctionLineOriginal[id];
 	RecordID(id, address); // record address for compare purpose and idcount without updating referenceID
 
 	if ((Debug) && (!Error))
@@ -111,13 +115,14 @@ void hkbboneweightarray::Compare(string filepath, string id)
 	{
 		usize size = FunctionLineEdited[id].size();
 
-		for (int i = 0; i < size; i++)
+		for (usize i = 0; i < size; ++i)
 		{
 			line = FunctionLineEdited[id][i];
 
 			if (line.find("<hkparam name=\"variableBindingSet\">", 0) != string::npos)
 			{
 				variablebindingset = line.substr(38, line.find("</hkparam>") - 38);
+
 				if (variablebindingset != "null")
 				{
 					if (!exchangeID[variablebindingset].empty())
@@ -126,6 +131,7 @@ void hkbboneweightarray::Compare(string filepath, string id)
 						variablebindingset = exchangeID[variablebindingset];
 						line.replace(tempint, line.find("</hkparam>") - tempint, variablebindingset);
 					}
+
 					parent[variablebindingset] = id;
 					referencingIDs[variablebindingset].push_back(id);
 				}
@@ -143,7 +149,15 @@ void hkbboneweightarray::Compare(string filepath, string id)
 	// stage 2
 	if ((addressID[address] != "") && (!IsForeign[parent[id]])) // is this new function or old for non generator
 	{
-		string tempid = addressID[address];
+		IsForeign[id] = false;
+		string tempid;
+
+		if (addressChange.find(address) != addressChange.end())
+		{
+			address = addressChange[address];
+		}
+
+		tempid = addressID[address];
 		exchangeID[id] = tempid;
 
 		if ((Debug) && (!Error))
@@ -155,32 +169,16 @@ void hkbboneweightarray::Compare(string filepath, string id)
 		{
 			referencingIDs[variablebindingset].pop_back();
 			referencingIDs[variablebindingset].push_back(tempid);
+			parent[variablebindingset] = tempid;
 		}
 
 		ReferenceReplacementExt(id, tempid); // replacing reference in previous functions that is using newID
 
-		string inputfile = "temp/" + tempid + ".txt";
-		vector<string> storeline;
-		storeline.reserve(FileLineCount(inputfile));
-		ifstream input(inputfile); // read old function
-		if (input.is_open())
-		{
-			while (getline(input, line))
-			{
-				storeline.push_back(line);
-			}
-			input.close();
-		}
-		else
-		{
-			cout << "ERROR: hkbBoneWeightArray Inputfile(File: " << filepath << ", newID: " << id << ", oldID: " << tempid << ")" << endl;
-			Error = true;
-		}
+		vector<string> storeline = FunctionLineTemp[tempid];
 
 		// stage 3
 		int curline = 1;
 		vector<string> newstoreline;
-
 		newstoreline.push_back(storeline[0]); // store old function header
 
 		for (unsigned int i = 1; i < newline.size(); i++)
@@ -196,44 +194,17 @@ void hkbboneweightarray::Compare(string filepath, string id)
 			}
 		}
 
-		ofstream output("new/" + tempid + ".txt"); // output stored function data
-		if (output.is_open())
-		{
-			for (unsigned int i = 0; i < newstoreline.size(); i++)
-			{
-				output << newstoreline[i] << "\n";
-			}
-			output.close();
-		}
-		else
-		{
-			cout << "ERROR: hkbBoneWeightArray Outputfile(File: " << filepath << ", newID: " << id << ", oldID: " << tempid << ")" << endl;
-			Error = true;
-		}
+		FunctionLineNew[tempid] = newstoreline;
 
 		if ((Debug) && (!Error))
 		{
 			cout << "Comparing hkbBoneWeightArray(newID: " << id << ") with hkbBoneWeightArray(oldID: " << tempid << ") is complete!" << endl;
 		}
 	}
-
 	else
 	{
-		ofstream output("new/" + id + ".txt"); // output stored function data
-		if (output.is_open())
-		{
-			for (unsigned int i = 0; i < newline.size(); i++)
-			{
-				output << newline[i] << "\n";
-			}
-			output.close();
-		}
-		else
-		{
-			cout << "ERROR: hkbBoneWeightArray Outputfile(File: " << filepath << ", ID: " << id << ")" << endl;
-			Error = true;
-		}
-
+		IsForeign[id] = true;
+		FunctionLineNew[id] = newline;
 		address = tempaddress;
 	}
 
@@ -253,31 +224,34 @@ void hkbboneweightarray::Dummy(string id)
 	}
 
 	string line;
-	string filepath = "new/" + id + ".txt";
-	ifstream file(filepath);
 
-	if (file.is_open())
+	if (FunctionLineNew[id].size() > 0)
 	{
-		while (getline(file, line))
+		for (unsigned int i = 0; i < FunctionLineNew[id].size(); ++i)
 		{
+			line = FunctionLineNew[id][i];
+
 			if (line.find("<hkparam name=\"variableBindingSet\">", 0) != string::npos)
 			{
 				variablebindingset = line.substr(38, line.find("</hkparam>") - 38);
+
 				if (variablebindingset != "null")
 				{
 					if (!exchangeID[variablebindingset].empty())
 					{
 						variablebindingset = exchangeID[variablebindingset];
 					}
+
+					parent[variablebindingset] = id;
 				}
+
 				break;
 			}
 		}
-		file.close();
 	}
 	else
 	{
-		cout << "ERROR: Dummy hkbClipGenerator Inputfile(File: " << filepath << ", ID: " << id << ")" << endl;
+		cout << "ERROR: Dummy hkbClipGenerator Inputfile(ID: " << id << ")" << endl;
 		Error = true;
 	}
 
@@ -316,48 +290,50 @@ bool hkbboneweightarray::IsNegate()
 	return IsNegated;
 }
 
-void hkbBoneWeightArrayExport(string originalfile, string editedfile, string id)
+void hkbBoneWeightArrayExport(string id)
 {
 	//stage 1 reading
 	vector<string> storeline1;
+	storeline1.reserve(FunctionLineTemp[id].size());
 	string line;
-	ifstream origfile(originalfile);
 
-	if (origfile.is_open())
+	if (FunctionLineTemp[id].size() > 0)
 	{
-		while (getline(origfile, line))
+		for (unsigned int i = 0; i < FunctionLineTemp[id].size(); ++i)
 		{
+			line = FunctionLineTemp[id][i];
+
 			if ((line.find("<hkobject>", 0) == string::npos) && (line.find("</hkobject>", 0) == string::npos) && (line.find("</hkparam>", 0) == string::npos || line.find("</hkparam>", 0) > 10))
 			{
 				storeline1.push_back(line);
 			}
 		}
-		origfile.close();
 	}
 	else
 	{
-		cout << "ERROR: Edit hkbBoneWeightArray Input Not Found (Original File: " << originalfile << ")" << endl;
+		cout << "ERROR: Edit hkbBoneWeightArray Input Not Found (ID: " << id << ")" << endl;
 		Error = true;
 	}
 
 	//stage 2 reading and identifying edits
 	vector<string> storeline2;
-	ifstream editfile(editedfile);
+	storeline2.reserve(FunctionLineNew[id].size());
 
-	if (editfile.is_open())
+	if (FunctionLineNew[id].size() > 0)
 	{
-		while (getline(editfile, line))
+		for (unsigned int i = 0; i < FunctionLineNew[id].size(); ++i)
 		{
+			line = FunctionLineNew[id][i];
+
 			if ((line.find("<hkobject>", 0) == string::npos) && (line.find("</hkobject>", 0) == string::npos) && (line.find("</hkparam>", 0) == string::npos || line.find("</hkparam>", 0) > 10))
 			{
 				storeline2.push_back(line);
 			}
 		}
-		editfile.close();
 	}
 	else
 	{
-		cout << "ERROR: Edit hkbBoneWeightArray Output Not Found (Edited File: " << editedfile << ")" << endl;
+		cout << "ERROR: Edit hkbBoneWeightArray Output Not Found (ID: " << id << ")" << endl;
 		Error = true;
 	}
 
@@ -380,16 +356,20 @@ void hkbBoneWeightArrayExport(string originalfile, string editedfile, string id)
 					if (IsChanged)
 					{
 						closepoint = curline;
+
 						if (closepoint != openpoint)
 						{
 							output.push_back("<!-- ORIGINAL -->");
+
 							for (int j = openpoint; j < closepoint; j++)
 							{
 								output.push_back(storeline1[j]);
 							}
 						}
+
 						IsChanged = false;
 					}
+
 					output.push_back("<!-- CLOSE -->");
 					open = false;
 				}
@@ -405,6 +385,7 @@ void hkbBoneWeightArrayExport(string originalfile, string editedfile, string id)
 					open = true;
 				}
 			}
+
 			output.push_back(storeline2[i]);
 			curline++;
 		}
@@ -427,16 +408,20 @@ void hkbBoneWeightArrayExport(string originalfile, string editedfile, string id)
 		if (IsChanged)
 		{
 			closepoint = curline;
+
 			if (closepoint != openpoint)
 			{
 				output.push_back("<!-- ORIGINAL -->");
+
 				for (int j = openpoint; j < closepoint; j++)
 				{
 					output.push_back(storeline1[j]);
 				}
 			}
+
 			IsChanged = false;
 		}
+
 		output.push_back("<!-- CLOSE -->");
 		open = false;
 	}
@@ -444,24 +429,28 @@ void hkbBoneWeightArrayExport(string originalfile, string editedfile, string id)
 	NemesisReaderFormat(output);
 
 	// stage 3 output if it is edited
-	string filename = "cache/" + modcode + "/" + shortFileName + "/" + id + ".txt";
+	string filename = "mod/" + modcode + "/" + shortFileName + "/" + id + ".txt";
+
 	if (IsEdited)
 	{
 		ofstream outputfile(filename);
+
 		if (outputfile.is_open())
 		{
+			FunctionWriter fwrite(&outputfile);
+
 			for (unsigned int i = 0; i < output.size(); i++)
 			{
-				outputfile << output[i] << "\n";
+				fwrite << output[i] << "\n";
 			}
-			outputfile << "			</hkparam>" << "\n";
-			outputfile << "		</hkobject>" << "\n";
-			outputfile.close();
 
+			fwrite << "			</hkparam>\n";
+			fwrite << "		</hkobject>\n";
+			outputfile.close();
 		}
 		else
 		{
-			cout << "ERROR: Edit hkbBoneWeightArray Output Not Found (New Edited File: " << editedfile << ")" << endl;
+			cout << "ERROR: Edit hkbBoneWeightArray Output Not Found (File: " << filename << ")" << endl;
 			Error = true;
 		}
 	}

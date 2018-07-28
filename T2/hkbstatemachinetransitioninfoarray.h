@@ -5,6 +5,8 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
+#include <map>
+#include <memory>
 
 struct hkbstatemachinetransitioninfoarray
 {
@@ -32,6 +34,6 @@ private:
 	bool IsNegated = false;
 };
 
-extern void hkbStateMachineTransitionInfoArrayExport(std::string originalfile, std::string editedfile, std::string id);
+extern void hkbStateMachineTransitionInfoArrayExport(std::string id);
 
 #endif

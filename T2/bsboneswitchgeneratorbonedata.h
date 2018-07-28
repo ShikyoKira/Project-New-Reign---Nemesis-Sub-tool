@@ -34,6 +34,6 @@ private:
 	bool IsNegated = false;
 };
 
-extern void BSBoneSwitchGeneratorBoneDataExport(std::string originalfile, std::string editedfile, std::string id);
+extern void BSBoneSwitchGeneratorBoneDataExport(std::string id);
 
 #endif

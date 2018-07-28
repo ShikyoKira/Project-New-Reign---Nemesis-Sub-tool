@@ -21,10 +21,30 @@ hkbstringeventpayload::hkbstringeventpayload(string filepath, string id, string 
 	}
 	else if (!Error)
 	{
+		bool statusChange = false;
+
+		if (IsForeign[id])
+		{
+			statusChange = true;
+		}
+
 		string dummyID = CrossReferencing(id, address, functionlayer, compare, true);
+
 		if (compare)
 		{
-			IsNegated = true;
+			if (statusChange)
+			{
+				Dummy(dummyID);
+			}
+
+			if (IsForeign[id])
+			{
+				address = preaddress;
+			}
+			else if (!statusChange)
+			{
+				IsNegated = true;
+			}
 		}
 		else
 		{
@@ -47,38 +67,13 @@ void hkbstringeventpayload::nonCompare(string filepath, string id)
 	vector<string> storeline;
 	string line;
 
-	if (!FunctionLineOriginal[id].empty())
-	{
-		usize size = FunctionLineOriginal[id].size();
-
-		for (int i = 0; i < size; i++)
-		{
-			line = FunctionLineOriginal[id][i];
-
-			storeline.push_back(line);
-		}
-	}
-	else
+	if (FunctionLineOriginal[id].empty())
 	{
 		cout << "ERROR: hkbStringEventPayload Inputfile(File: " << filepath << ", ID: " << id << ")" << endl;
 		Error = true;
 	}
 
-	ofstream output("temp/" + id + ".txt");
-	if (output.is_open())
-	{
-		for (unsigned int i = 0; i < storeline.size(); i++)
-		{
-			output << storeline[i] << "\n";
-		}
-		output.close();
-	}
-	else
-	{
-		cout << "ERROR: hkbStringEventPayload Outputfile(File: " << filepath << ", ID: " << id << ")" << endl;
-		Error = true;
-	}
-
+	FunctionLineTemp[id] = FunctionLineOriginal[id];
 	RecordID(id, address); // record address for compare purpose and idcount without updating referenceID
 
 	if ((Debug) && (!Error))
@@ -95,21 +90,7 @@ void hkbstringeventpayload::Compare(string filepath, string id)
 	}
 
 	// stage 1
-	vector<string> newline;
-	string line;
-
-	if (!FunctionLineEdited[id].empty())
-	{
-		usize size = FunctionLineEdited[id].size();
-
-		for (int i = 0; i < size; i++)
-		{
-			line = FunctionLineEdited[id][i];
-			
-			newline.push_back(line);
-		}
-	}
-	else
+	if (FunctionLineEdited[id].empty())
 	{
 		cout << "ERROR: hkbStringEventPayload Inputfile(File: " << filepath << ", ID: " << id << ")" << endl;
 		Error = true;
@@ -119,8 +100,16 @@ void hkbstringeventpayload::Compare(string filepath, string id)
 	if ((addressID[address] != "") && (!IsForeign[parent[id]])) // is this new function or old for non generator
 	{
 		IsForeign[id] = false;
+		string tempid;
 
-		string tempid = addressID[address];
+		if (addressChange.find(address) != addressChange.end())
+		{
+			tempaddress = addressChange[address];
+			addressChange.erase(addressChange.find(address));
+			address = tempaddress;
+		}
+
+		tempid = addressID[address];
 		exchangeID[id] = tempid;
 
 		if ((Debug) && (!Error))
@@ -130,39 +119,16 @@ void hkbstringeventpayload::Compare(string filepath, string id)
 
 		ReferenceReplacementExt(id, tempid); // replacing reference in previous functions that is using newID
 
-		string inputfile = "temp/" + tempid + ".txt";
-		vector<string> storeline;
-		storeline.reserve(FileLineCount(inputfile));
-		ifstream input(inputfile); // read old function
-		if (input.is_open())
 		{
-			while (getline(input, line))
-			{
-				storeline.push_back(line);
-			}
-			input.close();
-		}
-		else
-		{
-			cout << "ERROR: hkbStringEventPayload Inputfile(File: " << filepath << ", newID: " << id << ", oldID: " << tempid << ")" << endl;
-			Error = true;
+			vector<string> emptyVS;
+			FunctionLineNew[tempid] = emptyVS;
 		}
 
-		// stage 3
-		ofstream output("new/" + tempid + ".txt"); // output stored function data
-		if (output.is_open())
+		FunctionLineNew[tempid].push_back(FunctionLineTemp[tempid][0]);
+
+		for (unsigned int i = 1; i < FunctionLineEdited[id].size(); i++)
 		{
-			output << storeline[0] << "\n";
-			for (unsigned int i = 1; i < newline.size(); i++)
-			{
-				output << newline[i] << "\n";
-			}
-			output.close();
-		}
-		else
-		{
-			cout << "ERROR: hkbStringEventPayload Outputfile(File: " << filepath << ", newID: " << id << ", oldID: " << tempid << ")" << endl;
-			Error = true;
+			FunctionLineNew[tempid].push_back(FunctionLineEdited[id][i]);
 		}
 
 		if ((Debug) && (!Error))
@@ -170,26 +136,10 @@ void hkbstringeventpayload::Compare(string filepath, string id)
 			cout << "Comparing hkbStringEventPayload(newID: " << id << ") with hkbStringEventPayload(oldID: " << tempid << ") is complete!" << endl;
 		}
 	}
-
 	else
 	{
 		IsForeign[id] = true;
-
-		ofstream output("new/" + id + ".txt"); // output stored function data
-		if (output.is_open())
-		{
-			for (unsigned int i = 0; i < newline.size(); i++)
-			{
-				output << newline[i] << "\n";
-			}
-			output.close();
-		}
-		else
-		{
-			cout << "ERROR: hkbStringEventPayload Outputfile(File: " << filepath << ", ID: " << id << ")" << endl;
-			Error = true;
-		}
-
+		FunctionLineNew[id] = FunctionLineEdited[id];
 		address = tempaddress;
 	}
 
@@ -208,16 +158,9 @@ void hkbstringeventpayload::Dummy(string id)
 		cout << "--------------------------------------------------------------" << endl << "Dummy hkbStringEventPayload(ID: " << id << ") has been initialized!" << endl;
 	}
 
-	string filepath = "new/" + id + ".txt";
-	ifstream file(filepath);
-
-	if (file.is_open())
+	if (FunctionLineNew[id].empty())
 	{
-		file.close();
-	}
-	else
-	{
-		cout << "ERROR: Dummy hkbStringEventPayload Inputfile(File: " << filepath << ", ID: " << id << ")" << endl;
+		cout << "ERROR: Dummy hkbStringEventPayload Inputfile(ID: " << id << ")" << endl;
 		Error = true;
 	}
 
@@ -239,51 +182,19 @@ bool hkbstringeventpayload::IsNegate()
 	return IsNegated;
 }
 
-void hkbStringEventPayloadExport(string originalfile, string editedfile, string id)
+void hkbStringEventPayloadExport(string id)
 {
 	// stage 1 reading
-	vector<string> storeline1;
-	ifstream origfile(originalfile);
-	string line;
+	vector<string> storeline1 = FunctionLineTemp[id];
 
-	if (origfile.is_open())
-	{
-		while (getline(origfile, line))
-		{
-			storeline1.push_back(line);
-		}
-		origfile.close();
-	}
-	else
-	{
-		cout << "ERROR: Edit hkbStringEventPayload Input Not Found (Original File: " << originalfile << ")" << endl;
-		Error = true;
-		return;
-	}
-
-	vector<string> storeline2;
-	ifstream editfile(editedfile);
-
-	if (editfile.is_open())
-	{
-		while (getline(editfile, line))
-		{
-			storeline2.push_back(line);
-		}
-		editfile.close();
-	}
-	else
-	{
-		cout << "ERROR: Edit hkbStringEventPayload Output Not Found (Edited File: " << editedfile << ")" << endl;
-		Error = true;
-		return;
-	}
+	vector<string> storeline2 = FunctionLineNew[id];
 
 	// stage 2 identify edits
 	vector<string> output;
 	bool IsEdited = false;
 
 	output.push_back(storeline2[0]);
+
 	if ((storeline1[1].find(storeline2[1], 0) == string::npos) || (storeline1[1].length() != storeline2[1].length()))
 	{
 		output.push_back("<!-- MOD_CODE ~" + modcode + "~ OPEN -->");
@@ -293,25 +204,30 @@ void hkbStringEventPayloadExport(string originalfile, string editedfile, string 
 		output.push_back("<!-- CLOSE -->");
 		IsEdited = true;
 	}
+
 	output.push_back(storeline2[2]);
 
 	// stage 3 output if it is edited
-	string filename = "cache/" + modcode + "/" + shortFileName + "/" + id + ".txt";
+	string filename = "mod/" + modcode + "/" + shortFileName + "/" + id + ".txt";
 
 	if (IsEdited)
 	{
 		ofstream outputfile(filename);
+
 		if (outputfile.is_open())
 		{
+			FunctionWriter fwrite(&outputfile);
+
 			for (unsigned int i = 0; i < output.size(); i++)
 			{
-				outputfile << output[i] << "\n";
+				fwrite << output[i] << "\n";
 			}
+
 			outputfile.close();
 		}
 		else
 		{
-			cout << "ERROR: Edit hkbStringEventPayload Output Not Found (New Edited File: " << editedfile << ")" << endl;
+			cout << "ERROR: Edit hkbStringEventPayload Output Not Found (New Edited File: " << filename << ")" << endl;
 			Error = true;
 			return;
 		}

@@ -15,6 +15,12 @@ public:
 	void Compare(std::string filepath, std::string id);
 	void Dummy(std::string id);
 
+	std::string GetBone();
+	bool IsBoneNull();
+
+	std::string GetBoneWeight();
+	bool IsBoneWeightNull();
+
 	std::string GetVariableBindingSet();
 	bool IsBindingNull();
 
@@ -25,9 +31,11 @@ private:
 	std::string address;
 	std::string tempaddress;
 	std::string variablebindingset;
+	std::string bone;
+	std::string boneweight;
 	bool IsNegated = false;
 };
 
-extern void hkbPoweredRagdollControlsModifierExport(std::string originalfile, std::string editedfile, std::string id);
+extern void hkbPoweredRagdollControlsModifierExport(std::string id);
 
 #endif

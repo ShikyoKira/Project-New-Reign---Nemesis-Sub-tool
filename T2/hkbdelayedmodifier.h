@@ -31,6 +31,6 @@ private:
 	bool IsNegated = false;
 };
 
-extern void hkbDelayedModifierExport(std::string originalfile, std::string editedfile, std::string id);
+extern void hkbDelayedModifierExport(std::string id);
 
 #endif

@@ -38,6 +38,6 @@ private:
 	bool IsNegated = false;
 };
 
-extern void hkbStateMachineStateInfoExport(std::string originalfile, std::string editedfile, std::string id);
+extern void hkbStateMachineStateInfoExport(std::string id);
 
 #endif

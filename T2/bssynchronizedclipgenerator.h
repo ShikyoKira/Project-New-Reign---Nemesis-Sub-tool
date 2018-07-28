@@ -30,6 +30,6 @@ private:
 	bool IsNegated = false;
 };
 
-extern void BSSynchronizedClipGeneratorExport(std::string originalfile, std::string editedfile, std::string id);
+extern void BSSynchronizedClipGeneratorExport(std::string id);
 
 #endif

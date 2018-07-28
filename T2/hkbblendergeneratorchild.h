@@ -34,6 +34,6 @@ private:
 	bool IsNegated = false;
 };
 
-extern void hkbBlenderGeneratorChildExport(std::string originalfile, std::string editedfile, std::string id);
+extern void hkbBlenderGeneratorChildExport(std::string id);
 
 #endif

@@ -28,6 +28,6 @@ private:
 	bool IsNegated = false;
 };
 
-extern void BSIsActiveModifierExport(std::string originalfile, std::string editedfile, std::string id);
+extern void BSIsActiveModifierExport(std::string id);
 
 #endif

@@ -28,6 +28,6 @@ private:
 	bool IsNegated = false;
 };
 
-extern void hkbProxyModifierExport(std::string originalfile, std::string editedfile, std::string id);
+extern void hkbProxyModifierExport(std::string id);
 
 #endif

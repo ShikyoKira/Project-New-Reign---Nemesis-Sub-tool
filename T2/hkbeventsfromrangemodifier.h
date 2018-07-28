@@ -32,6 +32,6 @@ private:
 	bool IsNegated = false;
 };
 
-extern void hkbEventsFromRangeModifierExport(std::string originalfile, std::string editedfile, std::string id);
+extern void hkbEventsFromRangeModifierExport(std::string id);
 
 #endif

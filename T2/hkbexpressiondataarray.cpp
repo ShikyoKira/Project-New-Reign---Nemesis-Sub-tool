@@ -19,12 +19,32 @@ hkbexpressiondataarray::hkbexpressiondataarray(string filepath, string id, strin
 			nonCompare(filepath, id);
 		}
 	}
-	else
+	else if (!Error)
 	{
+		bool statusChange = false;
+
+		if (IsForeign[id])
+		{
+			statusChange = true;
+		}
+
 		string dummyID = CrossReferencing(id, address, functionlayer, compare, true);
+
 		if (compare)
 		{
-			IsNegated = true;
+			if (statusChange)
+			{
+				Dummy(dummyID);
+			}
+
+			if (IsForeign[id])
+			{
+				address = preaddress;
+			}
+			else if (!statusChange)
+			{
+				IsNegated = true;
+			}
 		}
 		else
 		{
@@ -40,38 +60,15 @@ void hkbexpressiondataarray::nonCompare(string filepath, string id)
 		cout << "--------------------------------------------------------------" << endl << "hkbExpressionDataArray(ID: " << id << ") has been initialized!" << endl;
 	}
 
-	vector<string> storeline;
 	string line;
 
 	if (!FunctionLineOriginal[id].empty())
 	{
-		usize size = FunctionLineOriginal[id].size();
-
-		for (int i = 0; i < size; i++)
-		{
-			line = FunctionLineOriginal[id][i];
-			
-			storeline.push_back(line);
-		}
+		FunctionLineTemp[id] = FunctionLineOriginal[id];
 	}
 	else
 	{
 		cout << "ERROR: hkbExpressionDataArray Inputfile(File: " << filepath << ", ID: " << id << ")" << endl;
-		Error = true;
-	}
-
-	ofstream output("temp/" + id + ".txt");
-	if (output.is_open())
-	{
-		for (unsigned int i = 0; i < storeline.size(); i++)
-		{
-			output << storeline[i] << "\n";
-		}
-		output.close();
-	}
-	else
-	{
-		cout << "ERROR: hkbExpressionDataArray Outputfile(File: " << filepath << ", ID: " << id << ")" << endl;
 		Error = true;
 	}
 
@@ -91,21 +88,9 @@ void hkbexpressiondataarray::Compare(string filepath, string id)
 	}
 
 	// stage 1
-	vector<string> newline;
 	string line;
 
-	if (!FunctionLineEdited[id].empty())
-	{
-		usize size = FunctionLineEdited[id].size();
-
-		for (int i = 0; i < size; i++)
-		{
-			line = FunctionLineEdited[id][i];
-
-			newline.push_back(line);
-		}
-	}
-	else
+	if (FunctionLineEdited[id].empty())
 	{
 		cout << "ERROR: hkbExpressionDataArray Inputfile(File: " << filepath << ", ID: " << id << ")" << endl;
 		Error = true;
@@ -115,8 +100,16 @@ void hkbexpressiondataarray::Compare(string filepath, string id)
 	if ((addressID[address] != "") && (!IsForeign[parent[id]])) // is this new function or old for non generator
 	{
 		IsForeign[id] = false;
+		string tempid;
 
-		string tempid = addressID[address];
+		if (addressChange.find(address) != addressChange.end())
+		{
+			tempaddress = addressChange[address];
+			addressChange.erase(addressChange.find(address));
+			address = tempaddress;
+		}
+
+		tempid = addressID[address];
 		exchangeID[id] = tempid;
 
 		if ((Debug) && (!Error))
@@ -126,39 +119,16 @@ void hkbexpressiondataarray::Compare(string filepath, string id)
 
 		ReferenceReplacementExt(id, tempid); // replacing reference in previous functions that is using newID
 
-		string inputfile = "temp/" + tempid + ".txt";
-		vector<string> storeline;
-		storeline.reserve(FileLineCount(inputfile));
-		ifstream input(inputfile); // read old function
-		if (input.is_open())
 		{
-			while (getline(input, line))
-			{
-				storeline.push_back(line);
-			}
-			input.close();
-		}
-		else
-		{
-			cout << "ERROR: hkbExpressionDataArray Inputfile(File: " << filepath << ", newID: " << id << ", oldID: " << tempid << ")" << endl;
-			Error = true;
+			vector<string> emptyVS;
+			FunctionLineNew[tempid] = emptyVS;
 		}
 
-		// stage 3
-		ofstream output("new/" + tempid + ".txt"); // output stored function data
-		if (output.is_open())
+		FunctionLineNew[tempid].push_back(FunctionLineTemp[tempid][0]);
+
+		for (unsigned int i = 1; i < FunctionLineEdited[id].size(); i++)
 		{
-			output << storeline[0] << "\n";
-			for (unsigned int i = 1; i < newline.size(); i++)
-			{
-				output << newline[i] << "\n";
-			}
-			output.close();
-		}
-		else
-		{
-			cout << "ERROR: hkbExpressionDataArray Outputfile(File: " << filepath << ", newID: " << id << ", oldID: " << tempid << ")" << endl;
-			Error = true;
+			FunctionLineNew[tempid].push_back(FunctionLineEdited[id][i]);
 		}
 
 		if ((Debug) && (!Error))
@@ -166,26 +136,10 @@ void hkbexpressiondataarray::Compare(string filepath, string id)
 			cout << "Comparing hkbExpressionDataArray(newID: " << id << ") with hkbExpressionDataArray(oldID: " << tempid << ") is complete!" << endl;
 		}
 	}
-
 	else
 	{
 		IsForeign[id] = true;
-
-		ofstream output("new/" + id + ".txt"); // output stored function data
-		if (output.is_open())
-		{
-			for (unsigned int i = 0; i < newline.size(); i++)
-			{
-				output << newline[i] << "\n";
-			}
-			output.close();
-		}
-		else
-		{
-			cout << "ERROR: hkbExpressionDataArray Outputfile(File: " << filepath << ", ID: " << id << ")" << endl;
-			Error = true;
-		}
-
+		FunctionLineNew[id] = FunctionLineEdited[id];
 		address = tempaddress;
 	}
 
@@ -204,16 +158,9 @@ void hkbexpressiondataarray::Dummy(string id)
 		cout << "--------------------------------------------------------------" << endl << "Dummy hkbExpressionDataArray(ID: " << id << ") has been initialized!" << endl;
 	}
 
-	string filepath = "new/" + id + ".txt";
-	ifstream file(filepath);
-
-	if (file.is_open())
+	if (FunctionLineNew[id].empty())
 	{
-		file.close();
-	}
-	else
-	{
-		cout << "ERROR: Dummy hkbExpressionDataArray Inputfile(File: " << filepath << ", ID: " << id << ")" << endl;
+		cout << "ERROR: Dummy hkbExpressionDataArray Inputfile(ID: " << id << ")" << endl;
 		Error = true;
 	}
 
@@ -235,48 +182,49 @@ bool hkbexpressiondataarray::IsNegate()
 	return IsNegated;
 }
 
-void hkbExpressionDataArrayExport(string originalfile, string editedfile, string id)
+void hkbExpressionDataArrayExport(string id)
 {
 	// stage 1 reading
 	vector<string> storeline1;
-	ifstream origfile(originalfile);
 	string line;
 
-	if (origfile.is_open())
+	if (FunctionLineTemp[id].size() > 0)
 	{
-		while (getline(origfile, line))
+		for (unsigned int i = 0; i < FunctionLineTemp[id].size(); ++i)
 		{
+			line = FunctionLineTemp[id][i];
+
 			if ((line.find("<hkobject>", 0) == string::npos) && (line.find("</hkobject>", 0) == string::npos) && (line.find("</hkparam>", 0) == string::npos || line.find("</hkparam>", 0) > 10))
 			{
 				storeline1.push_back(line);
 			}
 		}
-		origfile.close();
 	}
 	else
 	{
-		cout << "ERROR: Edit hkbExpressionDataArray Input Not Found (Original File: " << originalfile << ")" << endl;
+		cout << "ERROR: Edit hkbExpressionDataArray Input Not Found (ID: " << id << ")" << endl;
 		Error = true;
 		return;
 	}
 
 	vector<string> storeline2;
-	ifstream editfile(editedfile);
+	storeline2.reserve(FunctionLineNew[id].size());
 
-	if (editfile.is_open())
+	if (FunctionLineNew[id].size() > 0)
 	{
-		while (getline(editfile, line))
+		for (unsigned int i = 0; i < FunctionLineNew[id].size(); ++i)
 		{
+			line = FunctionLineNew[id][i];
+
 			if ((line.find("<hkobject>", 0) == string::npos) && (line.find("</hkobject>", 0) == string::npos) && (line.find("</hkparam>", 0) == string::npos || line.find("</hkparam>", 0) > 10))
 			{
 				storeline2.push_back(line);
 			}
 		}
-		editfile.close();
 	}
 	else
 	{
-		cout << "ERROR: Edit hkbExpressionDataArray Output Not Found (Edited File: " << editedfile << ")" << endl;
+		cout << "ERROR: Edit hkbExpressionDataArray Output Not Found (ID: " << id << ")" << endl;
 		Error = true;
 		return;
 	}
@@ -292,6 +240,7 @@ void hkbExpressionDataArrayExport(string originalfile, string editedfile, string
 	int closepoint;
 
 	output.push_back(storeline2[0]);
+
 	if ((storeline1[1].find(storeline2[1], 0) == string::npos) || (storeline1[1].length() != storeline2[1].length()))
 	{
 		output.push_back("<!-- MOD_CODE ~" + modcode + "~ OPEN -->");
@@ -300,6 +249,7 @@ void hkbExpressionDataArrayExport(string originalfile, string editedfile, string
 		IsEdited = true;
 		open = true;
 	}
+
 	output.push_back(storeline2[1]);
 
 	for (unsigned int i = 2; i < storeline2.size(); i++)
@@ -313,19 +263,23 @@ void hkbExpressionDataArrayExport(string originalfile, string editedfile, string
 					if (IsChanged)
 					{
 						closepoint = curline;
+
 						if (closepoint != openpoint)
 						{
 							if ((storeline2[i].find("<hkparam name=\"expression\">", 0) != string::npos) && (output[output.size() - 2].find("OPEN", 0) == string::npos))
 							{
 								output.push_back("				<hkobject>");
 							}
+
 							output.push_back("<!-- ORIGINAL -->");
+
 							for (int j = openpoint; j < closepoint; j++)
 							{
 								output.push_back(storeline1[j]);
 							}
 						}
 					}
+
 					output.push_back("<!-- CLOSE -->");
 					IsChanged = false;
 					open = false;
@@ -339,6 +293,7 @@ void hkbExpressionDataArrayExport(string originalfile, string editedfile, string
 					{
 						output.push_back("				<hkobject>");
 					}
+
 					output.push_back("<!-- MOD_CODE ~" + modcode + "~ OPEN -->");
 					openpoint = curline;
 					IsChanged = true;
@@ -346,6 +301,7 @@ void hkbExpressionDataArrayExport(string originalfile, string editedfile, string
 					open = true;
 				}
 			}
+
 			output.push_back(storeline2[i]);
 
 			if (curline != storeline1.size() - 1)
@@ -364,15 +320,18 @@ void hkbExpressionDataArrayExport(string originalfile, string editedfile, string
 					if (IsChanged)
 					{
 						closepoint = curline + 1;
+
 						if (closepoint != openpoint)
 						{
 							output.push_back("<!-- ORIGINAL -->");
+
 							for (int j = openpoint; j < closepoint; j++)
 							{
 								output.push_back(storeline1[j]);
 							}
 						}
 					}
+
 					output.push_back("<!-- CLOSE -->");
 					IsChanged = false;
 					open = false;
@@ -390,26 +349,32 @@ void hkbExpressionDataArrayExport(string originalfile, string editedfile, string
 					IsEdited = true;
 					open = true;
 				}
+
 				output.push_back(storeline2[i]);
 			}
 			else
 			{
 				output.push_back(storeline2[i]);
+
 				if (open)
 				{
 					if (IsChanged)
 					{
 						closepoint = curline + 1;
+
 						if (closepoint != openpoint)
 						{
 							if (storeline2[i].find("<hkparam name=\"eventMode\">", 0) != string::npos)
 							{
 								output.push_back("				</hkobject>");
 							}
+
 							output.push_back("<!-- ORIGINAL -->");
+
 							for (int j = openpoint; j < closepoint; j++)
 							{
 								output.push_back(storeline1[j]);
+
 								if (storeline1[j].find("<hkparam name=\"eventMode\">", 0) != string::npos)
 								{
 									output.push_back("				</hkobject>");
@@ -424,6 +389,7 @@ void hkbExpressionDataArrayExport(string originalfile, string editedfile, string
 							output.push_back("				</hkobject>");
 						}
 					}
+
 					output.push_back("<!-- CLOSE -->");
 					open = false;
 				}
@@ -444,7 +410,7 @@ void hkbExpressionDataArrayExport(string originalfile, string editedfile, string
 			}
 			else
 			{
-				cout << "ERROR: Invalid event id. Please ensure that event id is valid(EditedFile: " << editedfile << ", ID: " << id << ")" << endl;
+				cout << "ERROR: Invalid event id. Please ensure that event id is valid(ID: " << id << ")" << endl;
 				Error = true;
 				return;
 			}
@@ -460,7 +426,7 @@ void hkbExpressionDataArrayExport(string originalfile, string editedfile, string
 			}
 			else
 			{
-				cout << "ERROR: Invalid variable id. Please ensure that variable id is valid(EditedFile: " << editedfile << ", ID: " << id << ")" << endl;
+				cout << "ERROR: Invalid variable id. Please ensure that variable id is valid(ID: " << id << ")" << endl;
 				Error = true;
 				return;
 			}
@@ -468,12 +434,16 @@ void hkbExpressionDataArrayExport(string originalfile, string editedfile, string
 	}
 	
 	// stage 3 output if it is edited
-	string filename = "cache/" + modcode + "/" + shortFileName + "/" + id + ".txt";
+	string filename = "mod/" + modcode + "/" + shortFileName + "/" + id + ".txt";
+
 	if (IsEdited)
 	{
 		ofstream outputfile(filename);
+
 		if (outputfile.is_open())
 		{
+			FunctionWriter fwrite(&outputfile);
+
 			for (unsigned int i = 0; i < output.size(); i++)
 			{
 				if (output[i].find("<hkparam name=\"expression\">", 0) != string::npos)
@@ -482,29 +452,32 @@ void hkbExpressionDataArrayExport(string originalfile, string editedfile, string
 					{
 						if (output[i - 1].find("ORIGINAL", 0) == string::npos)
 						{
-							outputfile << "				<hkobject>" << "\n";
+							fwrite << "				<hkobject>" << "\n";
 						}
-						outputfile << output[i] << "\n";
-						outputfile << "<!-- CLOSE -->" << "\n";
+
+						fwrite << output[i] << "\n";
+						fwrite << "<!-- CLOSE -->" << "\n";
 						i++;
 					}
 					else if (output[i + 1].find("ORIGINAL", 0) != string::npos)
 					{
 						if (output[i - 1].find("OPEN", 0) == string::npos)
 						{
-							outputfile << "				<hkobject>" << "\n";
+							fwrite << "				<hkobject>" << "\n";
 						}
-						outputfile << output[i] << "\n";
-						outputfile << "<!-- ORIGINAL -->" << "\n";
+
+						fwrite << output[i] << "\n";
+						fwrite << "<!-- ORIGINAL -->" << "\n";
 						i++;
 					}
 					else
 					{
 						if ((output[i - 1].find("ORIGINAL", 0) == string::npos) && (output[i - 1].find("OPEN", 0) == string::npos) && (output[i - 1].find("<hkobject>", 0) == string::npos))
 						{
-							outputfile << "				<hkobject>" << "\n";
+							fwrite << "				<hkobject>" << "\n";
 						}
-						outputfile << output[i] << "\n";
+
+						fwrite << output[i] << "\n";
 					}
 				}
 				else if (output[i].find("<hkparam name=\"eventMode\">", 0) != string::npos)
@@ -513,59 +486,60 @@ void hkbExpressionDataArrayExport(string originalfile, string editedfile, string
 					{
 						if (output[i + 1].find("CLOSE", 0) != string::npos)
 						{
-							outputfile << output[i] << "\n";
-							outputfile << "<!-- CLOSE -->" << "\n";
-							outputfile << "				</hkobject>" << "\n";
+							fwrite << output[i] << "\n";
+							fwrite << "<!-- CLOSE -->" << "\n";
+							fwrite << "				</hkobject>" << "\n";
 							i++;
 						}
 						else if (output[i + 1].find("ORIGINAL", 0) != string::npos)
 						{
-							outputfile << output[i] << "\n";
-							outputfile << "<!-- ORIGINAL -->" << "\n";
+							fwrite << output[i] << "\n";
+							fwrite << "<!-- ORIGINAL -->" << "\n";
 							i++;
 						}
 						else if (output[i + 1].find("</hkobject>", 0) != string::npos)
 						{
-							outputfile << output[i] << "\n";
+							fwrite << output[i] << "\n";
 						}
 						else if (output[i + 1].find("<hkobject>", 0) != string::npos)
 						{
 							if (output[i + 2].find("ORIGINAL", 0) != string::npos)
 							{
-								outputfile << output[i] << "\n";
-								outputfile << "<!-- ORIGINAL -->" << "\n";
+								fwrite << output[i] << "\n";
+								fwrite << "<!-- ORIGINAL -->" << "\n";
 								i += 2;
 							}
 							else
 							{
-								outputfile << output[i] << "\n";
-								outputfile << "				</hkobject>" << "\n";
+								fwrite << output[i] << "\n";
+								fwrite << "				</hkobject>" << "\n";
 							}
 						}
 						else
 						{
-							outputfile << output[i] << "\n";
-							outputfile << "				</hkobject>" << "\n";
+							fwrite << output[i] << "\n";
+							fwrite << "				</hkobject>" << "\n";
 						}
 					}
 					else
 					{
-						outputfile << output[i] << "\n";
-						outputfile << "				</hkobject>" << "\n";
+						fwrite << output[i] << "\n";
+						fwrite << "				</hkobject>" << "\n";
 					}
 				}
 				else
 				{
-					outputfile << output[i] << "\n";
+					fwrite << output[i] << "\n";
 				}
 			}
-			outputfile << "			</hkparam>" << "\n";
-			outputfile << "		</hkobject>" << "\n";
+
+			fwrite << "			</hkparam>" << "\n";
+			fwrite << "		</hkobject>" << "\n";
 			outputfile.close();
 		}
 		else
 		{
-			cout << "ERROR: Edit hkbExpressionDataArray Output Not Found (New Edited File: " << editedfile << ")" << endl;
+			cout << "ERROR: Edit hkbExpressionDataArray Output Not Found (File: " << filename << ")" << endl;
 			Error = true;
 			return;
 		}

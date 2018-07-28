@@ -32,6 +32,6 @@ private:
 	bool IsNegated = false;
 };
 
-extern void BSLookAtModifierExport(std::string originalfile, std::string editedfile, std::string id);
+extern void BSLookAtModifierExport(std::string id);
 
 #endif

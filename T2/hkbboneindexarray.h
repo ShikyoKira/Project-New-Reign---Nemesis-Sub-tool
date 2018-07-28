@@ -28,6 +28,6 @@ private:
 	bool IsNegated = false;
 };
 
-extern void hkbBoneIndexArrayExport(std::string originalfile, std::string editedfile, std::string id);
+extern void hkbBoneIndexArrayExport(std::string id);
 
 #endif

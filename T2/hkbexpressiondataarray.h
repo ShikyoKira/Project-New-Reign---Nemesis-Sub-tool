@@ -23,6 +23,6 @@ private:
 	bool IsNegated = false;
 };
 
-extern void hkbExpressionDataArrayExport(std::string originalfile, std::string editedfile, std::string id);
+extern void hkbExpressionDataArrayExport(std::string id);
 
 #endif

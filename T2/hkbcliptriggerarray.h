@@ -5,6 +5,8 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
+#include <map>
+#include <memory>
 
 struct hkbcliptriggerarray
 {
@@ -26,10 +28,9 @@ private:
 	std::string address;
 	std::string tempaddress;
 	std::vector<std::string> payload;
-	int payloadcount;
 	bool IsNegated = false;
 };
 
-extern void hkbClipTriggerArrayExport(std::string originalfile, std::string editedfile, std::string id);
+extern void hkbClipTriggerArrayExport(std::string id);
 
 #endif

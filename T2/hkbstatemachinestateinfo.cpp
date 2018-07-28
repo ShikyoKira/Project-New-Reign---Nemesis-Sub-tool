@@ -21,10 +21,30 @@ hkbstatemachinestateinfo::hkbstatemachinestateinfo(string filepath, string id, s
 	}
 	else if (!Error)
 	{
+		bool statusChange = false;
+
+		if (IsForeign[id])
+		{
+			statusChange = true;
+		}
+
 		string dummyID = CrossReferencing(id, address, functionlayer, compare);
+
 		if (compare)
 		{
-			IsNegated = true;
+			if (statusChange)
+			{
+				Dummy(dummyID);
+			}
+
+			if (IsForeign[id])
+			{
+				address = preaddress;
+			}
+			else if (!statusChange)
+			{
+				IsNegated = true;
+			}
 		}
 		else
 		{
@@ -44,60 +64,57 @@ void hkbstatemachinestateinfo::nonCompare(string filepath, string id)
 		cout << "--------------------------------------------------------------" << endl << "hkbStateMachineStateInfo(ID: " << id << ") has been initialized!" << endl;
 	}
 
-	vector<string> storeline;
 	string line;
 
 	if (!FunctionLineOriginal[id].empty())
 	{
 		usize size = FunctionLineOriginal[id].size();
 
-		for (int i = 0; i < size; i++)
+		for (usize i = 0; i < size; ++i)
 		{
 			line = FunctionLineOriginal[id][i];
 
 			if (line.find("<hkparam name=\"variableBindingSet\">", 0) != string::npos)
 			{
 				variablebindingset = line.substr(38, line.find("</hkparam>") - 38);
+
 				if (variablebindingset != "null")
 				{
 					referencingIDs[variablebindingset].push_back(id);
 				}
 			}
-
 			else if (line.find("enterNotifyEvents", 0) != string::npos)
 			{
 				enternotifyevent = line.substr(37, line.find("</hkparam>") - 37);
+
 				if (enternotifyevent != "null")
 				{
 					referencingIDs[enternotifyevent].push_back(id);
 				}
 			}
-
 			else if (line.find("exitNotifyEvents", 0) != string::npos)
 			{
 				exitnotifyevent = line.substr(36, line.find("</hkparam>") - 36);
+
 				if (exitnotifyevent != "null")
 				{
 					referencingIDs[exitnotifyevent].push_back(id);
 				}
 			}
-
 			else if (line.find("transitions", 0) != string::npos)
 			{
 				transitions = line.substr(31, line.find("</hkparam>") - 31);
+
 				if (transitions != "null")
 				{
 					referencingIDs[transitions].push_back(id);
 				}
 			}
-
 			else if (line.find("generator", 0) != string::npos)
 			{
 				generator = line.substr(29, line.find("</hkparam>") - 29);
 				referencingIDs[generator].push_back(id);
 			}
-
-			storeline.push_back(line);
 		}
 	}
 	else
@@ -106,21 +123,7 @@ void hkbstatemachinestateinfo::nonCompare(string filepath, string id)
 		Error = true;
 	}
 
-	ofstream output("temp/" + id + ".txt");
-	if (output.is_open())
-	{
-		for (unsigned int i = 0; i < storeline.size(); i++)
-		{
-			output << storeline[i] << "\n";
-		}
-		output.close();
-	}
-	else
-	{
-		cout << "ERROR: hkbStateMachineStateInfo Outputfile(File: " << filepath << ", ID: " << id << ")" << endl;
-		Error = true;
-	}
-	
+	FunctionLineTemp[id] = FunctionLineOriginal[id];
 	RecordID(id, address); // record address for compare purpose and idcount without updating referenceID
 
 	if ((Debug) && (!Error))
@@ -144,13 +147,14 @@ void hkbstatemachinestateinfo::Compare(string filepath, string id)
 	{
 		usize size = FunctionLineEdited[id].size();
 
-		for (int i = 0; i < size; i++)
+		for (usize i = 0; i < size; ++i)
 		{
 			line = FunctionLineEdited[id][i];
 
 			if (line.find("<hkparam name=\"variableBindingSet\">", 0) != string::npos)
 			{
 				variablebindingset = line.substr(38, line.find("</hkparam>") - 38);
+
 				if (variablebindingset != "null")
 				{
 					if (!exchangeID[variablebindingset].empty())
@@ -159,13 +163,15 @@ void hkbstatemachinestateinfo::Compare(string filepath, string id)
 						variablebindingset = exchangeID[variablebindingset];
 						line.replace(tempint, line.find("</hkparam>") - tempint, variablebindingset);
 					}
+
+					parent[variablebindingset] = id;
 					referencingIDs[variablebindingset].push_back(id);
 				}
 			}
-
 			else if (line.find("enterNotifyEvents", 0) != string::npos)
 			{
 				enternotifyevent = line.substr(37, line.find("</hkparam>") - 37);
+
 				if (enternotifyevent != "null")
 				{
 					if (!exchangeID[enternotifyevent].empty())
@@ -174,13 +180,15 @@ void hkbstatemachinestateinfo::Compare(string filepath, string id)
 						enternotifyevent = exchangeID[enternotifyevent];
 						line.replace(tempint, line.find("</hkparam>") - tempint, enternotifyevent);
 					}
+
+					parent[enternotifyevent] = id;
 					referencingIDs[enternotifyevent].push_back(id);
 				}
 			}
-
 			else if (line.find("exitNotifyEvents", 0) != string::npos)
 			{
 				exitnotifyevent = line.substr(36, line.find("</hkparam>") - 36);
+
 				if (exitnotifyevent != "null")
 				{
 					if (!exchangeID[exitnotifyevent].empty())
@@ -189,13 +197,15 @@ void hkbstatemachinestateinfo::Compare(string filepath, string id)
 						exitnotifyevent = exchangeID[exitnotifyevent];
 						line.replace(tempint, line.find("</hkparam>") - tempint, exitnotifyevent);
 					}
+
+					parent[exitnotifyevent] = id;
 					referencingIDs[exitnotifyevent].push_back(id);
 				}
 			}
-
 			else if (line.find("transitions", 0) != string::npos)
 			{
 				transitions = line.substr(31, line.find("</hkparam>") - 31);
+
 				if (transitions != "null")
 				{
 					if (!exchangeID[transitions].empty())
@@ -204,20 +214,23 @@ void hkbstatemachinestateinfo::Compare(string filepath, string id)
 						transitions = exchangeID[transitions];
 						line.replace(tempint, line.find("</hkparam>") - tempint, transitions);
 					}
+
 					parent[transitions] = id;
 					referencingIDs[transitions].push_back(id);
 				}
 			}
-
 			else if (line.find("generator", 0) != string::npos)
 			{
 				generator = line.substr(29, line.find("</hkparam>") - 29);
+
 				if (!exchangeID[generator].empty())
 				{
 					int tempint = line.find(generator);
 					generator = exchangeID[generator];
 					line.replace(tempint, line.find("</hkparam>") - tempint, generator);
 				}
+
+				parent[generator] = id;
 				referencingIDs[generator].push_back(id);
 			}
 
@@ -234,8 +247,16 @@ void hkbstatemachinestateinfo::Compare(string filepath, string id)
 	if (IsOldFunction(filepath, id, address)) // is this new function or old
 	{
 		IsForeign[id] = false;
+		string tempid;
 
-		string tempid = addressID[address];
+		if (addressChange.find(address) != addressChange.end())
+		{
+			tempaddress = addressChange[address];
+			addressChange.erase(addressChange.find(address));
+			address = tempaddress;
+		}
+
+		tempid = addressID[address];
 		exchangeID[id] = tempid;
 
 		if ((Debug) && (!Error))
@@ -247,62 +268,44 @@ void hkbstatemachinestateinfo::Compare(string filepath, string id)
 		{
 			referencingIDs[variablebindingset].pop_back();
 			referencingIDs[variablebindingset].push_back(tempid);
+			parent[variablebindingset] = tempid;
 		}
 
 		if (enternotifyevent != "null")
 		{
 			referencingIDs[enternotifyevent].pop_back();
 			referencingIDs[enternotifyevent].push_back(tempid);
+			parent[enternotifyevent] = tempid;
 		}
 
 		if (exitnotifyevent != "null")
 		{
 			referencingIDs[exitnotifyevent].pop_back();
 			referencingIDs[exitnotifyevent].push_back(tempid);
+			parent[exitnotifyevent] = tempid;
 		}
 
 		if (transitions != "null")
 		{
 			referencingIDs[transitions].pop_back();
 			referencingIDs[transitions].push_back(tempid);
+			parent[transitions] = tempid;
 		}
 		
 		referencingIDs[generator].pop_back();
 		referencingIDs[generator].push_back(tempid);
+		parent[generator] = tempid;
 
-		string inputfile = "temp/" + tempid + ".txt";
-		vector<string> storeline;
-		storeline.reserve(FileLineCount(inputfile));
-		ifstream input(inputfile); // read old function
-		if (input.is_open())
 		{
-			while (getline(input, line))
-			{
-				storeline.push_back(line);
-			}
-			input.close();
-		}
-		else
-		{
-			cout << "ERROR: hkbStateMachineStateInfo Inputfile(File: " << filepath << ", newID: " << id << ", oldID: " << tempid << ")" << endl;
-			Error = true;
+			vector<string> emptyVS;
+			FunctionLineNew[tempid] = emptyVS;
 		}
 
-		// stage 3
-		ofstream output("new/" + tempid + ".txt"); // output stored function data
-		if (output.is_open())
+		FunctionLineNew[tempid].push_back(FunctionLineTemp[tempid][0]);
+
+		for (unsigned int i = 1; i < newline.size(); i++)
 		{
-			output << storeline[0] << "\n";
-			for (unsigned int i = 1; i < newline.size(); i++)
-			{
-				output << newline[i] << "\n";
-			}
-			output.close();
-		}
-		else
-		{
-			cout << "ERROR: hkbStateMachineStateInfo Outputfile(File: " << filepath << ", newID: " << id << ", oldID: " << tempid << ")" << endl;
-			Error = true;
+			FunctionLineNew[tempid].push_back(newline[i]);
 		}
 
 		if ((Debug) && (!Error))
@@ -310,26 +313,10 @@ void hkbstatemachinestateinfo::Compare(string filepath, string id)
 			cout << "Comparing hkbStateMachineStateInfo(newID: " << id << ") with hkbStateMachineStateInfo(oldID: " << tempid << ") is complete!" << endl;
 		}
 	}
-
 	else
 	{
 		IsForeign[id] = true;
-
-		ofstream output("new/" + id + ".txt"); // output stored function data
-		if (output.is_open())
-		{
-			for (unsigned int i = 0; i < newline.size(); i++)
-			{
-				output << newline[i] << "\n";
-			}
-			output.close();
-		}
-		else
-		{
-			cout << "ERROR: hkbStateMachineStateInfo Outputfile(File: " << filepath << ", ID: " << id << ")" << endl;
-			Error = true;
-		}
-
+		FunctionLineNew[id] = newline;
 		address = tempaddress;
 	}
 
@@ -349,76 +336,86 @@ void hkbstatemachinestateinfo::Dummy(string id)
 	}
 
 	string line;
-	string filepath = "new/" + id + ".txt";
-	ifstream file(filepath);
 
-	if (file.is_open())
+	if (FunctionLineNew[id].size() > 0)
 	{
-		while (getline(file, line))
+		for (unsigned int i = 0; i < FunctionLineNew[id].size(); ++i)
 		{
+			line = FunctionLineNew[id][i];
+
 			if (line.find("<hkparam name=\"variableBindingSet\">", 0) != string::npos)
 			{
 				variablebindingset = line.substr(38, line.find("</hkparam>") - 38);
+
 				if (variablebindingset != "null")
 				{
 					if (!exchangeID[variablebindingset].empty())
 					{
 						variablebindingset = exchangeID[variablebindingset];
 					}
+
+					parent[variablebindingset] = id;
 				}
 			}
-
 			else if (line.find("enterNotifyEvents", 0) != string::npos)
 			{
 				enternotifyevent = line.substr(37, line.find("</hkparam>") - 37);
+
 				if (enternotifyevent != "null")
 				{
 					if (!exchangeID[enternotifyevent].empty())
 					{
 						enternotifyevent = exchangeID[enternotifyevent];
 					}
+
+					parent[enternotifyevent] = id;
 				}
 			}
-
 			else if (line.find("exitNotifyEvents", 0) != string::npos)
 			{
 				exitnotifyevent = line.substr(36, line.find("</hkparam>") - 36);
+
 				if (exitnotifyevent != "null")
 				{
 					if (!exchangeID[exitnotifyevent].empty())
 					{
 						exitnotifyevent = exchangeID[exitnotifyevent];
 					}
+
+					parent[exitnotifyevent] = id;
 				}
 			}
-
 			else if (line.find("transitions", 0) != string::npos)
 			{
 				transitions = line.substr(31, line.find("</hkparam>") - 31);
+
 				if (transitions != "null")
 				{
 					if (!exchangeID[transitions].empty())
 					{
 						transitions = exchangeID[transitions];
 					}
+
+					parent[transitions] = id;
 				}
 			}
-
 			else if (line.find("generator", 0) != string::npos)
 			{
 				generator = line.substr(29, line.find("</hkparam>") - 29);
+
 				if (!exchangeID[generator].empty())
 				{
 					generator = exchangeID[generator];
 				}
+
+				parent[generator] = id;
 				break;
 			}
 		}
-		file.close();
 	}
 	else
 	{
-		cout << "ERROR: Dummy hkbStateMachineStateInfo Inputfile(File: " << filepath << ", ID: " << id << ")" << endl;
+		cout << "ERROR: Dummy hkbStateMachineStateInfo Inputfile(ID: " << id << ")" << endl;
 		Error = true;
 	}
 
@@ -513,53 +510,48 @@ bool hkbstatemachinestateinfo::IsNegate()
 	return IsNegated;
 }
 
-void hkbStateMachineStateInfoExport(string originalfile, string editedfile, string id)
+void hkbStateMachineStateInfoExport(string id)
 {
 	//stage 1 reading
-	vector<string> storeline1;
-	string line;
-	ifstream origfile(originalfile);
-
-	if (origfile.is_open())
-	{
-		while (getline(origfile, line))
-		{
-			storeline1.push_back(line);
-		}
-		origfile.close();
-	}
-	else
-	{
-		cout << "ERROR: Edit hkbStateMachineStateInfo Input Not Found (Original File: " << originalfile << ")" << endl;
-		Error = true;
-	}
+	vector<string> storeline1 = FunctionLineTemp[id];
 
 	//stage 2 reading and identifying edits
 	vector<string> storeline2;
-	ifstream editfile(editedfile);
+	storeline2.reserve(FunctionLineNew[id].size());
 	bool open = false;
 	bool IsEdited = false;
 	int curline = 0;
 	int openpoint;
 	int closepoint;
+	string line;
 
-	if (editfile.is_open())
+	if (FunctionLineNew[id].size() > 0)
 	{
-		while (getline(editfile, line))
+		for (unsigned int i = 0; i < FunctionLineNew[id].size(); ++i)
 		{
+			line = FunctionLineNew[id][i];
+
+			if (line[line.size() - 1] == '\n')
+			{
+				line.pop_back();
+			}
+
 			if ((line.find(storeline1[curline], 0) != string::npos) && (line.length() == storeline1[curline].length()))
 			{
 				if (open)
 				{
 					closepoint = curline;
+
 					if (closepoint != openpoint)
 					{
 						storeline2.push_back("<!-- ORIGINAL -->");
+
 						for (int j = openpoint; j < closepoint; j++)
 						{
 							storeline2.push_back(storeline1[j]);
 						}
 					}
+
 					storeline2.push_back("<!-- CLOSE -->");
 					open = false;
 				}
@@ -572,37 +564,43 @@ void hkbStateMachineStateInfoExport(string originalfile, string editedfile, stri
 					openpoint = curline;
 					open = true;
 				}
+
 				IsEdited = true;
 			}
+
 			storeline2.push_back(line);
 			curline++;
 		}
-		editfile.close();
 	}
 	else
 	{
-		cout << "ERROR: Edit hkbStateMachineStateInfo Output Not Found (Edited File: " << editedfile << ")" << endl;
+		cout << "ERROR: Edit hkbStateMachineStateInfo Output Not Found (ID: " << id << ")" << endl;
 		Error = true;
 	}
 
 	NemesisReaderFormat(storeline2);
 
 	// stage 3 output if it is edited
-	string filename = "cache/" + modcode + "/" + shortFileName + "/" + id + ".txt";
+	string filename = "mod/" + modcode + "/" + shortFileName + "/" + id + ".txt";
+
 	if (IsEdited)
 	{
 		ofstream output(filename);
+
 		if (output.is_open())
 		{
+			FunctionWriter fwrite(&output);
+
 			for (unsigned int i = 0; i < storeline2.size(); i++)
 			{
-				output << storeline2[i] << "\n";
+				fwrite << storeline2[i] << "\n";
 			}
+
 			output.close();
 		}
 		else
 		{
-			cout << "ERROR: Edit hkbStateMachineStateInfo Output Not Found (New Edited File: " << editedfile << ")" << endl;
+			cout << "ERROR: Edit hkbStateMachineStateInfo Output Not Found (File: " << filename << ")" << endl;
 			Error = true;
 		}
 	}

@@ -28,6 +28,6 @@ private:
 	bool IsNegated = false;
 };
 
-extern void hkbDampingModifierExport(std::string originalfile, std::string editedfile, std::string id);
+extern void hkbDampingModifierExport(std::string id);
 
 #endif

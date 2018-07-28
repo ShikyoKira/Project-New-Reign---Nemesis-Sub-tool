@@ -28,6 +28,6 @@ private:
 	bool IsNegated = false;
 };
 
-extern void BSTweenerModifierExport(std::string originalfile, std::string editedfile, std::string id);
+extern void BSTweenerModifierExport(std::string id);
 
 #endif

@@ -28,6 +28,6 @@ private:
 	bool IsNegated = false;
 };
 
-extern void hkbEvaluateHandleModifierExport(std::string originalfile, std::string editedfile, std::string id);
+extern void hkbEvaluateHandleModifierExport(std::string id);
 
 #endif

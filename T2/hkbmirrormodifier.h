@@ -28,6 +28,6 @@ private:
 	bool IsNegated = false;
 };
 
-extern void hkbMirrorModifierExport(std::string originalfile, std::string editedfile, std::string id);
+extern void hkbMirrorModifierExport(std::string id);
 
 #endif

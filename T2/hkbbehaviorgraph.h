@@ -33,6 +33,6 @@ private:
 	bool IsNegated = false;
 };
 
-extern void hkbBehaviorGraphExport(std::string originalfile, std::string editedfile, std::string id);
+extern void hkbBehaviorGraphExport(std::string id);
 
 #endif

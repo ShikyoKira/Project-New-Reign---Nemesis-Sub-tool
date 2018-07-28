@@ -32,6 +32,6 @@ private:
 	bool IsNegated = false;
 };
 
-extern void hkbRigidBodyRagdollControlsModifierExport(std::string originalfile, std::string editedfile, std::string id);
+extern void hkbRigidBodyRagdollControlsModifierExport(std::string id);
 
 #endif

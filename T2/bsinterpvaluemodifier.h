@@ -28,6 +28,6 @@ private:
 	bool IsNegated = false;
 };
 
-extern void BSInterpValueModifierExport(std::string originalfile, std::string editedfile, std::string id);
+extern void BSInterpValueModifierExport(std::string id);
 
 #endif

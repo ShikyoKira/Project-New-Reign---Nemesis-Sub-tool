@@ -1,5 +1,6 @@
 #include "hkbmodifierlist.h"
 #include "Global.h"
+#include "generatorlines.h"
 
 using namespace std;
 
@@ -22,6 +23,7 @@ hkbmodifierlist::hkbmodifierlist(string filepath, string id, string preaddress, 
 	else if (!Error)
 	{
 		string dummyID = CrossReferencing(id, address, functionlayer, compare);
+
 		if (compare)
 		{
 			Dummy(dummyID);
@@ -41,7 +43,6 @@ hkbmodifierlist::hkbmodifierlist(string filepath, string id, string preaddress, 
 		else
 		{
 			IsNegated = true;
-
 			address = region[id];
 		}
 	}
@@ -58,7 +59,6 @@ void hkbmodifierlist::nonCompare(string filepath, string id)
 		cout << "--------------------------------------------------------------" << endl << "hkbModifierList(ID: " << id << ") has been initialized!" << endl;
 	}
 
-	vector<string> storeline;
 	string line;
 	bool pauseline = false;
 
@@ -66,7 +66,7 @@ void hkbmodifierlist::nonCompare(string filepath, string id)
 	{
 		usize size = FunctionLineOriginal[id].size();
 
-		for (int i = 0; i < size; i++)
+		for (usize i = 0; i < size; ++i)
 		{
 			line = FunctionLineOriginal[id][i];
 
@@ -79,7 +79,7 @@ void hkbmodifierlist::nonCompare(string filepath, string id)
 
 					for (unsigned int i = 0; i < size; i++)
 					{
-						int position = line.find("#", tempint);
+						usize position = line.find("#", tempint);
 						tempint = line.find("#", position + 1);
 						string tempmodifier = line.substr(position, tempint - position - 1);
 						modifier.push_back(tempmodifier);
@@ -104,6 +104,7 @@ void hkbmodifierlist::nonCompare(string filepath, string id)
 				{
 					children = stoi(line.substr(42, line.length() - 44));
 					modifier.reserve(children);
+					elements[id + "T"] = children;
 					pauseline = true;
 				}
 				else if (line.find("<hkparam name=\"name\">", 0) != string::npos)
@@ -111,8 +112,6 @@ void hkbmodifierlist::nonCompare(string filepath, string id)
 					name = line.substr(24, line.find("</hkparam>") - 24);
 				}
 			}
-
-			storeline.push_back(line);
 		}
 	}
 	else
@@ -121,23 +120,7 @@ void hkbmodifierlist::nonCompare(string filepath, string id)
 		Error = true;
 	}
 
-	ofstream output("temp/" + id + ".txt");
-
-	if (output.is_open())
-	{
-		for (unsigned int i = 0; i < storeline.size(); i++)
-		{
-			output << storeline[i] << "\n";
-		}
-
-		output.close();
-	}
-	else
-	{
-		cout << "ERROR: hkbModifierList Outputfile(File: " << filepath << ", ID: " << id << ")" << endl;
-		Error = true;
-	}
-
+	FunctionLineTemp[id] = FunctionLineOriginal[id];
 	RecordID(id, address); // record address for compare purpose and idcount without updating referenceID
 
 	address = name + "(y" + to_string(regioncount[name]) + ")=>";
@@ -168,7 +151,7 @@ void hkbmodifierlist::Compare(string filepath, string id)
 	{
 		usize size = FunctionLineEdited[id].size();
 
-		for (int i = 0; i < size; i++)
+		for (usize i = 0; i < size; ++i)
 		{
 			line = FunctionLineEdited[id][i];
 
@@ -183,9 +166,10 @@ void hkbmodifierlist::Compare(string filepath, string id)
 				{
 					int curgen = 1;
 					usize size = count(line.begin(), line.end(), '#');
+
 					for (unsigned int i = 0; i < size; i++)
 					{
-						int position = 0;
+						usize position = 0;
 						usize tempint = 0;
 
 						for (int j = 0; j < curgen; j++)
@@ -216,6 +200,7 @@ void hkbmodifierlist::Compare(string filepath, string id)
 				if (line.find("<hkparam name=\"variableBindingSet\">", 0) != string::npos)
 				{
 					variablebindingset = line.substr(38, line.find("</hkparam>") - 38);
+
 					if (variablebindingset != "null")
 					{
 						if (!exchangeID[variablebindingset].empty())
@@ -224,6 +209,7 @@ void hkbmodifierlist::Compare(string filepath, string id)
 							variablebindingset = exchangeID[variablebindingset];
 							line.replace(tempint, line.find("</hkparam>") - tempint, variablebindingset);
 						}
+
 						parent[variablebindingset] = id;
 						referencingIDs[variablebindingset].push_back(id);
 					}
@@ -249,17 +235,16 @@ void hkbmodifierlist::Compare(string filepath, string id)
 	if (IsOldFunction(filepath, id, address)) // is this new function or old
 	{
 		IsForeign[id] = false;
-
 		string tempid;
-		if (!addressChange[address].empty())
+
+		if (addressChange.find(address) != addressChange.end())
 		{
-			tempid = addressID[addressChange[address]];
+			tempaddress = addressChange[address];
 			addressChange.erase(addressChange.find(address));
+			address = tempaddress;
 		}
-		else
-		{
-			tempid = addressID[address];
-		}
+
+		tempid = addressID[address];
 		exchangeID[id] = tempid;
 		elements[tempid] = children;
 
@@ -272,31 +257,17 @@ void hkbmodifierlist::Compare(string filepath, string id)
 		{
 			referencingIDs[variablebindingset].pop_back();
 			referencingIDs[variablebindingset].push_back(tempid);
+			parent[variablebindingset] = tempid;
 		}
 
 		for (unsigned int i = 0; i < modifier.size(); i++)
 		{
 			referencingIDs[modifier[i]].pop_back();
 			referencingIDs[modifier[i]].push_back(tempid);
+			parent[modifier[i]] = tempid;
 		}
 
-		string inputfile = "temp/" + tempid + ".txt";
-		vector<string> storeline;
-		storeline.reserve(FileLineCount(inputfile));
-		ifstream input(inputfile); // read old function
-		if (input.is_open())
-		{
-			while (getline(input, line))
-			{
-				storeline.push_back(line);
-			}
-			input.close();
-		}
-		else
-		{
-			cout << "ERROR: hkbModifierList Inputfile(File: " << filepath << ", newID: " << id << ", oldID: " << tempid << ")" << endl;
-			Error = true;
-		}
+		vector<string> storeline = FunctionLineTemp[tempid];
 
 		// stage 3
 		int curline = 1;
@@ -314,6 +285,7 @@ void hkbmodifierlist::Compare(string filepath, string id)
 				{
 					IsNewChild = true;
 				}
+
 				newstoreline.push_back(newline[i]);
 				curline++;
 			}
@@ -327,6 +299,7 @@ void hkbmodifierlist::Compare(string filepath, string id)
 						{
 							newstoreline.push_back(newchild[j]);
 						}
+
 						newstoreline.push_back(newline[i]);
 						curline++;
 					}
@@ -342,7 +315,7 @@ void hkbmodifierlist::Compare(string filepath, string id)
 
 					if (size < size2)
 					{
-						int position = 0;
+						usize position = 0;
 						usize tempint = 0;
 
 						for (unsigned int j = 0; j < size + 1; j++)
@@ -350,6 +323,7 @@ void hkbmodifierlist::Compare(string filepath, string id)
 							position = newline[i].find("#", tempint);
 							tempint = newline[i].find("#", position + 1);
 						}
+
 						newstoreline.push_back(newline[i].substr(0, position - 1));
 						newchild.push_back("				" + newline[i].substr(position, -1));
 					}
@@ -368,20 +342,7 @@ void hkbmodifierlist::Compare(string filepath, string id)
 			}
 		}
 
-		ofstream output("new/" + tempid + ".txt"); // output stored function data
-		if (output.is_open())
-		{
-			for (unsigned int i = 0; i < newstoreline.size(); i++)
-			{
-				output << newstoreline[i] << "\n";
-			}
-			output.close();
-		}
-		else
-		{
-			cout << "ERROR: hkbModifierList Outputfile(File: " << filepath << ", newID: " << id << ", oldID: " << tempid << ")" << endl;
-			Error = true;
-		}
+		FunctionLineNew[tempid] = newstoreline;
 
 		if ((Debug) && (!Error))
 		{
@@ -390,26 +351,10 @@ void hkbmodifierlist::Compare(string filepath, string id)
 
 		address = region[tempid];
 	}
-
 	else
 	{
 		IsForeign[id] = true;
-
-		ofstream output("new/" + id + ".txt"); // output stored function data
-		if (output.is_open())
-		{
-			for (unsigned int i = 0; i < newline.size(); i++)
-			{
-				output << newline[i] << "\n";
-			}
-			output.close();
-		}
-		else
-		{
-			cout << "ERROR: hkbModifierList Outputfile(File: " << filepath << ", ID: " << id << ")" << endl;
-			Error = true;
-		}
-
+		FunctionLineNew[id] = newline;
 		address = tempaddress;
 	}
 
@@ -428,30 +373,33 @@ void hkbmodifierlist::Dummy(string id)
 		cout << "--------------------------------------------------------------" << endl << "Dummy hkbModifierList(ID: " << id << ") has been initialized!" << endl;
 	}
 
-	string line;
-	string filepath = "new/" + id + ".txt";
-	ifstream file(filepath);
 	bool pauseline = false;
+	string line;
 
-	if (file.is_open())
+	if (FunctionLineNew[id].size() > 0)
 	{
-		while (getline(file, line))
+		for (unsigned int i = 0; i < FunctionLineNew[id].size(); ++i)
 		{
+			line = FunctionLineNew[id][i];
+
 			if (pauseline)
 			{
 				if (line.find("#", 0) != string::npos)
 				{
 					usize tempint = 0;
 					usize size = count(line.begin(), line.end(), '#');
+
 					for (unsigned int i = 0; i < size; i++)
 					{
-						int position = line.find("#", tempint);
+						usize position = line.find("#", tempint);
 						tempint = line.find("#", position + 1);
 						string tempmodifier = line.substr(position, tempint - position - 1);
+
 						if (!exchangeID[tempmodifier].empty())
 						{
 							tempmodifier = exchangeID[tempmodifier];
 						}
+
 						modifier.push_back(tempmodifier);
 						parent[tempmodifier] = id;
 					}
@@ -462,12 +410,14 @@ void hkbmodifierlist::Dummy(string id)
 				if (line.find("<hkparam name=\"variableBindingSet\">", 0) != string::npos)
 				{
 					variablebindingset = line.substr(38, line.find("</hkparam>") - 38);
+
 					if (variablebindingset != "null")
 					{
 						if (!exchangeID[variablebindingset].empty())
 						{
 							variablebindingset = exchangeID[variablebindingset];
 						}
+
 						parent[variablebindingset] = id;
 					}
 				}
@@ -479,11 +429,10 @@ void hkbmodifierlist::Dummy(string id)
 				}
 			}
 		}
-		file.close();
 	}
 	else
 	{
-		cout << "ERROR: Dummy hkbModifierList Inputfile(File: " << filepath << ", ID: " << id << ")" << endl;
+		cout << "ERROR: Dummy hkbModifierList Inputfile(ID: " << id << ")" << endl;
 		Error = true;
 	}
 
@@ -537,49 +486,15 @@ bool hkbmodifierlist::IsNegate()
 	return IsNegated;
 }
 
-void hkbModifierListExport(string originalfile, string editedfile, string id)
+void hkbModifierListExport(string id)
 {
 	//stage 1 reading
 	vector<string> storeline1;
-	string line;
-	ifstream origfile(originalfile);
-
-	if (origfile.is_open())
-	{
-		while (getline(origfile, line))
-		{
-			if ((line.find("<hkobject>", 0) == string::npos) && (line.find("</hkobject>", 0) == string::npos) && (line.find("</hkparam>", 0) == string::npos || line.find("</hkparam>", 0) > 10))
-			{
-				storeline1.push_back(line);
-			}
-		}
-		origfile.close();
-	}
-	else
-	{
-		cout << "ERROR: Edit hkbModifierList Input Not Found (Original File: " << originalfile << ")" << endl;
-		Error = true;
-	}
-
-	//stage 2 reading and identifying edits
 	vector<string> storeline2;
-	ifstream editfile(editedfile);
 
-	if (editfile.is_open())
+	if (!generatorLines(storeline1, storeline2, id, "hkbModifierList"))
 	{
-		while (getline(editfile, line))
-		{
-			if ((line.find("<hkobject>", 0) == string::npos) && (line.find("</hkobject>", 0) == string::npos) && (line.find("</hkparam>", 0) == string::npos || line.find("</hkparam>", 0) > 10))
-			{
-				storeline2.push_back(line);
-			}
-		}
-		editfile.close();
-	}
-	else
-	{
-		cout << "ERROR: Edit hkbModifierList Output Not Found (Edited File: " << editedfile << ")" << endl;
-		Error = true;
+		return;
 	}
 
 	vector<string> output;
@@ -601,16 +516,20 @@ void hkbModifierListExport(string originalfile, string editedfile, string id)
 					if (IsChanged)
 					{
 						closepoint = curline;
+
 						if (closepoint != openpoint)
 						{
 							output.push_back("<!-- ORIGINAL -->");
+
 							for (int j = openpoint; j < closepoint; j++)
 							{
 								output.push_back(storeline1[j]);
 							}
 						}
+
 						IsChanged = false;
 					}
+
 					output.push_back("<!-- CLOSE -->");
 					open = false;
 				}
@@ -626,6 +545,7 @@ void hkbModifierListExport(string originalfile, string editedfile, string id)
 					open = true;
 				}
 			}
+
 			output.push_back(storeline2[i]);
 			curline++;
 		}
@@ -648,41 +568,50 @@ void hkbModifierListExport(string originalfile, string editedfile, string id)
 		if (IsChanged)
 		{
 			closepoint = curline;
+
 			if (closepoint != openpoint)
 			{
 				output.push_back("<!-- ORIGINAL -->");
+
 				for (int j = openpoint; j < closepoint; j++)
 				{
 					output.push_back(storeline1[j]);
 				}
 			}
+
 			IsChanged = false;
 		}
+
 		output.push_back("<!-- CLOSE -->");
 		open = false;
 	}
 
 	NemesisReaderFormat(output);
 
-	// stage 3 output if it is edited
-	string filename = "cache/" + modcode + "/" + shortFileName + "/" + id + ".txt";
+	// stage 2 output if it is edited
+	string filename = "mod/" + modcode + "/" + shortFileName + "/" + id + ".txt";
+
 	if (IsEdited)
 	{
 		ofstream outputfile(filename);
+
 		if (outputfile.is_open())
 		{
+			FunctionWriter fwrite(&outputfile);
+
 			for (unsigned int i = 0; i < output.size(); i++)
 			{
-				outputfile << output[i] << "\n";
+				fwrite << output[i] << "\n";
 			}
-			outputfile << "			</hkparam>" << "\n";
-			outputfile << "		</hkobject>" << "\n";
+
+			fwrite << "			</hkparam>" << "\n";
+			fwrite << "		</hkobject>" << "\n";
 			outputfile.close();
 
 		}
 		else
 		{
-			cout << "ERROR: Edit hkbModifierList Output Not Found (New Edited File: " << editedfile << ")" << endl;
+			cout << "ERROR: Edit hkbModifierList Output Not Found (File: " << filename << ")" << endl;
 			Error = true;
 		}
 	}

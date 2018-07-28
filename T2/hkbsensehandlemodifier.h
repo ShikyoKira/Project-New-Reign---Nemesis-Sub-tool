@@ -32,6 +32,6 @@ private:
 	bool IsNegated = false;
 };
 
-extern void hkbSenseHandleModifierExport(std::string originalfile, std::string editedfile, std::string id);
+extern void hkbSenseHandleModifierExport(std::string id);
 
 #endif

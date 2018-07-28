@@ -61,7 +61,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>C:/Program Files/boost/boost_1_66_0/msvc/include/boost-1_66;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:/Program Files/boost/boost_1_66_0/msvc/include/boost-1_66;.\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_CRT_SECURE_NO_DEPRECATE</PreprocessorDefinitions>
     </ClCompile>
     <Link>
@@ -80,7 +80,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>C:/Program Files/boost/boost_1_66_0/msvc/include/boost-1_66;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:/Program Files/boost/boost_1_66_0/msvc/include/boost-1_66;.\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -90,15 +90,21 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>C:/Program Files/boost/boost_1_66_0/msvc/include/boost-1_66;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:/Program Files/boost/boost_1_66_0/msvc/include/boost-1_66;.\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
+    <Link>
+      <AdditionalLibraryDirectories>C:/Program Files/boost/boost_1_66_0/msvc/lib</AdditionalLibraryDirectories>
+    </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <AdditionalIncludeDirectories>C:/Program Files/boost/boost_1_66_0/msvc/include/boost-1_66;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:/Program Files/boost/boost_1_66_0/msvc/include/boost-1_66;.\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="AnimData\animationdata.cpp" />
+    <ClCompile Include="blendingOldFunction.cpp" />
+    <ClCompile Include="boolstring.cpp" />
     <ClCompile Include="bsboneswitchgenerator.cpp" />
     <ClCompile Include="bsboneswitchgeneratorbonedata.cpp" />
     <ClCompile Include="bscomputeaddboneanimmodifier.cpp" />
@@ -117,13 +123,16 @@
     <ClCompile Include="bslimbikmodifier.cpp" />
     <ClCompile Include="bslookatmodifier.cpp" />
     <ClCompile Include="bsmodifyoncemodifier.cpp" />
+    <ClCompile Include="bsoffsetanimationgenerator.cpp" />
     <ClCompile Include="bspassbytargettriggermodifier.cpp" />
     <ClCompile Include="bsragdollcontactlistenermodifier.cpp" />
     <ClCompile Include="bsspeedsamplermodifier.cpp" />
     <ClCompile Include="bssynchronizedclipgenerator.cpp" />
     <ClCompile Include="bstimermodifier.cpp" />
     <ClCompile Include="bstweenermodifier.cpp" />
+    <ClCompile Include="generatorlines.cpp" />
     <ClCompile Include="Global-Addon.cpp" />
+    <ClCompile Include="highestscore.cpp" />
     <ClCompile Include="hkbattachmentmodifier.cpp" />
     <ClCompile Include="hkbattributemodifier.cpp" />
     <ClCompile Include="hkbbehaviorgraphdata.cpp" />
@@ -134,6 +143,8 @@
     <ClCompile Include="hkbblendingtransitioneffect.cpp" />
     <ClCompile Include="hkbboneindexarray.cpp" />
     <ClCompile Include="hkbboneweightarray.cpp" />
+    <ClCompile Include="hkbcharacterdata.cpp" />
+    <ClCompile Include="hkbcharacterstringdata.cpp" />
     <ClCompile Include="hkbclipgenerator.cpp" />
     <ClCompile Include="hkbcliptriggerarray.cpp" />
     <ClCompile Include="hkbcombinetransformsmodifier.cpp" />
@@ -151,6 +162,7 @@
     <ClCompile Include="hkbexpressiondataarray.cpp" />
     <ClCompile Include="hkbextractragdollposemodifier.cpp" />
     <ClCompile Include="hkbfootikcontrolsmodifier.cpp" />
+    <ClCompile Include="hkbfootikdriverinfo.cpp" />
     <ClCompile Include="hkbgethandleonbonemodifier.cpp" />
     <ClCompile Include="hkbgetupmodifier.cpp" />
     <ClCompile Include="hkbgetworldfrommodelmodifier.cpp" />
@@ -158,15 +170,18 @@
     <ClCompile Include="hkbkeyframebonesmodifier.cpp" />
     <ClCompile Include="hkblookatmodifier.cpp" />
     <ClCompile Include="hkbmanualselectorgenerator.cpp" />
+    <ClCompile Include="hkbmirroredskeletoninfo.cpp" />
     <ClCompile Include="hkbmirrormodifier.cpp" />
     <ClCompile Include="hkbmodifiergenerator.cpp" />
     <ClCompile Include="hkbmodifierlist.cpp" />
     <ClCompile Include="hkbmovecharactermodifier.cpp" />
+    <ClCompile Include="hkbposematchinggenerator.cpp" />
     <ClCompile Include="hkbpoweredragdollcontrolmodifier.cpp" />
     <ClCompile Include="hkbproxymodifier.cpp" />
     <ClCompile Include="hkbrigidbodyragdollcontrolsmodifier.cpp" />
     <ClCompile Include="hkbrotatecharactermodifier.cpp" />
     <ClCompile Include="hkbsensehandlemodifier.cpp" />
+    <ClCompile Include="hkbstringcondition.cpp" />
     <ClCompile Include="hkbtimermodifier.cpp" />
     <ClCompile Include="hkbtransformvectormodifier.cpp" />
     <ClCompile Include="hkbtwistmodifier.cpp" />
@@ -184,6 +199,9 @@
     <ClCompile Include="Global.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="AnimData\animationdata.h" />
+    <ClInclude Include="blendingOldFunction.h" />
+    <ClInclude Include="boolstring.h" />
     <ClInclude Include="bsboneswitchgenerator.h" />
     <ClInclude Include="bsboneswitchgeneratorbonedata.h" />
     <ClInclude Include="bscomputeaddboneanimmodifier.h" />
@@ -202,15 +220,18 @@
     <ClInclude Include="bslimbikmodifier.h" />
     <ClInclude Include="bslookatmodifier.h" />
     <ClInclude Include="bsmodifyoncemodifier.h" />
+    <ClInclude Include="bsoffsetanimationgenerator.h" />
     <ClInclude Include="bspassbytargettriggermodifier.h" />
     <ClInclude Include="bsragdollcontactlistenermodifier.h" />
     <ClInclude Include="bsspeedsamplermodifier.h" />
     <ClInclude Include="bssynchronizedclipgenerator.h" />
     <ClInclude Include="bstimermodifier.h" />
     <ClInclude Include="bstweenermodifier.h" />
+    <ClInclude Include="generatorlines.h" />
     <ClInclude Include="Global-Addon.h" />
     <ClInclude Include="Global.h" />
     <ClInclude Include="Global-Type.h" />
+    <ClInclude Include="highestscore.h" />
     <ClInclude Include="hkbattachmentmodifier.h" />
     <ClInclude Include="hkbattributemodifier.h" />
     <ClInclude Include="hkbbehaviorreferencegenerator.h" />
@@ -219,6 +240,8 @@
     <ClInclude Include="hkbblendingtransitioneffect.h" />
     <ClInclude Include="hkbboneindexarray.h" />
     <ClInclude Include="hkbboneweightarray.h" />
+    <ClInclude Include="hkbcharacterdata.h" />
+    <ClInclude Include="hkbcharacterstringdata.h" />
     <ClInclude Include="hkbclipgenerator.h" />
     <ClInclude Include="hkbcliptriggerarray.h" />
     <ClInclude Include="hkbcombinetransformsmodifier.h" />
@@ -237,6 +260,7 @@
     <ClInclude Include="hkbexpressiondataarray.h" />
     <ClInclude Include="hkbextractragdollposemodifier.h" />
     <ClInclude Include="hkbfootikcontrolsmodifier.h" />
+    <ClInclude Include="hkbfootikdriverinfo.h" />
     <ClInclude Include="hkbgethandleonbonemodifier.h" />
     <ClInclude Include="hkbgetupmodifier.h" />
     <ClInclude Include="hkbgetworldfrommodelmodifier.h" />
@@ -244,15 +268,18 @@
     <ClInclude Include="hkbkeyframebonesmodifier.h" />
     <ClInclude Include="hkblookatmodifier.h" />
     <ClInclude Include="hkbmanualselectorgenerator.h" />
+    <ClInclude Include="hkbmirroredskeletoninfo.h" />
     <ClInclude Include="hkbmirrormodifier.h" />
     <ClInclude Include="hkbmodifiergenerator.h" />
     <ClInclude Include="hkbmodifierlist.h" />
     <ClInclude Include="hkbmovecharactermodifier.h" />
+    <ClInclude Include="hkbposematchinggenerator.h" />
     <ClInclude Include="hkbpoweredragdollcontrolmodifier.h" />
     <ClInclude Include="hkbproxymodifier.h" />
     <ClInclude Include="hkbrigidbodyragdollcontrolsmodifier.h" />
     <ClInclude Include="hkbrotatecharactermodifier.h" />
     <ClInclude Include="hkbsensehandlemodifier.h" />
+    <ClInclude Include="hkbstringcondition.h" />
     <ClInclude Include="hkbtimermodifier.h" />
     <ClInclude Include="hkbtransformvectormodifier.h" />
     <ClInclude Include="hkbtwistmodifier.h" />

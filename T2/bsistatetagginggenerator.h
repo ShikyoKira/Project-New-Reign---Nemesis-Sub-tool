@@ -30,6 +30,6 @@ private:
 	bool IsNegated = false;
 };
 
-extern void BSiStateTaggingGeneratorExport(std::string originalfile, std::string editedfile, std::string id);
+extern void BSiStateTaggingGeneratorExport(std::string id);
 
 #endif

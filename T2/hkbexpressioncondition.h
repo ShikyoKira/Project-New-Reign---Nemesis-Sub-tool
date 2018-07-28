@@ -11,7 +11,7 @@ public:
 	hkbexpressioncondition(std::string filepath, std::string id, std::string preaddress, int functionlayer, bool compare);
 
 	void nonCompare(std::string filepath, std::string id);
-	void Compare(std::string filepath, std::string id);
+	void Compare(std::string filepath, std::string id, int functionlayer);
 	void Dummy(std::string id);
 
 	std::string GetAddress();
@@ -23,5 +23,5 @@ private:
 	bool IsNegated = false;
 };
 
-extern void hkbExpressionConditionExport(std::string originalfile, std::string editedfile, std::string id);
+extern void hkbExpressionConditionExport(std::string id);
 #endif

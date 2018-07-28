@@ -28,6 +28,6 @@ private:
 	bool IsNegated = false;
 };
 
-extern void hkbMoveCharacterModifierExport(std::string originalfile, std::string editedfile, std::string id);
+extern void hkbMoveCharacterModifierExport(std::string id);
 
 #endif

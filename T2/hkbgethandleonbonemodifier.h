@@ -28,6 +28,6 @@ private:
 	bool IsNegated = false;
 };
 
-extern void hkbGetHandleOnBoneModifierExport(std::string originalfile, std::string editedfile, std::string id);
+extern void hkbGetHandleOnBoneModifierExport(std::string id);
 
 #endif

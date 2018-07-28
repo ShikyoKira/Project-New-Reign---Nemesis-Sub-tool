@@ -25,6 +25,6 @@ private:
 	bool IsNegated = false;
 };
 
-extern void hkRootLevelContainerExport(std::string originalfile, std::string editedfile, std::string id);
+extern void hkRootLevelContainerExport(std::string id);
 
 #endif

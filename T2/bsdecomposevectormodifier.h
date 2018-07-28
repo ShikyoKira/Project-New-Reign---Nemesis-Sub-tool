@@ -28,6 +28,6 @@ private:
 	bool IsNegated = false;
 };
 
-extern void BSDecomposeVectorModifierExport(std::string originalfile, std::string editedfile, std::string id);
+extern void BSDecomposeVectorModifierExport(std::string id);
 
 #endif

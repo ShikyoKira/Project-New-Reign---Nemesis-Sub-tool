@@ -22,6 +22,6 @@ private:
 	bool IsNegated = false;
 };
 
-extern void hkbStringEventPayloadExport(std::string originalfile, std::string editedfile, std::string id);
+extern void hkbStringEventPayloadExport(std::string id);
 
 #endif

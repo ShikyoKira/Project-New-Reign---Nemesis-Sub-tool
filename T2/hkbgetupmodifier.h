@@ -28,6 +28,6 @@ private:
 	bool IsNegated = false;
 };
 
-extern void hkbGetUpModifierExport(std::string originalfile, std::string editedfile, std::string id);
+extern void hkbGetUpModifierExport(std::string id);
 
 #endif

@@ -28,6 +28,6 @@ private:
 	bool IsNegated = false;
 };
 
-extern void hkbGetWorldFromModelModifierExport(std::string originalfile, std::string editedfile, std::string id);
+extern void hkbGetWorldFromModelModifierExport(std::string id);
 
 #endif

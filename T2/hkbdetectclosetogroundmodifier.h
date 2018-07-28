@@ -32,6 +32,6 @@ private:
 	bool IsNegated = false;
 };
 
-extern void hkbDetectCloseToGroundModifierExport(std::string originalfile, std::string editedfile, std::string id);
+extern void hkbDetectCloseToGroundModifierExport(std::string id);
 
 #endif

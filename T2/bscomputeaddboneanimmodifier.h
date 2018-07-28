@@ -28,6 +28,6 @@ private:
 	bool IsNegated = false;
 };
 
-extern void BSComputeAddBoneAnimModifierExport(std::string originalfile, std::string editedfile, std::string id);
+extern void BSComputeAddBoneAnimModifierExport(std::string id);
 
 #endif

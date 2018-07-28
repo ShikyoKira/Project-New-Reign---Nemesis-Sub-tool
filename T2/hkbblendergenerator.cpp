@@ -1,5 +1,6 @@
 #include "hkbblendergenerator.h"
 #include "Global.h"
+#include "generatorlines.h"
 
 using namespace std;
 
@@ -19,9 +20,10 @@ hkbblendergenerator::hkbblendergenerator(string filepath, string id, string prea
 			nonCompare(filepath, id);
 		}
 	}
-	else
+	else if (!Error)
 	{
 		string dummyID = CrossReferencing(id, address, functionlayer, compare);
+
 		if (compare)
 		{
 			Dummy(dummyID);
@@ -41,7 +43,6 @@ hkbblendergenerator::hkbblendergenerator(string filepath, string id, string prea
 		else
 		{
 			IsNegated = true;
-
 			address = region[id];
 		}
 	}
@@ -54,7 +55,6 @@ void hkbblendergenerator::nonCompare(string filepath, string id)
 		cout << "--------------------------------------------------------------" << endl << "hkbBlenderGenerator(ID: " << id << ") has been initialized!" << endl;
 	}
 
-	vector<string> storeline;
 	string line;
 	bool pauseline = false;
 	
@@ -62,7 +62,7 @@ void hkbblendergenerator::nonCompare(string filepath, string id)
 	{
 		usize size = FunctionLineOriginal[id].size();
 
-		for (int i = 0; i < size; i++)
+		for (usize i = 0; i < size; ++i)
 		{
 			line = FunctionLineOriginal[id][i];
 
@@ -76,9 +76,10 @@ void hkbblendergenerator::nonCompare(string filepath, string id)
 				{
 					usize tempint = 0;
 					usize size = count(line.begin(), line.end(), '#');
+
 					for (unsigned int i = 0; i < size; i++)
 					{
-						int position = line.find("#", tempint);
+						usize position = line.find("#", tempint);
 						tempint = line.find("#", position + 1);
 						string tempgenerator = line.substr(position, tempint - position - 1);
 						generator.push_back(tempgenerator);
@@ -92,6 +93,7 @@ void hkbblendergenerator::nonCompare(string filepath, string id)
 				if (line.find("<hkparam name=\"variableBindingSet\">", 0) != string::npos)
 				{
 					variablebindingset = line.substr(38, line.find("</hkparam>") - 38);
+
 					if (variablebindingset != "null")
 					{
 						parent[variablebindingset] = id;
@@ -110,8 +112,6 @@ void hkbblendergenerator::nonCompare(string filepath, string id)
 					name = line.substr(24, line.find("</hkparam>") - 24);
 				}
 			}
-
-			storeline.push_back(line);
 		}
 	}
 	else
@@ -120,21 +120,7 @@ void hkbblendergenerator::nonCompare(string filepath, string id)
 		Error = true;
 	}
 
-	ofstream output("temp/" + id + ".txt");
-	if (output.is_open())
-	{
-		for (unsigned int i = 0; i < storeline.size(); i++)
-		{
-			output << storeline[i] << "\n";
-		}
-		output.close();
-	}
-	else
-	{
-		cout << "ERROR: hkbBlenderGenerator Outputfile(File: " << filepath << ", ID: " << id << ")" << endl;
-		Error = true;
-	}
-
+	FunctionLineTemp[id] = FunctionLineOriginal[id];
 	RecordID(id, address); // record address for compare purpose and idcount without updating referenceID
 
 	address = name + "(i" + to_string(regioncount[name]) + ")=>";
@@ -158,13 +144,12 @@ void hkbblendergenerator::Compare(string filepath, string id)
 	vector<string> newline;
 	string line;
 	bool pauseline = false;
-
-
+	
 	if (!FunctionLineEdited[id].empty())
 	{
 		usize size = FunctionLineEdited[id].size();
 
-		for (int i = 0; i < size; i++)
+		for (usize i = 0; i < size; ++i)
 		{
 			line = FunctionLineEdited[id][i];
 
@@ -174,14 +159,14 @@ void hkbblendergenerator::Compare(string filepath, string id)
 				{
 					pauseline = false;
 				}
-
 				else if (line.find("#", 0) != string::npos)
 				{
 					int curgen = 1;
 					usize size = count(line.begin(), line.end(), '#');
+
 					for (unsigned int i = 0; i < size; i++)
 					{
-						int position = 0;
+						usize position = 0;
 						usize tempint = 0;
 
 						for (int j = 0; j < curgen; j++)
@@ -195,8 +180,8 @@ void hkbblendergenerator::Compare(string filepath, string id)
 
 						if (!exchangeID[tempgenerator].empty())
 						{
-							int tempint = line.find(tempgenerator);
-							int templength = tempgenerator.length();
+							usize tempint = line.find(tempgenerator);
+							usize templength = tempgenerator.length();
 							tempgenerator = exchangeID[tempgenerator];
 							line.replace(tempint, templength, tempgenerator);
 						}
@@ -212,14 +197,16 @@ void hkbblendergenerator::Compare(string filepath, string id)
 				if (line.find("<hkparam name=\"variableBindingSet\">", 0) != string::npos)
 				{
 					variablebindingset = line.substr(38, line.find("</hkparam>") - 38);
+
 					if (variablebindingset != "null")
 					{
 						if (!exchangeID[variablebindingset].empty())
 						{
-							int tempint = line.find(variablebindingset);
+							usize tempint = line.find(variablebindingset);
 							variablebindingset = exchangeID[variablebindingset];
 							line.replace(tempint, line.find("</hkparam>") - tempint, variablebindingset);
 						}
+
 						parent[variablebindingset] = id;
 						referencingIDs[variablebindingset].push_back(id);
 					}
@@ -245,18 +232,17 @@ void hkbblendergenerator::Compare(string filepath, string id)
 	// stage 2
 	if (IsOldFunction(filepath, id, address)) // is this new function or old
 	{
-		IsForeign[id] = false;
-		
+		IsForeign[id] = false;		
 		string tempid;
-		if (!addressChange[address].empty())
+
+		if (addressChange.find(address) != addressChange.end())
 		{
-			tempid = addressID[addressChange[address]];
+			tempaddress = addressChange[address];
 			addressChange.erase(addressChange.find(address));
+			address = tempaddress;
 		}
-		else
-		{
-			tempid = addressID[address];
-		}
+
+		tempid = addressID[address];
 		elements[tempid] = children;
 		exchangeID[id] = tempid;
 
@@ -277,17 +263,11 @@ void hkbblendergenerator::Compare(string filepath, string id)
 			referencingIDs[generator[i]].push_back(tempid);
 		}
 
-		string inputfile = "temp/" + tempid + ".txt";
 		vector<string> storeline;
-		storeline.reserve(FileLineCount(inputfile));
-		ifstream input(inputfile); // read old function
-		if (input.is_open())
+
+		if (FunctionLineTemp[tempid].size() > 0)
 		{
-			while (getline(input, line))
-			{
-				storeline.push_back(line);
-			}
-			input.close();
+			storeline = FunctionLineTemp[tempid];
 		}
 		else
 		{
@@ -311,6 +291,7 @@ void hkbblendergenerator::Compare(string filepath, string id)
 				{
 					IsNewChild = true;
 				}
+
 				newstoreline.push_back(newline[i]);
 				curline++;
 			}
@@ -324,6 +305,7 @@ void hkbblendergenerator::Compare(string filepath, string id)
 						{
 							newstoreline.push_back(newchild[j]);
 						}
+
 						newstoreline.push_back(newline[i]);
 						curline++;
 					}
@@ -339,7 +321,7 @@ void hkbblendergenerator::Compare(string filepath, string id)
 
 					if (size < size2)
 					{
-						int position = 0;
+						usize position = 0;
 						usize tempint = 0;
 
 						for (unsigned int j = 0; j < size + 1; j++)
@@ -347,6 +329,7 @@ void hkbblendergenerator::Compare(string filepath, string id)
 							position = newline[i].find("#", tempint);
 							tempint = newline[i].find("#", position + 1);
 						}
+
 						newstoreline.push_back(newline[i].substr(0, position - 1));
 						newchild.push_back("				" + newline[i].substr(position, -1));
 					}
@@ -365,20 +348,7 @@ void hkbblendergenerator::Compare(string filepath, string id)
 			}
 		}
 
-		ofstream output("new/" + tempid + ".txt"); // output stored function data
-		if (output.is_open())
-		{
-			for (unsigned int i = 0; i < newstoreline.size(); i++)
-			{
-				output << newstoreline[i] << "\n";
-			}
-			output.close();
-		}
-		else
-		{
-			cout << "ERROR: hkbBlenderGenerator Outputfile(File: " << filepath << ", newID: " << id << ", oldID: " << tempid << ")" << endl;
-			Error = true;
-		}
+		FunctionLineNew[tempid] = newstoreline;
 
 		if ((Debug) && (!Error))
 		{
@@ -391,22 +361,7 @@ void hkbblendergenerator::Compare(string filepath, string id)
 	{
 		IsForeign[id] = true;
 		elements[id] = children;
-
-		ofstream output("new/" + id + ".txt"); // output stored function data
-		if (output.is_open())
-		{
-			for (unsigned int i = 0; i < newline.size(); i++)
-			{
-				output << newline[i] << "\n";
-			}
-			output.close();
-		}
-		else
-		{
-			cout << "ERROR: hkbBlenderGenerator Outputfile(File: " << filepath << ", ID: " << id << ")" << endl;
-			Error = true;
-		}
-
+		FunctionLineNew[id] = newline;
 		address = tempaddress;
 	}
 
@@ -425,15 +380,15 @@ void hkbblendergenerator::Dummy(string id)
 		cout << "--------------------------------------------------------------" << endl << "Dummy hkbBlenderGenerator(ID: " << id << ") has been initialized!" << endl;
 	}
 
-	string line;
-	string filepath = "new/" + id + ".txt";
-	ifstream file(filepath);
 	bool pauseline = false;
+	string line;
 
-	if (file.is_open())
+	if (FunctionLineNew[id].size() > 0)
 	{
-		while (getline(file, line))
+		for (unsigned int i = 0; i < FunctionLineNew[id].size(); ++i)
 		{
+			line = FunctionLineNew[id][i];
+
 			if (pauseline)
 			{
 				if (line.find("</hkparam>", 0) != string::npos)
@@ -444,15 +399,18 @@ void hkbblendergenerator::Dummy(string id)
 				{
 					usize tempint = 0;
 					usize size = count(line.begin(), line.end(), '#');
+
 					for (unsigned int i = 0; i < size; i++)
 					{
-						int position = line.find("#", tempint);
+						usize position = line.find("#", tempint);
 						tempint = line.find("#", position + 1);
 						string tempgenerator = line.substr(position, tempint - position - 1);
+
 						if (!exchangeID[tempgenerator].empty())
 						{
 							tempgenerator = exchangeID[tempgenerator];
 						}
+
 						generator.push_back(tempgenerator);
 						parent[tempgenerator] = id;
 					}
@@ -463,12 +421,14 @@ void hkbblendergenerator::Dummy(string id)
 				if (line.find("<hkparam name=\"variableBindingSet\">", 0) != string::npos)
 				{
 					variablebindingset = line.substr(38, line.find("</hkparam>") - 38);
+
 					if (variablebindingset != "null")
 					{
 						if (!exchangeID[variablebindingset].empty())
 						{
 							variablebindingset = exchangeID[variablebindingset];
 						}
+
 						parent[variablebindingset] = id;
 					}
 				}
@@ -480,11 +440,10 @@ void hkbblendergenerator::Dummy(string id)
 				}
 			}
 		}
-		file.close();
 	}
 	else
 	{
-		cout << "ERROR: Dummy hkbBlenderGenerator Inputfile(File: " << filepath << ", ID: " << id << ")" << endl;
+		cout << "ERROR: Dummy hkbBlenderGenerator Inputfile(ID: " << id << ")" << endl;
 		Error = true;
 	}
 
@@ -538,49 +497,15 @@ bool hkbblendergenerator::IsNegate()
 	return IsNegated;
 }
 
-void hkbBlenderGeneratorExport(string originalfile, string editedfile, string id)
+void hkbBlenderGeneratorExport(string id)
 {
 	//stage 1 reading
 	vector<string> storeline1;
-	string line;
-	ifstream origfile(originalfile);
-
-	if (origfile.is_open())
-	{
-		while (getline(origfile, line))
-		{
-			if ((line.find("<hkobject>", 0) == string::npos) && (line.find("</hkobject>", 0) == string::npos) && (line.find("</hkparam>", 0) == string::npos || line.find("</hkparam>", 0) > 10))
-			{
-				storeline1.push_back(line);
-			}
-		}
-		origfile.close();
-	}
-	else
-	{
-		cout << "ERROR: Edit hkbBlenderGenerator Input Not Found (Original File: " << originalfile << ")" << endl;
-		Error = true;
-	}
-
-	//stage 2 reading and identifying edits
 	vector<string> storeline2;
-	ifstream editfile(editedfile);
 
-	if (editfile.is_open())
+	if (!generatorLines(storeline1, storeline2, id, "hkbBlenderGenerator"))
 	{
-		while (getline(editfile, line))
-		{
-			if ((line.find("<hkobject>", 0) == string::npos) && (line.find("</hkobject>", 0) == string::npos) && (line.find("</hkparam>", 0) == string::npos || line.find("</hkparam>", 0) > 10))
-			{
-				storeline2.push_back(line);
-			}
-		}
-		editfile.close();
-	}
-	else
-	{
-		cout << "ERROR: Edit hkbBlenderGenerator Output Not Found (Edited File: " << editedfile << ")" << endl;
-		Error = true;
+		return;
 	}
 
 	vector<string> output;
@@ -602,16 +527,20 @@ void hkbBlenderGeneratorExport(string originalfile, string editedfile, string id
 					if (IsChanged)
 					{
 						closepoint = curline;
+
 						if (closepoint != openpoint)
 						{
 							output.push_back("<!-- ORIGINAL -->");
+
 							for (int j = openpoint; j < closepoint; j++)
 							{
 								output.push_back(storeline1[j]);
 							}
 						}
+
 						IsChanged = false;
 					}
+
 					output.push_back("<!-- CLOSE -->");
 					open = false;
 				}
@@ -627,6 +556,7 @@ void hkbBlenderGeneratorExport(string originalfile, string editedfile, string id
 					open = true;
 				}
 			}
+
 			output.push_back(storeline2[i]);
 			curline++;
 		}
@@ -649,41 +579,50 @@ void hkbBlenderGeneratorExport(string originalfile, string editedfile, string id
 		if (IsChanged)
 		{
 			closepoint = curline;
+
 			if (closepoint != openpoint)
 			{
 				output.push_back("<!-- ORIGINAL -->");
+
 				for (int j = openpoint; j < closepoint; j++)
 				{
 					output.push_back(storeline1[j]);
 				}
 			}
+
 			IsChanged = false;
 		}
+
 		output.push_back("<!-- CLOSE -->");
 		open = false;
 	}
 
 	NemesisReaderFormat(output);
 
-	// stage 3 output if it is edited
-	string filename = "cache/" + modcode + "/" + shortFileName + "/" + id + ".txt";
+	// stage 2 output if it is edited
+	string filename = "mod/" + modcode + "/" + shortFileName + "/" + id + ".txt";
+
 	if (IsEdited)
 	{
 		ofstream outputfile(filename);
+
 		if (outputfile.is_open())
 		{
+			FunctionWriter fwrite(&outputfile);
+
 			for (unsigned int i = 0; i < output.size(); i++)
 			{
-				outputfile << output[i] << "\n";
+				fwrite << output[i] << "\n";
 			}
-			outputfile << "			</hkparam>" << "\n";
-			outputfile << "		</hkobject>" << "\n";
+
+			fwrite << "			</hkparam>" << "\n";
+			fwrite << "		</hkobject>" << "\n";
 			outputfile.close();
 
 		}
 		else
 		{
-			cout << "ERROR: Edit hkbBlenderGenerator Output Not Found (New Edited File: " << editedfile << ")" << endl;
+			cout << "ERROR: Edit hkbBlenderGenerator Output Not Found (File: " << filename << ")" << endl;
 			Error = true;
 		}
 	}

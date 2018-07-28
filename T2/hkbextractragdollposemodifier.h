@@ -28,6 +28,6 @@ private:
 	bool IsNegated = false;
 };
 
-extern void hkbExtractRagdollPoseModifierExport(std::string originalfile, std::string editedfile, std::string id);
+extern void hkbExtractRagdollPoseModifierExport(std::string id);
 
 #endif

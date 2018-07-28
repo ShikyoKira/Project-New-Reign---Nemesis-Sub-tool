@@ -27,6 +27,6 @@ private:
 	bool IsNegated = false;
 };
 
-extern void hkbBoneWeightArrayExport(std::string originalfile, std::string editedfile, std::string id);
+extern void hkbBoneWeightArrayExport(std::string id);
 
 #endif

@@ -21,10 +21,30 @@ hkbkeyframebonesmodifier::hkbkeyframebonesmodifier(string filepath, string id, s
 	}
 	else if (!Error)
 	{
+		bool statusChange = false;
+
+		if (IsForeign[id])
+		{
+			statusChange = true;
+		}
+
 		string dummyID = CrossReferencing(id, address, functionlayer, compare);
+
 		if (compare)
 		{
-			IsNegated = true;
+			if (statusChange)
+			{
+				Dummy(dummyID);
+			}
+
+			if (IsForeign[id])
+			{
+				address = preaddress;
+			}
+			else if (!statusChange)
+			{
+				IsNegated = true;
+			}
 		}
 		else
 		{
@@ -44,7 +64,6 @@ void hkbkeyframebonesmodifier::nonCompare(string filepath, string id)
 		cout << "--------------------------------------------------------------" << endl << "hkbKeyframeBonesModifier(ID: " << id << ") has been initialized!" << endl;
 	}
 
-	vector<string> storeline;
 	string line;
 	string classname = "<hkobject name=\"" + id;
 	bool record = false;
@@ -53,13 +72,14 @@ void hkbkeyframebonesmodifier::nonCompare(string filepath, string id)
 	{
 		usize size = FunctionLineOriginal[id].size();
 
-		for (int i = 0; i < size; i++)
+		for (usize i = 0; i < size; ++i)
 		{
 			line = FunctionLineOriginal[id][i];
 
 			if (line.find("<hkparam name=\"variableBindingSet\">", 0) != string::npos)
 			{
 				variablebindingset = line.substr(38, line.find("</hkparam>") - 38);
+
 				if (variablebindingset != "null")
 				{
 					referencingIDs[variablebindingset].push_back(id);
@@ -68,13 +88,12 @@ void hkbkeyframebonesmodifier::nonCompare(string filepath, string id)
 			else if (line.find("<hkparam name=\"keyframedBonesList\">", 0) != string::npos)
 			{
 				keyframedbonelist = line.substr(38, line.find("</hkparam>") - 38);
+
 				if (keyframedbonelist != "null")
 				{
 					referencingIDs[keyframedbonelist].push_back(id);
 				}
 			}
-
-			storeline.push_back(line);
 		}
 	}
 	else
@@ -83,21 +102,7 @@ void hkbkeyframebonesmodifier::nonCompare(string filepath, string id)
 		Error = true;
 	}
 
-	ofstream output("temp/" + id + ".txt");
-	if (output.is_open())
-	{
-		for (unsigned int i = 0; i < storeline.size(); i++)
-		{
-			output << storeline[i] << "\n";
-		}
-		output.close();
-	}
-	else
-	{
-		cout << "ERROR: hkbKeyframeBonesModifier Outputfile(File: " << filepath << ", ID: " << id << ")" << endl;
-		Error = true;
-	}
-
+	FunctionLineTemp[id] = FunctionLineOriginal[id];
 	RecordID(id, address); // record address for compare purpose and idcount without updating referenceID
 
 	if ((Debug) && (!Error))
@@ -121,13 +126,14 @@ void hkbkeyframebonesmodifier::Compare(string filepath, string id)
 	{
 		usize size = FunctionLineEdited[id].size();
 
-		for (int i = 0; i < size; i++)
+		for (usize i = 0; i < size; ++i)
 		{
 			line = FunctionLineEdited[id][i];
 
 			if (line.find("<hkparam name=\"variableBindingSet\">", 0) != string::npos)
 			{
 				variablebindingset = line.substr(38, line.find("</hkparam>") - 38);
+
 				if (variablebindingset != "null")
 				{
 					if (!exchangeID[variablebindingset].empty())
@@ -136,12 +142,15 @@ void hkbkeyframebonesmodifier::Compare(string filepath, string id)
 						variablebindingset = exchangeID[variablebindingset];
 						line.replace(tempint, line.find("</hkparam>") - tempint, variablebindingset);
 					}
+
+					parent[variablebindingset] = id;
 					referencingIDs[variablebindingset].push_back(id);
 				}
 			}
 			else if (line.find("<hkparam name=\"keyframedBonesList\">", 0) != string::npos)
 			{
 				keyframedbonelist = line.substr(38, line.find("</hkparam>") - 38);
+
 				if (keyframedbonelist != "null")
 				{
 					if (!exchangeID[keyframedbonelist].empty())
@@ -150,6 +159,7 @@ void hkbkeyframebonesmodifier::Compare(string filepath, string id)
 						keyframedbonelist = exchangeID[keyframedbonelist];
 						line.replace(tempint, line.find("</hkparam>") - tempint, keyframedbonelist);
 					}
+
 					parent[keyframedbonelist] = id;
 					referencingIDs[keyframedbonelist].push_back(id);
 				}
@@ -168,17 +178,16 @@ void hkbkeyframebonesmodifier::Compare(string filepath, string id)
 	if (IsOldFunction(filepath, id, address)) // is this new function or old
 	{
 		IsForeign[id] = false;
-
 		string tempid;
-		if (!addressChange[address].empty())
+
+		if (addressChange.find(address) != addressChange.end())
 		{
-			tempid = addressID[addressChange[address]];
+			tempaddress = addressChange[address];
 			addressChange.erase(addressChange.find(address));
+			address = tempaddress;
 		}
-		else
-		{
-			tempid = addressID[address];
-		}
+
+		tempid = addressID[address];
 		exchangeID[id] = tempid;
 
 		if ((Debug) && (!Error))
@@ -190,47 +199,26 @@ void hkbkeyframebonesmodifier::Compare(string filepath, string id)
 		{
 			referencingIDs[variablebindingset].pop_back();
 			referencingIDs[variablebindingset].push_back(tempid);
+			parent[variablebindingset] = tempid;
 		}
 
 		if (keyframedbonelist != "null")
 		{
 			referencingIDs[keyframedbonelist].pop_back();
 			referencingIDs[keyframedbonelist].push_back(tempid);
+			parent[keyframedbonelist] = tempid;
 		}
 
-		string inputfile = "temp/" + tempid + ".txt";
-		vector<string> storeline;
-		storeline.reserve(FileLineCount(inputfile));
-		ifstream input(inputfile); // read old function
-		if (input.is_open())
 		{
-			while (getline(input, line))
-			{
-				storeline.push_back(line);
-			}
-			input.close();
-		}
-		else
-		{
-			cout << "ERROR: hkbKeyframeBonesModifier Inputfile(File: " << filepath << ", newID: " << id << ", oldID: " << tempid << ")" << endl;
-			Error = true;
+			vector<string> emptyVS;
+			FunctionLineNew[tempid] = emptyVS;
 		}
 
-		// stage 3
-		ofstream output("new/" + tempid + ".txt"); // output stored function data
-		if (output.is_open())
+		FunctionLineNew[tempid].push_back(FunctionLineTemp[tempid][0]);
+
+		for (unsigned int i = 1; i < newline.size(); i++)
 		{
-			output << storeline[0] << "\n";
-			for (unsigned int i = 1; i < newline.size(); i++)
-			{
-				output << newline[i] << "\n";
-			}
-			output.close();
-		}
-		else
-		{
-			cout << "ERROR: hkbKeyframeBonesModifier Outputfile(File: " << filepath << ", newID: " << id << ", oldID: " << tempid << ")" << endl;
-			Error = true;
+			FunctionLineNew[tempid].push_back(newline[i]);
 		}
 
 		if ((Debug) && (!Error))
@@ -238,26 +226,10 @@ void hkbkeyframebonesmodifier::Compare(string filepath, string id)
 			cout << "Comparing hkbKeyframeBonesModifier(newID: " << id << ") with hkbKeyframeBonesModifier(oldID: " << tempid << ") is complete!" << endl;
 		}
 	}
-
 	else
 	{
 		IsForeign[id] = true;
-
-		ofstream output("new/" + id + ".txt"); // output stored function data
-		if (output.is_open())
-		{
-			for (unsigned int i = 0; i < newline.size(); i++)
-			{
-				output << newline[i] << "\n";
-			}
-			output.close();
-		}
-		else
-		{
-			cout << "ERROR: hkbKeyframeBonesModifier Outputfile(File: " << filepath << ", ID: " << id << ")" << endl;
-			Error = true;
-		}
-
+		FunctionLineNew[id] = newline;
 		address = tempaddress;
 	}
 
@@ -275,45 +247,50 @@ void hkbkeyframebonesmodifier::Dummy(string id)
 	{
 		cout << "--------------------------------------------------------------" << endl << "Dummy hkbKeyframeBonesModifier(ID: " << id << ") has been initialized!" << endl;
 	}
-
+	
 	string line;
-	string filepath = "new/" + id + ".txt";
-	ifstream file(filepath);
 
-	if (file.is_open())
+	if (FunctionLineNew[id].size() > 0)
 	{
-		while (getline(file, line))
+		for (unsigned int i = 0; i < FunctionLineNew[id].size(); ++i)
 		{
+			line = FunctionLineNew[id][i];
+
 			if (line.find("<hkparam name=\"variableBindingSet\">", 0) != string::npos)
 			{
 				variablebindingset = line.substr(38, line.find("</hkparam>") - 38);
+
 				if (variablebindingset != "null")
 				{
 					if (!exchangeID[variablebindingset].empty())
 					{
 						variablebindingset = exchangeID[variablebindingset];
 					}
+
+					parent[variablebindingset] = id;
 				}
 			}
-
 			else if (line.find("<hkparam name=\"keyframedBonesList\">", 0) != string::npos)
 			{
 				keyframedbonelist = line.substr(38, line.find("</hkparam>") - 38);
+
 				if (keyframedbonelist != "null")
 				{
 					if (!exchangeID[keyframedbonelist].empty())
 					{
 						keyframedbonelist = exchangeID[keyframedbonelist];
 					}
+
+					parent[keyframedbonelist] = id;
 				}
+
 				break;
 			}
 		}
-		file.close();
 	}
 	else
 	{
-		cout << "ERROR: Dummy hkbKeyframeBonesModifier Inputfile(File: " << filepath << ", ID: " << id << ")" << endl;
+		cout << "ERROR: Dummy hkbKeyframeBonesModifier Inputfile(ID: " << id << ")" << endl;
 		Error = true;
 	}
 
@@ -369,47 +346,49 @@ bool hkbkeyframebonesmodifier::IsNegate()
 	return IsNegated;
 }
 
-void hkbKeyframeBonesModifierExport(string originalfile, string editedfile, string id)
+void hkbKeyframeBonesModifierExport(string id)
 {
 	//stage 1 reading
 	vector<string> storeline1;
+	storeline1.reserve(FunctionLineTemp[id].size());
 	string line;
-	ifstream origfile(originalfile);
 
-	if (origfile.is_open())
+	if (FunctionLineTemp[id].size() > 0)
 	{
-		while (getline(origfile, line))
+		for (unsigned int i = 0; i < FunctionLineTemp[id].size(); ++i)
 		{
+			line = FunctionLineTemp[id][i];
+
 			if ((line.find("<hkobject>", 0) == string::npos) && (line.find("</hkobject>", 0) == string::npos) && (line.find("</hkparam>", 0) == string::npos || line.find("</hkparam>", 0) > 10))
 			{
 				storeline1.push_back(line);
 			}
 		}
-		origfile.close();
 	}
 	else
 	{
-		cout << "ERROR: Edit hkbKeyframeBonesModifier Input Not Found (Original File: " << originalfile << ")" << endl;
+		cout << "ERROR: Edit hkbKeyframeBonesModifier Input Not Found (ID: " << id << ")" << endl;
 		Error = true;
 	}
-
+	
 	vector<string> storeline2;
-	ifstream editfile(editedfile);
+	storeline2.reserve(FunctionLineNew[id].size());
 
-	if (editfile.is_open())
+	if (FunctionLineNew[id].size() > 0)
 	{
-		while (getline(editfile, line))
+		for (unsigned int i = 0; i < FunctionLineNew[id].size(); ++i)
 		{
+			line = FunctionLineNew[id][i];
+
 			if ((line.find("<hkobject>", 0) == string::npos) && (line.find("</hkobject>", 0) == string::npos) && (line.find("</hkparam>", 0) == string::npos || line.find("</hkparam>", 0) > 10))
 			{
 				storeline2.push_back(line);
 			}
 		}
-		editfile.close();
 	}
 	else
 	{
-		cout << "ERROR: Edit hkbKeyframeBonesModifier Output Not Found (Edited File: " << editedfile << ")" << endl;
+		cout << "ERROR: Edit hkbKeyframeBonesModifier Output Not Found (ID: " << id << ")" << endl;
 		Error = true;
 	}
 
@@ -446,14 +425,17 @@ void hkbKeyframeBonesModifierExport(string originalfile, string editedfile, stri
 				{
 					output.push_back("<!-- ORIGINAL -->");
 					closepoint = curline;
+
 					for (int j = openpoint; j < closepoint; j++)
 					{
 						output.push_back(storeline1[j]);
 					}
+
 					output.push_back("<!-- CLOSE -->");
 					IsChanged = false;
 					open = false;
 				}
+
 				output.push_back(storeline2[i]);
 			}
 
@@ -465,10 +447,12 @@ void hkbKeyframeBonesModifierExport(string originalfile, string editedfile, stri
 				{
 					output.push_back("<!-- ORIGINAL -->");
 					closepoint = curline;
+
 					for (int j = openpoint; j < closepoint; j++)
 					{
 						output.push_back(storeline1[j]);
 					}
+
 					output.push_back("<!-- CLOSE -->");
 					IsChanged = false;
 					open = false;
@@ -503,6 +487,7 @@ void hkbKeyframeBonesModifierExport(string originalfile, string editedfile, stri
 						IsChanged = false;
 						open = false;
 					}
+
 					IsEdited = true;
 				}
 				else
@@ -521,10 +506,12 @@ void hkbKeyframeBonesModifierExport(string originalfile, string editedfile, stri
 				{
 					closepoint = curline;
 					output.push_back("<!-- ORIGINAL -->");
+
 					for (int j = openpoint; j < closepoint; j++)
 					{
 						output.push_back(storeline1[j]);
 					}
+
 					output.push_back("<!-- CLOSE -->");
 					IsChanged = false;
 					open = false;
@@ -536,16 +523,19 @@ void hkbKeyframeBonesModifierExport(string originalfile, string editedfile, stri
 			{
 				output.push_back(storeline2[i]);
 			}
+
 			curline++;
 
 			if ((open) && (storeline2[i + 1].find("<hkparam name=\"keyframedBonesList\">", 0) != string::npos))
 			{
 				closepoint = curline;
 				output.push_back("<!-- ORIGINAL -->");
+
 				for (int j = openpoint; j < closepoint; j++)
 				{
 					output.push_back(storeline1[j]);
 				}
+
 				output.push_back("<!-- CLOSE -->");
 				open = false;
 			}
@@ -576,16 +566,20 @@ void hkbKeyframeBonesModifierExport(string originalfile, string editedfile, stri
 				{
 					output.push_back("<!-- ORIGINAL -->");
 					closepoint = curline;
+
 					for (int j = openpoint; j < closepoint; j++)
 					{
 						output.push_back(storeline1[j]);
 					}
+
 					output.push_back("<!-- CLOSE -->");
 					IsChanged = false;
 					open = false;
 				}
+
 				output.push_back(storeline2[i]);
 			}
+
 			curline++;
 		}
 		else // added variable value
@@ -594,7 +588,6 @@ void hkbKeyframeBonesModifierExport(string originalfile, string editedfile, stri
 			{
 				if ((storeline1[curline].find(storeline2[i], 0) == string::npos) || (storeline1[curline].length() != storeline2[i].length()))
 				{
-
 					output.push_back("<!-- MOD_CODE ~" + modcode + "~ OPEN -->");
 
 					if (storeline2[i].find("<hkparam name=\"keyframedPosition\">", 0) != string::npos)
@@ -626,12 +619,14 @@ void hkbKeyframeBonesModifierExport(string originalfile, string editedfile, stri
 						IsChanged = false;
 						open = false;
 					}
+
 					IsEdited = true;
 				}
 				else
 				{
 					output.push_back(storeline2[i]);
 				}
+
 				part = 1;
 				curline++;
 			}
@@ -645,6 +640,7 @@ void hkbKeyframeBonesModifierExport(string originalfile, string editedfile, stri
 					IsEdited = true;
 					open = true;
 				}
+
 				output.push_back(storeline2[i]);
 				part = 2;
 				curline++;
@@ -694,10 +690,11 @@ void hkbKeyframeBonesModifierExport(string originalfile, string editedfile, stri
 								{
 									output.push_back("				</hkobject>");
 								}
-
 							}
+
 							IsChanged = false;
 						}
+
 						output.push_back("<!-- CLOSE -->");
 						open = false;
 					}
@@ -711,16 +708,20 @@ void hkbKeyframeBonesModifierExport(string originalfile, string editedfile, stri
 		if (IsChanged)
 		{
 			closepoint = curline;
+
 			if (closepoint != openpoint)
 			{
 				output.push_back("<!-- ORIGINAL -->");
+
 				for (int j = openpoint; j < closepoint; j++)
 				{
 					output.push_back(storeline1[j]);
 				}
 			}
+
 			IsChanged = false;
 		}
+
 		output.push_back("<!-- CLOSE -->");
 		open = false;
 	}
@@ -728,16 +729,19 @@ void hkbKeyframeBonesModifierExport(string originalfile, string editedfile, stri
 	NemesisReaderFormat(output);
 
 	// stage 3 output if it is edited
-	string filename = "cache/" + modcode + "/" + shortFileName + "/" + id + ".txt";
+	string filename = "mod/" + modcode + "/" + shortFileName + "/" + id + ".txt";
 	bool closeOri = false;
 	bool closeEdit = false;
 
 	if (IsEdited)
 	{
 		ofstream outputfile(filename);
+
 		if (outputfile.is_open())
 		{
+			FunctionWriter fwrite(&outputfile);
 			part = 0;
+
 			for (unsigned int i = 0; i < output.size(); i++)
 			{
 				if (i < output.size() - 1)
@@ -746,7 +750,7 @@ void hkbKeyframeBonesModifierExport(string originalfile, string editedfile, stri
 					{
 						if ((!closeOri) && (!closeEdit))
 						{
-							outputfile << "			</hkparam>" << "\n";
+							fwrite << "			</hkparam>" << "\n";
 							closeOri = true;
 							closeEdit = true;
 						}
@@ -755,7 +759,7 @@ void hkbKeyframeBonesModifierExport(string originalfile, string editedfile, stri
 					{
 						if (!closeEdit)
 						{
-							outputfile << "			</hkparam>" << "\n";
+							fwrite << "			</hkparam>" << "\n";
 							closeEdit = true;
 						}
 					}
@@ -802,22 +806,7 @@ void hkbKeyframeBonesModifierExport(string originalfile, string editedfile, stri
 						}
 					}
 
-					if (output[i + 1].find("<hkparam name=\"keyframedPosition\">", 0) != string::npos)
-					{
-						outputfile << output[i] << "\n";
-
-						if (output[i].find("OPEN", 0) != string::npos)
-						{
-
-						}
-
-						// outputfile << "				<hkobject>" << "\n";
-						// outputfile << output[i] << "\n";
-					}
-					else
-					{
-						outputfile << output[i] << "\n";
-					}
+					fwrite << output[i] << "\n";
 
 					if (output[i + 1].find("<hkparam name=\"keyframedBonesList\">", 0) != string::npos)
 					{
@@ -826,7 +815,7 @@ void hkbKeyframeBonesModifierExport(string originalfile, string editedfile, stri
 				}
 				else
 				{
-					outputfile << output[i] << "\n";
+					fwrite << output[i] << "\n";
 				}
 
 				if (i < output.size() - 1)
@@ -837,7 +826,7 @@ void hkbKeyframeBonesModifierExport(string originalfile, string editedfile, stri
 						{
 							if ((!closeOri) && (!closeEdit))
 							{
-								outputfile << "			</hkparam>" << "\n";
+								fwrite << "			</hkparam>" << "\n";
 								closeOri = true;
 								closeEdit = true;
 							}
@@ -845,12 +834,13 @@ void hkbKeyframeBonesModifierExport(string originalfile, string editedfile, stri
 					}
 				}
 			}
-			outputfile << "		</hkobject>" << "\n";
+
+			fwrite << "		</hkobject>" << "\n";
 			outputfile.close();
 		}
 		else
 		{
-			cout << "ERROR: Edit hkbKeyframeBonesModifier Output Not Found (New Edited File: " << editedfile << ")" << endl;
+			cout << "ERROR: Edit hkbKeyframeBonesModifier Output Not Found (File: " << filename << ")" << endl;
 			Error = true;
 		}
 	}

@@ -29,11 +29,10 @@ private:
 	std::string address;
 	std::string tempaddress;
 	std::vector<std::string> payload;
-	int payloadcount;
 	std::string variablebindingset;
 	bool IsNegated = false;
 };
 
-extern void hkbFootIkControlsModifierExport(std::string originalfile, std::string editedfile, std::string id);
+extern void hkbFootIkControlsModifierExport(std::string id);
 
 #endif

@@ -7,7 +7,6 @@
 #include <vector>
 #include <Windows.h>
 
-
 struct hkbstatemachine
 {
 public:
@@ -44,6 +43,6 @@ private:
 	bool IsNegated = false;
 };
 
-extern void hkbStateMachineExport(std::string originalfile, std::string editedfile, std::string id);
+extern void hkbStateMachineExport(std::string id);
 
 #endif

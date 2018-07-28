@@ -1,7 +1,10 @@
 #include "hkbstatemachine.h"
 #include "Global.h"
+#include "generatorlines.h"
 
 using namespace std;
+
+bool matchScoring(vector<string>& ori, vector<string>& edit, string id);
 
 hkbstatemachine::hkbstatemachine(string filepath, string id, string preaddress, int functionlayer, bool compare)
 {
@@ -22,6 +25,7 @@ hkbstatemachine::hkbstatemachine(string filepath, string id, string preaddress, 
 	else if (!Error)
 	{
 		string dummyID = CrossReferencing(id, address, functionlayer, compare);
+
 		if (compare)
 		{
 			Dummy(dummyID);
@@ -41,7 +45,6 @@ hkbstatemachine::hkbstatemachine(string filepath, string id, string preaddress, 
 		else
 		{
 			IsNegated = true;
-
 			address = region[id];
 		}
 	}
@@ -59,7 +62,6 @@ void hkbstatemachine::nonCompare(string filepath, string id)
 	}
 
 	unordered_map<string, bool> IsReferenceExist;
-	vector<string> storeline;
 	string line;
 	bool pauseline = false;
 
@@ -67,7 +69,7 @@ void hkbstatemachine::nonCompare(string filepath, string id)
 	{
 		usize size = FunctionLineOriginal[id].size();
 
-		for (int i = 0; i < size; i++)
+		for (usize i = 0; i < size; ++i)
 		{
 			line = FunctionLineOriginal[id][i];
 
@@ -82,9 +84,10 @@ void hkbstatemachine::nonCompare(string filepath, string id)
 				{
 					usize tempint = 0;
 					usize size = count(line.begin(), line.end(), '#');
+
 					for (unsigned int i = 0; i < size; i++)
 					{
-						int position = line.find("#", tempint);
+						usize position = line.find("#", tempint);
 						tempint = line.find("#", position + 1);
 						string tempgenerator = line.substr(position, tempint - position - 1);
 						generator.push_back(tempgenerator);
@@ -98,38 +101,42 @@ void hkbstatemachine::nonCompare(string filepath, string id)
 				if (line.find("<hkparam name=\"variableBindingSet\">", 0) != string::npos)
 				{
 					variablebindingset = line.substr(38, line.find("</hkparam>") - 38);
+
 					if (variablebindingset != "null")
 					{
+						parent[variablebindingset] = id;
 						referencingIDs[variablebindingset].push_back(id);
 					}
-					parent[variablebindingset] = id;
 				}
 
 				else if (line.find("<hkparam name=\"payload\">", 0) != string::npos)
 				{
 					payload = line.substr(29, line.find("</hkparam>") - 29);
+
 					if (payload != "null")
 					{
+						parent[payload] = id;
 						referencingIDs[payload].push_back(id);
 					}
-					parent[payload] = id;
 				}
 
 				else if (line.find("<hkparam name=\"states\" numelements=", 0) != string::npos)
 				{
 					children = stoi(line.substr(39, line.length() - 41));
 					generator.reserve(children);
+					elements[id + "T"] = children;
 					pauseline = true;
 				}
 
 				else if (line.find("<hkparam name=\"wildcardTransitions\">", 0) != string::npos)
 				{
 					wildcard = line.substr(39, line.find("</hkparam>") - 39);
+
 					if (wildcard != "null")
 					{
+						parent[wildcard] = id;
 						referencingIDs[wildcard].push_back(id);
 					}
-					parent[wildcard] = id;
 				}
 
 				else if (line.find("<hkparam name=\"name\">", 0) != string::npos)
@@ -137,8 +144,6 @@ void hkbstatemachine::nonCompare(string filepath, string id)
 					name = line.substr(24, line.find("</hkparam>") - 24);
 				}
 			}
-
-			storeline.push_back(line);
 		}
 	}
 	else
@@ -147,21 +152,7 @@ void hkbstatemachine::nonCompare(string filepath, string id)
 		Error = true;
 	}
 
-	ofstream output("temp/" + id + ".txt");
-	if (output.is_open())
-	{
-		for (unsigned int i = 0; i < storeline.size(); i++)
-		{
-			output << storeline[i] << "\n";
-		}
-		output.close();
-	}
-	else
-	{
-		cout << "ERROR: hkbStateMachine Outputfile(File: " << filepath << ", ID: " << id << ")" << endl;
-		Error = true;
-	}
-
+	FunctionLineTemp[id] = FunctionLineOriginal[id];
 	RecordID(id, address); // record address for compare purpose and idcount without updating referenceID
 
 	address = name + "(r" + to_string(regioncount[name]) + ")=>";
@@ -190,7 +181,7 @@ void hkbstatemachine::Compare(string filepath, string id)
 	{
 		usize size = FunctionLineEdited[id].size();
 
-		for (int i = 0; i < size; i++)
+		for (usize i = 0; i < size; ++i)
 		{
 			line = FunctionLineEdited[id][i];
 
@@ -205,6 +196,7 @@ void hkbstatemachine::Compare(string filepath, string id)
 				{
 					int curgen = 1;
 					usize size = count(line.begin(), line.end(), '#');
+
 					for (unsigned int i = 0; i < size; i++)
 					{
 						usize position = 0;
@@ -238,6 +230,7 @@ void hkbstatemachine::Compare(string filepath, string id)
 				if (line.find("<hkparam name=\"variableBindingSet\">", 0) != string::npos)
 				{
 					variablebindingset = line.substr(38, line.find("</hkparam>") - 38);
+
 					if (variablebindingset != "null")
 					{
 						if (!exchangeID[variablebindingset].empty())
@@ -246,6 +239,7 @@ void hkbstatemachine::Compare(string filepath, string id)
 							line.replace(tempint, line.find("</hkparam>") - tempint, exchangeID[variablebindingset]);
 							variablebindingset = exchangeID[variablebindingset];
 						}
+
 						parent[variablebindingset] = id;
 						referencingIDs[variablebindingset].push_back(id);
 					}
@@ -254,6 +248,7 @@ void hkbstatemachine::Compare(string filepath, string id)
 				else if (line.find("<hkparam name=\"payload\">", 0) != string::npos)
 				{
 					payload = line.substr(29, line.find("</hkparam>") - 29);
+
 					if (payload != "null")
 					{
 						if (!exchangeID[payload].empty())
@@ -262,6 +257,7 @@ void hkbstatemachine::Compare(string filepath, string id)
 							payload = exchangeID[payload];
 							line.replace(tempint, line.find("</hkparam>") - tempint, payload);
 						}
+
 						parent[payload] = id;
 						referencingIDs[payload].push_back(id);
 					}
@@ -271,12 +267,14 @@ void hkbstatemachine::Compare(string filepath, string id)
 				{
 					children = stoi(line.substr(39, line.length() - 41));
 					generator.reserve(children);
+					elements[id + "T"] = children;
 					pauseline = true;
 				}
 
 				else if (line.find("<hkparam name=\"wildcardTransitions\">", 0) != string::npos)
 				{
 					wildcard = line.substr(39, line.find("</hkparam>") - 39);
+
 					if (wildcard != "null")
 					{
 						if (!exchangeID[wildcard].empty())
@@ -285,6 +283,7 @@ void hkbstatemachine::Compare(string filepath, string id)
 							line.replace(tempint, line.find("</hkparam>") - tempint, exchangeID[wildcard]);
 							wildcard = exchangeID[wildcard];
 						}
+
 						parent[wildcard] = id;
 						referencingIDs[wildcard].push_back(id);
 					}
@@ -304,8 +303,17 @@ void hkbstatemachine::Compare(string filepath, string id)
 	if (IsOldFunction(filepath, id, address)) // is this new function or old
 	{
 		IsForeign[id] = false;
+		string tempid;
 
-		string tempid = addressID[address];
+		if (addressChange.find(address) != addressChange.end())
+		{
+			tempaddress = addressChange[address];
+			addressChange.erase(addressChange.find(address));
+			address = tempaddress;
+		}
+
+		tempid = addressID[address];
+		elements[tempid] = children;
 		exchangeID[id] = tempid;
 
 		if ((Debug) && (!Error))
@@ -317,43 +325,31 @@ void hkbstatemachine::Compare(string filepath, string id)
 		{
 			referencingIDs[variablebindingset].pop_back();
 			referencingIDs[variablebindingset].push_back(tempid);
+			parent[variablebindingset] = tempid;
 		}
 
 		for (unsigned int i = 0; i < generator.size(); i++)
 		{
 			referencingIDs[generator[i]].pop_back();
 			referencingIDs[generator[i]].push_back(tempid);
+			parent[generator[i]] = tempid;
 		}
 
 		if (payload != "null")
 		{
 			referencingIDs[payload].pop_back();
 			referencingIDs[payload].push_back(tempid);
+			parent[payload] = tempid;
 		}
 
 		if (wildcard != "null")
 		{
 			referencingIDs[wildcard].pop_back();
 			referencingIDs[wildcard].push_back(tempid);
+			parent[wildcard] = tempid;
 		}
 
-		string inputfile = "temp/" + tempid + ".txt";
-		vector<string> storeline;
-		storeline.reserve(FileLineCount(inputfile));
-		ifstream input(inputfile);
-		if (input.is_open())
-		{
-			while (getline(input, line))
-			{
-				storeline.push_back(line);
-			}
-			input.close();
-		}
-		else
-		{
-			cout << "ERROR: hkbStateMachine Inputfile(File: " << filepath << ", newID: " << id << ", oldID: " << tempid << ")" << endl;
-			Error = true;
-		}
+		vector<string> storeline = FunctionLineTemp[tempid];
 
 		// stage 3
 		int curline = 1;
@@ -371,6 +367,7 @@ void hkbstatemachine::Compare(string filepath, string id)
 				{
 					IsNewChild = true;
 				}
+
 				newstoreline.push_back(newline[i]);
 				curline++;
 			}
@@ -384,6 +381,7 @@ void hkbstatemachine::Compare(string filepath, string id)
 						{
 							newstoreline.push_back(newchild[j]);
 						}
+
 						newstoreline.push_back(newline[i]);
 						curline++;
 					}
@@ -407,6 +405,7 @@ void hkbstatemachine::Compare(string filepath, string id)
 							position = newline[i].find("#", tempint);
 							tempint = newline[i].find("#", position + 1);
 						}
+
 						newstoreline.push_back(newline[i].substr(0, position - 1));
 						newchild.push_back("				" + newline[i].substr(position, -1));
 					}
@@ -425,20 +424,7 @@ void hkbstatemachine::Compare(string filepath, string id)
 			}
 		}
 
-		ofstream output("new/" + tempid + ".txt"); // output stored function data
-		if (output.is_open())
-		{
-			for (unsigned int i = 0; i < newstoreline.size(); i++)
-			{
-				output << newstoreline[i] << "\n";
-			}
-			output.close();
-		}
-		else
-		{
-			cout << "ERROR: hkbStateMachine Outputfile(File: " << filepath << ", newID: " << id << ", oldID: " << tempid << ")" << endl;
-			Error = true;
-		}
+		FunctionLineNew[tempid] = newstoreline;
 
 		if ((Debug) && (!Error))
 		{
@@ -447,27 +433,12 @@ void hkbstatemachine::Compare(string filepath, string id)
 
 		address = region[tempid];
 	}
-
 	else
 	{
 		IsForeign[id] = true;
-
-		ofstream output("new/" + id + ".txt"); // output stored function data
-		if (output.is_open())
-		{
-			for (unsigned int i = 0; i < newline.size(); i++)
-			{
-				output << newline[i] << "\n";
-			}
-			output.close();
-		}
-		else
-		{
-			cout << "ERROR: hkbStateMachine Outputfile(File: " << filepath << ", ID: " << id << ")" << endl;
-			Error = true;
-		}
-
+		FunctionLineNew[id] = newline;
 		address = tempaddress;
+		elements[id] = children;
 	}
 
 	RecordID(id, address, true);
@@ -485,15 +456,15 @@ void hkbstatemachine::Dummy(string id)
 		cout << "--------------------------------------------------------------" << endl << "Dummy hkbStateMachine(ID: " << id << ") has been initialized!" << endl;
 	}
 
-	string line;
-	string filepath = "new/" + id + ".txt";
-	ifstream file(filepath);
 	bool pauseline = false;
+	string line;
 
-	if (file.is_open())
+	if (FunctionLineNew[id].size() > 0)
 	{
-		while (getline(file, line))
+		for (unsigned int i = 0; i < FunctionLineNew[id].size(); ++i)
 		{
+			line = FunctionLineNew[id][i];
+
 			if (pauseline)
 			{
 				if (line.find("</hkparam>", 0) != string::npos)
@@ -506,6 +477,7 @@ void hkbstatemachine::Dummy(string id)
 					usize tempint = 0;
 					usize size = count(line.begin(), line.end(), '#');
 					generator.reserve(size);
+
 					for (unsigned int i = 0; i < size; i++)
 					{
 						usize position = line.find("#", tempint);
@@ -549,6 +521,7 @@ void hkbstatemachine::Dummy(string id)
 						{
 							payload = exchangeID[payload];
 						}
+
 						parent[payload] = id;
 					}
 				}
@@ -570,6 +543,7 @@ void hkbstatemachine::Dummy(string id)
 						{
 							wildcard = exchangeID[wildcard];
 						}
+
 						parent[wildcard] = id;
 					}
 
@@ -577,21 +551,19 @@ void hkbstatemachine::Dummy(string id)
 				}
 			}
 		}
-
-		file.close();
 	}
 	else
 	{
-		cout << "ERROR: Dummy hkbStateMachine Inputfile(File: " << filepath << ", ID: " << id << ")" << endl;
+		cout << "ERROR: Dummy hkbStateMachine Inputfile(ID: " << id << ")" << endl;
 		Error = true;
 	}
+
+	RecordID(id, address, true); // record address for compare purpose and idcount without updating referenceID
 
 	if (!region[id].empty())
 	{
 		address = region[id];
 	}
-
-	RecordID(id, address, true); // record address for compare purpose and idcount without updating referenceID
 
 	if ((Debug) && (!Error))
 	{
@@ -670,195 +642,113 @@ bool hkbstatemachine::IsNegate()
 	return IsNegated;
 }
 
-void hkbStateMachineExport(string originalfile, string editedfile, string id)
+void hkbStateMachineExport(string id)
 {
 	//stage 1 reading
 	vector<string> storeline1;
-	string line;
-	ifstream origfile(originalfile);
-
-	if (origfile.is_open())
-	{
-		while (getline(origfile, line))
-		{
-			if ((line.find("<hkobject>", 0) == string::npos) && (line.find("</hkobject>", 0) == string::npos) && (line.find("</hkparam>", 0) == string::npos || line.find("</hkparam>", 0) > 10))
-			{
-				storeline1.push_back(line);
-			}
-		}
-
-		origfile.close();
-	}
-	else
-	{
-		cout << "ERROR: Edit hkbStateMachine Input Not Found (Original File: " << originalfile << ")" << endl;
-		Error = true;
-	}
-
-	//stage 2 reading and identifying edits
 	vector<string> storeline2;
-	ifstream editfile(editedfile);
 
-	if (editfile.is_open())
+	if (!generatorLines(storeline1, storeline2, id, "hkbStateMachine"))
 	{
-		while (getline(editfile, line))
-		{
-			if ((line.find("<hkobject>", 0) == string::npos) && (line.find("</hkobject>", 0) == string::npos) && (line.find("</hkparam>", 0) == string::npos || line.find("</hkparam>", 0) > 10))
-			{
-				storeline2.push_back(line);
-			}
-		}
-
-		editfile.close();
-	}
-	else
-	{
-		cout << "ERROR: Edit hkbStateMachine Output Not Found (Edited File: " << editedfile << ")" << endl;
-		Error = true;
+		return;
 	}
 
+	vector<string> oriline;
 	vector<string> output;
 	bool open = false;
-	bool IsChanged = false;
 	bool IsEdited = false;
 	int curline = 0;
-	int openpoint;
-	int closepoint;
+	size_t size = max(storeline1.size(), storeline2.size());
 
-	for (unsigned int i = 0; i < storeline2.size(); i++)
+	for (unsigned int i = 0; i < size; ++i)
 	{
-		if (storeline1[curline].find("<hkparam name=\"wildcardTransitions\">", 0) == string::npos) // existing variable value
+		if (storeline1[curline].find("<hkparam name=\"wildcardTransitions\">", 0) == string::npos)
 		{
-			if ((storeline1[curline].find(storeline2[i], 0) != string::npos) && (storeline1[curline].length() == storeline2[i].length()))
-			{
-				if (open)
-				{
-					if (IsChanged)
-					{
-						closepoint = curline;
-						if (closepoint != openpoint)
-						{
-							output.push_back("<!-- ORIGINAL -->");
-							for (int j = openpoint; j < closepoint; j++)
-							{
-								output.push_back(storeline1[j]);
-							}
-						}
-						IsChanged = false;
-					}
-					output.push_back("<!-- CLOSE -->");
-					open = false;
-				}
-			}
-			else
+			if (storeline1[curline] != storeline2[i])
 			{
 				if (!open)
 				{
-
 					output.push_back("<!-- MOD_CODE ~" + modcode + "~ OPEN -->");
-					openpoint = curline;
-					IsChanged = true;
 					IsEdited = true;
 					open = true;
 				}
+
+				oriline.push_back(storeline1[curline]);
+				output.push_back(storeline2[i]);
 			}
-			curline++;
+			else
+			{
+				if (open)
+				{
+					output.push_back("<!-- ORIGINAL -->");
+					output.insert(output.end(), oriline.begin(), oriline.end());
+					output.push_back("<!-- CLOSE -->");
+					oriline.clear();
+					open = false;
+				}
+
+				output.push_back(storeline1[curline]);
+			}
+
+			++curline;
+		}
+		else if (storeline2[i].find("<hkparam name=\"wildcardTransitions\">", 0) == string::npos)
+		{
+			if (open && oriline.size() > 0)
+			{
+				output.push_back("<!-- ORIGINAL -->");
+				output.insert(output.end(), oriline.begin(), oriline.end());
+				output.push_back("<!-- CLOSE -->");
+				oriline.clear();
+				open = false;
+			}
+
+			if (!open)
+			{
+				output.push_back("<!-- MOD_CODE ~" + modcode + "~ OPEN -->");
+				IsEdited = true;
+				open = true;
+			}
+
+			output.push_back(storeline2[i]);
 		}
 		else
-		{
-			if ((storeline1[curline].find(storeline2[i], 0) == string::npos) || (storeline1[curline].length() != storeline2[i].length()))
-			{
-				if (!open)
-				{
-					openpoint = curline;
-					if (storeline2[i].find("<hkparam name=\"wildcardTransitions\">", 0) != string::npos)
-					{
-						IsChanged = true;
-					}
-					else
-					{
-						output.push_back("<!-- MOD_CODE ~" + modcode + "~ OPEN -->");
-					}
-					IsEdited = true;
-					open = true;
-				}
-			}
-			else
-			{
-				if (open)
-				{
-					if (IsChanged)
-					{
-						closepoint = curline;
-						if (closepoint != openpoint)
-						{
-							output.push_back("<!-- ORIGINAL -->");
-							for (int j = openpoint; j < closepoint; j++)
-							{
-								output.push_back(storeline1[j]);
-							}
-						}
-						IsChanged = false;
-					}
-					output.push_back("<!-- CLOSE -->");
-					open = false;
-				}
-				curline++;
-			}
-		}
-
-		if (storeline2[i].find("<hkparam name=\"wildcardTransitions\">", 0) != string::npos) // merging with new element or existing data or itself
 		{
 			if (open)
 			{
-				bool IsOpenOut = false;
-
-				if ((openpoint == curline) && (IsChanged))
+				if (oriline.size() > 0)
 				{
-					output.push_back("			</hkparam>");
-					output.push_back("<!-- MOD_CODE ~" + modcode + "~ OPEN -->");
-					output.push_back(storeline2[i]);
-				}
-				else
-				{
-					output.push_back("			</hkparam>");
-					output.push_back(storeline2[i]);
-					IsOpenOut = true;
-				}
-
-				closepoint = curline + 1;
-				output.push_back("<!-- ORIGINAL -->");
-
-				for (int j = openpoint; j < closepoint; j++)
-				{
-					if ((storeline1[j].find("<hkparam name=\"wildcardTransitions\">", 0) != string::npos) && (IsOpenOut))
-					{
-						output.push_back("			</hkparam>");
-					}
-
-					output.push_back(storeline1[j]);
+					output.push_back("<!-- ORIGINAL -->");
+					output.insert(output.end(), oriline.begin(), oriline.end());
+					oriline.clear();
 				}
 
 				output.push_back("<!-- CLOSE -->");
-				IsEdited = true;
 				open = false;
+			}
+
+			output.push_back("			</hkparam>");
+
+			if (storeline1[curline] != storeline2[i])
+			{
+				output.push_back("<!-- MOD_CODE ~" + modcode + "~ OPEN -->");
+				output.push_back(storeline2[i]);
+				output.push_back("<!-- ORIGINAL -->");
+				output.push_back(storeline1[curline]);
+				output.push_back("<!-- CLOSE -->");
+				IsEdited = true;
 			}
 			else
 			{
-				output.push_back("			</hkparam>");
-				output.push_back(storeline2[i]);
+				output.push_back(storeline1[curline]);
 			}
-		}
-		else
-		{
-			output.push_back(storeline2[i]);
 		}
 	}
 
 	NemesisReaderFormat(output, true);
 
-	// stage 3 output if it is edited
-	string filename = "cache/" + modcode + "/" + shortFileName + "/" + id + ".txt";
+	// stage 2 output if it is edited
+	string filename = "mod/" + modcode + "/" + shortFileName + "/" + id + ".txt";
 
 	if (IsEdited)
 	{
@@ -866,71 +756,73 @@ void hkbStateMachineExport(string originalfile, string editedfile, string id)
 
 		if (outputfile.is_open())
 		{
+			FunctionWriter fwrite(&outputfile);
+
 			for (unsigned int i = 0; i < output.size(); i++)
 			{
 				if (output[i].find("<hkparam name=\"eventToSendWhenStateOrTransitionChanges\">", 0) != string::npos)
 				{
 					if ((output[i + 1].find("OPEN", 0) != string::npos) && (output[i + 1].find("MOD_CODE", 0) != string::npos))
 					{
-						outputfile << output[i] << "\n";
-						outputfile << "				<hkobject>" << "\n";
+						fwrite << output[i] << "\n";
+						fwrite << "				<hkobject>" << "\n";
 					}
 					else
 					{
-						outputfile << output[i] << "\n";
+						fwrite << output[i] << "\n";
 					}
 				}
 				else if (output[i].find("<hkparam name=\"id\">", 0) != string::npos)
 				{
 					if (((output[i - 1].find("OPEN", 0) != string::npos) && (output[i - 1].find("MOD_CODE", 0) != string::npos)) || (output[i - 1].find("ORIGINAL", 0) != string::npos))
 					{
-						outputfile << output[i] << "\n";
+						fwrite << output[i] << "\n";
 					}
 					else
 					{
-						outputfile << "				<hkobject>" << "\n";
-						outputfile << output[i] << "\n";
+						fwrite << "				<hkobject>" << "\n";
+						fwrite << output[i] << "\n";
 					}
 				}
 				else if (output[i].find("<hkparam name=\"payload\">", 0) != string::npos)
 				{
 					if ((output[i + 1].find("OPEN", 0) != string::npos) && (output[i + 1].find("MOD_CODE", 0) != string::npos))
 					{
-						outputfile << output[i] << "\n";
-						outputfile << "				</hkobject>" << "\n";
-						outputfile << "			</hkparam>" << "\n";
+						fwrite << output[i] << "\n";
+						fwrite << "				</hkobject>" << "\n";
+						fwrite << "			</hkparam>" << "\n";
 					}
 					else
 					{
-						outputfile << output[i] << "\n";
+						fwrite << output[i] << "\n";
 					}
 				}
 				else if (output[i].find("<hkparam name=\"startStateChooser\">", 0) != string::npos)
 				{
 					if (((output[i - 1].find("OPEN", 0) != string::npos) && (output[i - 1].find("MOD_CODE", 0) != string::npos)) || (output[i - 1].find("ORIGINAL", 0) != string::npos))
 					{
-						outputfile << output[i] << "\n";
+						fwrite << output[i] << "\n";
 					}
 					else
 					{
-						outputfile << "				</hkobject>" << "\n";
-						outputfile << "			</hkparam>" << "\n";
-						outputfile << output[i] << "\n";
+						fwrite << "				</hkobject>" << "\n";
+						fwrite << "			</hkparam>" << "\n";
+						fwrite << output[i] << "\n";
 					}
 				}
 				else
 				{
-					outputfile << output[i] << "\n";
+					fwrite << output[i] << "\n";
 				}
 			}
 
-			outputfile << "		</hkobject>" << "\n";
+			fwrite << "		</hkobject>" << "\n";
 			outputfile.close();
 
 		}
 		else
 		{
-			cout << "ERROR: Edit hkbStateMachine Output Not Found (New Edited File: " << editedfile << ")" << endl;
+			cout << "ERROR: Edit hkbStateMachine Output Not Found (File: " << filename << ")" << endl;
 			Error = true;
 		}
 	}

@@ -28,6 +28,6 @@ private:
 	bool IsNegated = false;
 };
 
-extern void hkbTransformVectorModifierExport(std::string originalfile, std::string editedfile, std::string id);
+extern void hkbTransformVectorModifierExport(std::string id);
 
 #endif

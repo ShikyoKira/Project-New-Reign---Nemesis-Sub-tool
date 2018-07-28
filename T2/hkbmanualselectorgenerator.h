@@ -36,6 +36,6 @@ private:
 	bool IsNegated = false;
 };
 
-extern void hkbManualSelectorGeneratorExport(std::string originalfile, std::string editedfile, std::string id);
+extern void hkbManualSelectorGeneratorExport(std::string id);
 
 #endif

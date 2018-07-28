@@ -28,6 +28,6 @@ private:
 	bool IsNegated = false;
 };
 
-extern void hkbComputeRotationFromAxisAngleModifierExport(std::string originalfile, std::string editedfile, std::string id);
+extern void hkbComputeRotationFromAxisAngleModifierExport(std::string id);
 
 #endif

@@ -28,6 +28,6 @@ private:
 	bool IsNegated = false;
 };
 
-extern void BSSpeedSamplerModifierExport(std::string originalfile, std::string editedfile, std::string id);
+extern void BSSpeedSamplerModifierExport(std::string id);
 
 #endif

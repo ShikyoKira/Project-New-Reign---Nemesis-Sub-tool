@@ -32,6 +32,6 @@ private:
 	bool IsNegated = false;
 };
 
-extern void hkbModifierGeneratorExport(std::string originalfile, std::string editedfile, std::string id);
+extern void hkbModifierGeneratorExport(std::string id);
 
 #endif

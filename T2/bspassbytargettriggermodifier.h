@@ -32,6 +32,6 @@ private:
 	bool IsNegated = false;
 };
 
-extern void BSPassByTargetTriggerModifierExport(std::string originalfile, std::string editedfile, std::string id);
+extern void BSPassByTargetTriggerModifierExport(std::string id);
 
 #endif

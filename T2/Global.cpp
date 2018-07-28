@@ -7,12 +7,13 @@ typedef unordered_map<string, string> mapstring;
 bool Error = false;
 bool Debug = false;
 set<int> idcount;
-unordered_map<string, mutex> locker;
 unordered_map<string, int> regioncount;
 unordered_map<string, int> elements;
 unordered_map<string, bool> IsForeign;
 unordered_map<string, bool> IsExist;
 unordered_map<string, bool> IsFileInUse;
+unordered_map<string, bool> IsBranchOrigin;
+unordered_map<string, bool> PerfectMatchCondition;
 unordered_map<string, string> parent;
 unordered_map<string, string> region;
 unordered_map<string, string> newID;
@@ -22,10 +23,12 @@ unordered_map<string, string> attributeID;
 unordered_map<string, string> characterID;
 unordered_map<string, string> addressID;
 unordered_map<string, string> exchangeID;
-unordered_map<string, string> addressChange; // temp address change check
+unordered_map<string, string> addressChange;				// temp address change check
+unordered_map<string, vector<string>> FunctionLineNew;		// function new data
+unordered_map<string, vector<string>> FunctionLineTemp;		// function temp data
 unordered_map<string, vector<string>> FunctionLineOriginal; // function original data
-unordered_map<string, vector<string>> FunctionLineEdited; // function edited data
-unordered_map<string, vector<string>> referencingIDs; // which function use this ID
+unordered_map<string, vector<string>> FunctionLineEdited;	// function edited data
+unordered_map<string, vector<string>> referencingIDs;		// which function use this ID
 string modcode = "null";
 string targetfilename;
 string targetfilenameedited;
@@ -34,6 +37,30 @@ string shortFileNameEdited;
 int functioncount = 0;
 
 bool IsOldRegion(string id, string address, bool special = false);
+bool IsOldFunctionExt(string filename, string id, string address, bool condition = false);
+bool blendingOldFunction(string id, string address, int functionlayer);
+
+inline int sameWordCount(string line, string word)
+{
+	size_t nextWord = 0;
+	int wordCount = 0;
+
+	while (true)
+	{
+		nextWord = line.find(word, nextWord + 1);
+
+		if (nextWord != -1)
+		{
+			wordCount++;
+		}
+		else
+		{
+			break;
+		}
+	}
+
+	return wordCount;
+}
 
 inline bool IsFileExist(const string& name)
 {
@@ -43,9 +70,31 @@ inline bool IsFileExist(const string& name)
 
 bool IsOldFunction(string filename, string id, string address)
 {
+	if (IsOldFunctionExt(filename, id, address))
+	{
+		if (IsForeign[parent[id]])
+		{
+			string tempparent = parent[id];
+
+			while (IsForeign[parent[tempparent]])
+			{
+				tempparent = parent[tempparent];
+			}
+
+			IsBranchOrigin[tempparent] = true;
+		}
+
+		return true;
+	}
+
+	return false;
+}
+
+bool IsOldFunctionExt(string filename, string id, string address, bool condition)
+{
 	string tempadd = address.substr(address.find_last_of("="));
 
-	if (((address.find("(e", 0) != string::npos) || (address.find("(m", 0) != string::npos) || (address.find("(y", 0) != string::npos)) && (count(tempadd.begin(), tempadd.end(), '>') == 2) && (filename != "ZeroRegion"))
+	if (((address.find("(e", 0) != string::npos) || (address.find("(m", 0) != string::npos) || (address.find("(cj", 0) != string::npos) || (address.find("(r", 0) != string::npos) || (address.find("(y", 0) != string::npos)) && (count(tempadd.begin(), tempadd.end(), '>') == 2) && (filename != "ZeroRegion"))
 	{
 		return IsOldRegion(id, address);
 	}
@@ -56,6 +105,29 @@ bool IsOldFunction(string filename, string id, string address)
 
 	if (addressID[address] != "")
 	{
+		string tempOldID = addressID[address];
+
+		if (!condition && IsExist[tempOldID])
+		{
+			if (exchangeID[id] == tempOldID || (tempOldID == id && !IsForeign[id]))
+			{
+				return true;
+			}
+
+			for (auto& ID : exchangeID)
+			{
+				if (tempOldID == ID.second)
+				{
+					return false;
+				}
+			}
+		}
+
+		if (tempOldID == id)
+		{
+			return true;
+		}
+
 		// stage 1
 		// read function data for comparison
 		bool IsName = false;
@@ -81,7 +153,7 @@ bool IsOldFunction(string filename, string id, string address)
 		{
 			usize size = FunctionLineEdited[tempID].size();
 
-			for (int i = 0; i < size; i++)
+			for (usize i = 0; i < size; ++i)
 			{
 				line = FunctionLineEdited[tempID][i];
 
@@ -109,23 +181,27 @@ bool IsOldFunction(string filename, string id, string address)
 					searchname2 = line;
 					break;
 				}
+				else if (condition && line.find("name=\"expression\">", 0) != string::npos)
+				{
+					searchname = line;
+					break;
+				}
 			}
 		}
 		else
 		{
-			cout << "ERROR: IsOldFunction Input(File: " << filename << ", ID: " << tempID << ")" << endl;
+			cout << "ERROR: IsOldFunction Input (File: " << filename << ", ID: " << tempID << ")" << endl;
 			Error = true;
 			return false;
 		}
 
 		// comparing data to determine the function with the old add is new or old (solving same add paradox)
-		string tempOldID = addressID[address];
-		ifstream input("temp/" + tempOldID + ".txt");
-		if (input.is_open())
+		if (FunctionLineTemp[tempOldID].size() > 0)
 		{
-			bool match = false;
-			while (getline(input, line))
+			for (unsigned int i = 0; i < FunctionLineTemp[tempOldID].size(); ++i)
 			{
+				line = FunctionLineTemp[tempOldID][i];
+
 				if (IsName)
 				{
 					if (line.find(searchname, 0) != string::npos)
@@ -134,13 +210,16 @@ bool IsOldFunction(string filename, string id, string address)
 						return true;
 					}
 				}
+				else if (condition)
+				{
+					if (line.find(searchname, 0) != string::npos)
+					{
+						return true;
+					}
+				}
 				else
 				{
-					if ((line.find(searchname, 0) != string::npos) && (match == false))
-					{
-						match = true;
-					}
-					else if ((line.find(searchname2, 0) != string::npos) && (match == true))
+					if (line.find(searchname, 0) != string::npos)
 					{
 						ReferenceReplacementExt(id, tempOldID);
 						return true;
@@ -148,24 +227,22 @@ bool IsOldFunction(string filename, string id, string address)
 				}
 
 			}
-			input.close();
 		}
 		else
 		{
-			cout << "ERROR: IsOldFunction Input(File: temp/" << tempOldID << ".txt , ID: " << tempOldID << ")" << endl;
+			cout << "ERROR: IsOldFunction Input (Old ID: " << tempOldID << ")" << endl;
 			Error = true;
 		}
 	}
-	
+
 	return false;
 }
 
 inline string ExePath()
 {
-	char buffer[MAX_PATH];
-	GetModuleFileName(NULL, buffer, MAX_PATH);
-	string::size_type pos = string(buffer).find_last_of("\\/");
-	return string(buffer).substr(0, pos);
+	string path = boost::filesystem::current_path().string();
+	string::size_type pos = path.find_last_of("\\/");
+	return path.substr(0, pos);
 }
 
 string CrossReferencing(string id, string address, int functionlayer, bool compare, bool special) // whether it is foreign principle or usual cross referencing
@@ -173,8 +250,10 @@ string CrossReferencing(string id, string address, int functionlayer, bool compa
 	if (compare) // foreign principle 
 	{
 		string tempadd = address.substr(address.find_last_of("="));
+		bool pass = false;
+		string newID;
 
-		if ((address.find("(i", 0) == string::npos) || (count(tempadd.begin(), tempadd.end(), '>') != 3))
+		if ((address.find("(i", 0) == string::npos) || (count(tempadd.begin(), tempadd.end(), '>') != 3) || (IsForeign[parent[id]]))
 		{
 			for (auto it = exchangeID.begin(); it != exchangeID.end(); it++) // is ID already old
 			{
@@ -185,8 +264,90 @@ string CrossReferencing(string id, string address, int functionlayer, bool compa
 				}
 			}
 		}
-		
-		if ((IsOldFunction(("new/" + id + ".txt"), id, address)) || ((special) && (!IsForeign[parent[id]]))) // old function confirmation
+
+		if (tempadd.find("l") != string::npos || tempadd.find("ck") != string::npos)
+		{
+			string addline = address;
+			addline.pop_back();
+			addline = addline.substr(addline.find_last_of(">") + 1) += ">";
+			bool ck = false;
+
+			if (tempadd.find("l") != string::npos)
+			{
+				addline = boost::regex_replace(string(addline), boost::regex("([(0-9]+)(l)([0-9]+)>"), string("\\1\\2\\3"));
+			}
+			else
+			{
+				addline = boost::regex_replace(string(addline), boost::regex("([(0-9]+)(ck)([0-9]+)>"), string("\\1\\2\\3"));
+				ck = true;
+			}
+
+			if (addline.back() == '>')
+			{
+				if (special && !IsForeign[parent[id]])
+				{
+					pass = true;
+				}
+			}
+			else
+			{
+				newID = conditionOldFunction(id, address, functionlayer, addline, ck);
+
+				if (PerfectMatchCondition[id])
+				{
+					return id;
+				}
+
+				if (newID.length() > 0)
+				{
+					if (special && !IsForeign[parent[id]])
+					{
+						PerfectMatchCondition[newID] = true;
+						pass = true;
+					}
+					else if (newID != id)
+					{
+						if (addressChange.find(address) == addressChange.end())
+						{
+							addressChange[address] = address;
+						}
+
+						return newID;
+					}
+				}
+			}
+		}
+		else
+		{
+			if (special && !IsForeign[parent[id]])
+			{
+				pass = true;
+			}
+		}
+
+		if (!pass && address.find("j") != string::npos)
+		{
+			if (blendingOldFunction(id, address, functionlayer))
+			{
+				if (addressChange.find(address) != addressChange.end())
+				{
+					auto& iter = addressChange.find(address);
+					string oriID = addressID[addressChange[address]];
+					addressChange.erase(iter);
+					IsForeign[id] = false;
+
+					if (oriID != id)
+					{
+						exchangeID[id] = oriID;
+						ReferenceReplacement(id, oriID);
+					}
+
+					return oriID;
+				}
+			}
+		}
+
+		if (pass || IsOldFunction(("new/" + id + ".txt"), id, address)) // old function confirmation
 		{
 			IsForeign[id] = false;
 			string oriID = addressID[address];
@@ -197,10 +358,9 @@ string CrossReferencing(string id, string address, int functionlayer, bool compa
 				return id;
 			}
 
-			if (oriID.find(id, 0) == string::npos)
+			if (oriID != id)
 			{
 				exchangeID[id] = oriID;
-				
 				ReferenceReplacement(id, oriID);
 			}
 			
@@ -222,6 +382,7 @@ string CrossReferencing(string id, string address, int functionlayer, bool compa
 			for (unordered_map<string, string>::iterator it = addressID.begin(); it != addressID.end(); ++it) // update new address to existing function
 			{
 				tempid = it->second;
+
 				if (tempid == id)
 				{
 					tempadd = it->first;
@@ -236,9 +397,11 @@ string CrossReferencing(string id, string address, int functionlayer, bool compa
 				for (unordered_map<string, string>::iterator it = addressID.begin(); it != addressID.end(); ++it) // update new address to children of the existing function
 				{
 					tempadd = it->first;
+
 					if (tempadd.find(oldAdd[i], 0) != string::npos)
 					{
 						tempadd.replace(0, oldAdd[i].length(), address);
+
 						if (tempmap[tempadd].empty())
 						{
 							tempmap[tempadd] = it->second;
@@ -262,17 +425,135 @@ string CrossReferencing(string id, string address, int functionlayer, bool compa
 	return id;
 }
 
+string conditionOldFunction(string id, string address, int functionlayer, string addline, bool isString)
+{
+	if (PerfectMatchCondition[id])
+	{
+		return id;
+	}
+
+	string tempparent = parent[id];
+	string oldID;
+
+	if (!exchangeID[tempparent].empty())
+	{
+		tempparent = exchangeID[tempparent];
+	}
+
+	if (IsOldFunctionExt("ZeroRegion", id, address, true))
+	{
+		string oriID = addressID[address];
+		PerfectMatchCondition[oriID] = true;
+
+		if (IsExist[oriID])
+		{
+			string changeID;
+
+			for (auto& iterID : exchangeID)
+			{
+				if (iterID.second == oriID)
+				{
+					changeID = iterID.first;
+				}
+			}
+
+			if (changeID.length() == 0)
+			{
+				cout << "BUG DETECTED in CrossReference function (ID: " << id << ", supposed ID: " << oriID << ")" << endl;
+				Error = true;
+				return id;
+			}
+
+			ReferenceReplacement(oriID, changeID, true);
+		}
+
+		return oriID;
+	}
+
+	int element = elements[tempparent];
+	string flayer;
+
+	if (isString)
+	{
+		flayer = "ck" + to_string(functionlayer);
+	}
+	else
+	{
+		flayer = "l" + to_string(functionlayer);
+	}
+
+	// run through all possible elements
+	// as there might be new elements added changing the address
+	for (int i = 0; i < element; i++)
+	{
+		string tempadd = address;
+		tempadd.replace(address.find_last_of(addline) - addline.length() + 1, addline.length(), to_string(i) + flayer);
+
+		if (IsOldFunctionExt("ZeroRegion", id, tempadd, true))
+		{
+			string oriID = addressID[tempadd];
+			PerfectMatchCondition[oriID] = true;
+
+			if (IsExist[oriID])
+			{
+				string changeID;
+
+				for (auto& iterID : exchangeID)
+				{
+					if (iterID.second == oriID)
+					{
+						changeID = iterID.first;
+					}
+				}
+
+				if (changeID.length() == 0)
+				{
+					cout << "BUG DETECTED in CrossReference function (ID: " << id << ", supposed ID: " << oriID << ")" << endl;
+					Error = true;
+					return id;
+				}
+
+				ReferenceReplacement(oriID, changeID, true);
+			}
+
+			addressChange[address] = tempadd;
+			return oriID;
+		}
+	}
+
+	if (!IsForeign[parent[id]])
+	{
+		string oriID = addressID[address];
+
+		if (!PerfectMatchCondition[oriID] && !IsExist[oriID])
+		{
+			return addressID[address];
+		}
+	}
+
+	return "";
+}
+
 int FileLineCount(string filename)
 {
 	int linecount = 0;
-	string line;
-	ifstream open(filename);
-	if (open.is_open())
+	char line[1000];
+	FILE* file;
+	fopen_s(&file, filename.c_str(), "r");
+
+	if (file)
 	{
-		while (getline(open, line))
+		while (fgets(line, 1000, file))
 		{
 			linecount++;
 		}
+
+		fclose(file);
+	}
+	else
+	{
+		cout << "ERROR: Unable to open file (File: " << filename << ")" << endl;
+		Error = true;
 	}
 
 	return linecount;
@@ -300,26 +581,56 @@ void RecordID(string id, string address, bool compare)
 bool IsOldRegion(string id, string address, bool special)
 {
 	string tempparent = parent[id];
-	parent.erase(parent.find(id));
 
-	if (tempparent == "#90159")
-		cout << endl;
+	if (tempparent == "")
+	{
+		string curID;
+
+		for (auto& ID : exchangeID)
+		{
+			if (ID.second == id)
+			{
+				curID = ID.first;
+				break;
+			}
+		}
+
+		tempparent = parent[curID];
+
+		if (tempparent == "")
+		{
+			cout << "ERROR: Old Region missing parent (ID: " << id << ", address: " << address << ")" << endl;
+			Error = true;
+			return false;
+		}
+	}
 
 	if (!special)
 	{
+		while (IsForeign[tempparent])
+		{
+			tempparent = parent[tempparent];
+		}
+
 		if (!exchangeID[tempparent].empty())
 		{
 			tempparent = exchangeID[tempparent];
 		}
 
-		int element = elements[tempparent];
-		int tempint = (boost::regex_replace(string(address.substr(address.find_last_of("="))), boost::regex("[^0-9]*([0-9]+).*"), string("\\1"))).length();
+		if (IsOldFunction("ZeroRegion", id, address))
+		{
+			return true;
+		}
 
+		int element = elements[tempparent + "T"];
+		int tempint = (boost::regex_replace(string(address.substr(address.find_last_of("="))), boost::regex("[^0-9]*([0-9]+).*"), string("\\1"))).length();
+		
 		for (int i = 0; i < element; i++)
 		{
 			string tempadd = address;
 			tempadd.replace(address.find_last_of("=") + 2, tempint, to_string(i));
-			if (IsOldFunction("ZeroRegion", id, tempadd))
+
+			if (!IsExist[addressID[tempadd]] && IsOldFunction("ZeroRegion", id, tempadd))
 			{
 				addressChange[address] = tempadd;
 				return true;
@@ -329,19 +640,18 @@ bool IsOldRegion(string id, string address, bool special)
 	else
 	{
 		string masterparent = parent[tempparent];
-		parent.erase(parent.find(tempparent));
 		
-		if (!exchangeID[masterparent].empty())
+		if (IsForeign[masterparent])
 		{
-			masterparent = exchangeID[masterparent];
+			return false;
 		}
 
-		int element = elements[masterparent];
-
+		int element = elements[masterparent + "R"];
 		string tempadd = address;
 
 		int nextposition = 0;
-		int position = 0;
+		usize position = 0;
+
 		for (int j = 0; j < 2; j++)
 		{
 			position = tempadd.find(">", nextposition);
@@ -354,15 +664,19 @@ bool IsOldRegion(string id, string address, bool special)
 		{
 			if (!addressID[masteradd].empty())
 			{
-				IsForeign[tempparent] = false;
-				string tempid = addressID[masteradd];
-				ReferenceReplacement(tempparent, tempid);
-				exchangeID[tempparent] = tempid;
+				if (IsForeign[tempparent] && tempparent != addressID[masteradd])
+				{
+					IsForeign[tempparent] = false;
+					string tempid = addressID[masteradd];
+					ReferenceReplacement(tempparent, tempid);
+					exchangeID[tempparent] = tempid;
+				}
 			}
 			else
 			{
-				cout << "ERROR: Missing function address(ID: " << id << ", address: " << masteradd << ")" << endl;
+				cout << "ERROR: Missing function address (ID: " << id << ", address: " << masteradd << ")" << endl;
 				Error = true;
+				return false;
 			}
 
 			if ((IsOldFunction("ZeroRegion", id, tempadd)))
@@ -377,41 +691,47 @@ bool IsOldRegion(string id, string address, bool special)
 
 		int tempint = (boost::regex_replace(string(address.substr(address.find_last_of("="))), boost::regex("[^0-9]*([0-9]+).*"), string("\\1"))).length();
 
-		for (int i = 0; i < element; i++)
+		if (!IsExist[addressID[address]])
 		{
-			if (!IsExist[addressID[address]])
+			for (int i = 0; i < element; i++)
 			{
 				tempadd.replace(address.find_last_of("=") + 2, tempint, to_string(i));
 
-				tempint = 0;
-				position = 0;
-				for (int j = 0; j < 2; j++)
+				if (!IsExist[addressID[tempadd]])
 				{
-					position = tempadd.find(">", tempint);
-					tempint = tempadd.find(">", position + 1);
-				}
+					size_t size = 0;
+					position = 0;
 
-				masteradd = tempadd.substr(0, position + 1);
+					for (int j = 0; j < 2; j++)
+					{
+						position = tempadd.find(">", size);
+						size = tempadd.find(">", position + 1);
+					}
 
-				if ((IsOldFunction("ZeroRegion", id, tempadd)) && (IsOldFunction("ZeroRegion", tempparent, masteradd)))
-				{
-					if (!addressID[masteradd].empty())
+					masteradd = tempadd.substr(0, position + 1);
+
+					if ((IsOldFunction("ZeroRegion", id, tempadd)) && (IsOldFunction("ZeroRegion", tempparent, masteradd)))
 					{
-						IsForeign[tempparent] = false;
-						string tempid = addressID[masteradd];
-						ReferenceReplacement(tempparent, tempid);
-						exchangeID[tempparent] = tempid;
+						if (!addressID[masteradd].empty())
+						{
+							IsForeign[tempparent] = false;
+							string tempid = addressID[masteradd];
+							ReferenceReplacement(tempparent, tempid);
+							exchangeID[tempparent] = tempid;
+						}
+						else
+						{
+							cout << "ERROR: Missing function address (ID: " << id << ", address: " << masteradd << ")" << endl;
+							Error = true;
+						}
+
+						addressChange[address] = tempadd;
+						return true;
 					}
-					else
-					{
-						cout << "ERROR: Missing function address(ID: " << id << ", address: " << masteradd << ")" << endl;
-						Error = true;
-					}
-					addressChange[address] = tempadd;
-					return true;
 				}
 			}
 		}
 	}
+
 	return false;
 }

@@ -21,10 +21,30 @@ bscyclicblendtransitiongenerator::bscyclicblendtransitiongenerator(string filepa
 	}
 	else if (!Error)
 	{
+		bool statusChange = false;
+
+		if (IsForeign[id])
+		{
+			statusChange = true;
+		}
+
 		string dummyID = CrossReferencing(id, address, functionlayer, compare);
+
 		if (compare)
 		{
-			IsNegated = true;
+			if (statusChange)
+			{
+				Dummy(dummyID);
+			}
+
+			if (IsForeign[id])
+			{
+				address = preaddress;
+			}
+			else if (!statusChange)
+			{
+				IsNegated = true;
+			}
 		}
 		else
 		{
@@ -44,22 +64,21 @@ void bscyclicblendtransitiongenerator::nonCompare(string filepath, string id)
 		cout << "--------------------------------------------------------------" << endl << "BSCyclicBlendTransitionGenerator(ID: " << id << ") has been initialized!" << endl;
 	}
 
-	vector<string> storeline;
 	string line;
-	payloadcount = 0;
 	payload.reserve(2);
 
 	if (!FunctionLineOriginal[id].empty())
 	{
 		usize size = FunctionLineOriginal[id].size();
 
-		for (int i = 0; i < size; i++)
+		for (usize i = 0; i < size; ++i)
 		{
 			line = FunctionLineOriginal[id][i];
 
 			if (line.find("<hkparam name=\"variableBindingSet\">", 0) != string::npos)
 			{
 				variablebindingset = line.substr(38, line.find("</hkparam>") - 38);
+
 				if (variablebindingset != "null")
 				{
 					referencingIDs[variablebindingset].push_back(id);
@@ -68,19 +87,21 @@ void bscyclicblendtransitiongenerator::nonCompare(string filepath, string id)
 			else if (line.find("<hkparam name=\"pBlenderGenerator\">", 0) != string::npos)
 			{
 				generator = line.substr(37, line.find("</hkparam>") - 37);
-				referencingIDs[generator].push_back(id);
+
+				if (generator != "null")
+				{
+					referencingIDs[generator].push_back(id);
+				}
 			}
 			else if (line.find("<hkparam name=\"payload\">", 0) != string::npos)
 			{
 				payload.push_back(line.substr(29, line.find("</hkparam>") - 29));
-				if (payload[payloadcount] != "null")
-				{
-					referencingIDs[payload[payloadcount]].push_back(id);
-				}
-				payloadcount++;
-			}
 
-			storeline.push_back(line);
+				if (payload.back() != "null")
+				{
+					referencingIDs[payload.back()].push_back(id);
+				}
+			}
 		}
 	}
 	else
@@ -89,21 +110,7 @@ void bscyclicblendtransitiongenerator::nonCompare(string filepath, string id)
 		Error = true;
 	}
 
-	ofstream output("temp/" + id + ".txt");
-	if (output.is_open())
-	{
-		for (unsigned int i = 0; i < storeline.size(); i++)
-		{
-			output << storeline[i] << "\n";
-		}
-		output.close();
-	}
-	else
-	{
-		cout << "ERROR: BSCyclicBlendTransitionGenerator Outputfile(File: " << filepath << ", ID: " << id << ")" << endl;
-		Error = true;
-	}
-
+	FunctionLineTemp[id] = FunctionLineOriginal[id];
 	RecordID(id, address); // record address for compare purpose and idcount without updating referenceID
 
 	if ((Debug) && (!Error))
@@ -122,20 +129,20 @@ void bscyclicblendtransitiongenerator::Compare(string filepath, string id)
 	// stage 1
 	vector<string> newline;
 	string line;
-	payloadcount = 0;
 	payload.reserve(2);
 
 	if (!FunctionLineEdited[id].empty())
 	{
 		usize size = FunctionLineEdited[id].size();
 
-		for (int i = 0; i < size; i++)
+		for (usize i = 0; i < size; ++i)
 		{
 			line = FunctionLineEdited[id][i];
 
 			if (line.find("<hkparam name=\"variableBindingSet\">", 0) != string::npos)
 			{
 				variablebindingset = line.substr(38, line.find("</hkparam>") - 38);
+
 				if (variablebindingset != "null")
 				{
 					if (!exchangeID[variablebindingset].empty())
@@ -144,6 +151,8 @@ void bscyclicblendtransitiongenerator::Compare(string filepath, string id)
 						variablebindingset = exchangeID[variablebindingset];
 						line.replace(tempint, line.find("</hkparam>") - tempint, variablebindingset);
 					}
+
+					parent[variablebindingset] = id;
 					referencingIDs[variablebindingset].push_back(id);
 				}
 			}
@@ -157,22 +166,29 @@ void bscyclicblendtransitiongenerator::Compare(string filepath, string id)
 					line.replace(tempint, line.find("</hkparam>") - tempint, exchangeID[generator]);
 					generator = exchangeID[generator];
 				}
-				referencingIDs[generator].push_back(id);
+
+				if (generator != "null")
+				{
+					parent[generator] = id;
+					referencingIDs[generator].push_back(id);
+				}
 			}
 			else if (line.find("<hkparam name=\"payload\">", 0) != string::npos)
 			{
 				payload.push_back(line.substr(29, line.find("</hkparam>") - 29));
-				if (payload[payloadcount] != "null")
+
+				if (payload.back() != "null")
 				{
-					if (!exchangeID[payload[payloadcount]].empty())
+					if (!exchangeID[payload.back()].empty())
 					{
-						int tempint = line.find(payload[payloadcount]);
-						payload[payloadcount] = exchangeID[payload[payloadcount]];
-						line.replace(tempint, line.find("</hkparam>") - tempint, payload[payloadcount]);
+						int tempint = line.find(payload.back());
+						payload.back() = exchangeID[payload.back()];
+						line.replace(tempint, line.find("</hkparam>") - tempint, payload.back());
 					}
-					referencingIDs[payload[payloadcount]].push_back(id);
+
+					parent[payload.back()] = id;
+					referencingIDs[payload.back()].push_back(id);
 				}
-				payloadcount++;
 			}
 
 			newline.push_back(line);
@@ -188,17 +204,16 @@ void bscyclicblendtransitiongenerator::Compare(string filepath, string id)
 	if (IsOldFunction(filepath, id, address)) // is this new function or old
 	{
 		IsForeign[id] = false;
-
 		string tempid;
-		if (!addressChange[address].empty())
+
+		if (addressChange.find(address) != addressChange.end())
 		{
-			tempid = addressID[addressChange[address]];
+			tempaddress = addressChange[address];
 			addressChange.erase(addressChange.find(address));
+			address = tempaddress;
 		}
-		else
-		{
-			tempid = addressID[address];
-		}
+
+		tempid = addressID[address];
 		exchangeID[id] = tempid;
 
 		if ((Debug) && (!Error))
@@ -210,10 +225,15 @@ void bscyclicblendtransitiongenerator::Compare(string filepath, string id)
 		{
 			referencingIDs[variablebindingset].pop_back();
 			referencingIDs[variablebindingset].push_back(tempid);
+			parent[variablebindingset] = tempid;
 		}
 
-		referencingIDs[generator].pop_back();
-		referencingIDs[generator].push_back(tempid);
+		if (generator != "null")
+		{
+			referencingIDs[generator].pop_back();
+			referencingIDs[generator].push_back(tempid);
+			parent[generator] = tempid;
+		}
 
 		for (unsigned int i = 0; i < payload.size(); i++)
 		{
@@ -221,25 +241,8 @@ void bscyclicblendtransitiongenerator::Compare(string filepath, string id)
 			{
 				referencingIDs[payload[i]].pop_back();
 				referencingIDs[payload[i]].push_back(tempid);
+				parent[payload[i]] = tempid;
 			}
-		}
-
-		string inputfile = "temp/" + tempid + ".txt";
-		vector<string> storeline;
-		storeline.reserve(FileLineCount(inputfile));
-		ifstream input(inputfile); // read old function
-		if (input.is_open())
-		{
-			while (getline(input, line))
-			{
-				storeline.push_back(line);
-			}
-			input.close();
-		}
-		else
-		{
-			cout << "ERROR: BSCyclicBlendTransitionGenerator Inputfile(File: " << filepath << ", newID: " << id << ", oldID: " << tempid << ")" << endl;
-			Error = true;
 		}
 
 		// stage 3
@@ -247,53 +250,24 @@ void bscyclicblendtransitiongenerator::Compare(string filepath, string id)
 		vector<string> newstoreline;
 		vector<string> newchild;
 
-		newstoreline.push_back(storeline[0]); // store old function header
+		newstoreline.push_back(FunctionLineTemp[tempid][0]); // store old function header
 
 		for (unsigned int i = 1; i < newline.size(); i++) // store function body
 		{
 				newstoreline.push_back(newline[i]);
 		}
 
-		ofstream output("new/" + tempid + ".txt"); // output stored function data
-		if (output.is_open())
-		{
-			for (unsigned int i = 0; i < newstoreline.size(); i++)
-			{
-				output << newstoreline[i] << "\n";
-			}
-			output.close();
-		}
-		else
-		{
-			cout << "ERROR: BSCyclicBlendTransitionGenerator Outputfile(File: " << filepath << ", newID: " << id << ", oldID: " << tempid << ")" << endl;
-			Error = true;
-		}
+		FunctionLineNew[tempid] = newstoreline;
 
 		if ((Debug) && (!Error))
 		{
 			cout << "Comparing BSCyclicBlendTransitionGenerator(newID: " << id << ") with BSCyclicBlendTransitionGenerator(oldID: " << tempid << ") is complete!" << endl;
 		}
 	}
-
 	else
 	{
 		IsForeign[id] = true;
-
-		ofstream output("new/" + id + ".txt"); // output stored function data
-		if (output.is_open())
-		{
-			for (unsigned int i = 0; i < newline.size(); i++)
-			{
-				output << newline[i] << "\n";
-			}
-			output.close();
-		}
-		else
-		{
-			cout << "ERROR: BSCyclicBlendTransitionGenerator Outputfile(File: " << filepath << ", ID: " << id << ")" << endl;
-			Error = true;
-		}
-
+		FunctionLineNew[id] = newline;
 		address = tempaddress;
 	}
 
@@ -312,53 +286,62 @@ void bscyclicblendtransitiongenerator::Dummy(string id)
 		cout << "--------------------------------------------------------------" << endl << "Dummy BSCyclicBlendTransitionGenerator(ID: " << id << ") has been initialized!" << endl;
 	}
 
-	string line;
-	string filepath = "new/" + id + ".txt";
-	ifstream file(filepath);
-	payloadcount = 0;
 	payload.reserve(2);
+	string line;
 
-	if (file.is_open())
+	if (FunctionLineNew[id].size() > 0)
 	{
-		while (getline(file, line))
+		for (unsigned int i = 0; i < FunctionLineNew[id].size(); ++i)
 		{
+			line = FunctionLineNew[id][i];
+
 			if (line.find("<hkparam name=\"variableBindingSet\">", 0) != string::npos)
 			{
 				variablebindingset = line.substr(38, line.find("</hkparam>") - 38);
+
 				if (variablebindingset != "null")
 				{
 					if (!exchangeID[variablebindingset].empty())
 					{
 						variablebindingset = exchangeID[variablebindingset];
 					}
+
+					parent[variablebindingset] = id;
 				}
 			}
 			else if (line.find("<hkparam name=\"pBlenderGenerator\">", 0) != string::npos)
 			{
 				generator = line.substr(37, line.find("</hkparam>") - 37);
+
 				if (!exchangeID[generator].empty())
 				{
 					generator = exchangeID[generator];
+				}
+
+				if (generator != "null")
+				{
+					parent[generator] = id;
 				}
 			}
 			else if (line.find("<hkparam name=\"payload\">", 0) != string::npos)
 			{
 				payload.push_back(line.substr(29, line.find("</hkparam>") - 29));
-				if (payload[payloadcount] != "null")
+
+				if (payload.back() != "null")
 				{
-					if (!exchangeID[payload[payloadcount]].empty())
+					if (!exchangeID[payload.back()].empty())
 					{
-						payload[payloadcount] = exchangeID[payload[payloadcount]];
+						payload.back() = exchangeID[payload.back()];
 					}
+
+					parent[payload.back()] = id;
 				}
-				payloadcount++;
 			}
 		}
-		file.close();
 	}
 	else
 	{
-		cout << "ERROR: Dummy BSCyclicBlendTransitionGenerator Inputfile(File: " << filepath << ", ID: " << id << ")" << endl;
+		cout << "ERROR: Dummy BSCyclicBlendTransitionGenerator Inputfile(ID: " << id << ")" << endl;
 		Error = true;
 	}
 
@@ -377,7 +360,7 @@ string bscyclicblendtransitiongenerator::NextGenerator()
 
 int bscyclicblendtransitiongenerator::GetPayloadCount()
 {
-	return payloadcount;
+	return int(payload.size());
 }
 
 string bscyclicblendtransitiongenerator::GetPayload(int child)
@@ -424,48 +407,50 @@ bool bscyclicblendtransitiongenerator::IsNegate()
 	return IsNegated;
 }
 
-void BSCyclicBlendTransitionGeneratorExport(string originalfile, string editedfile, string id)
+void BSCyclicBlendTransitionGeneratorExport(string id)
 {
 	//stage 1 reading
 	vector<string> storeline1;
+	storeline1.reserve(FunctionLineTemp[id].size());
 	string line;
-	ifstream origfile(originalfile);
 
-	if (origfile.is_open())
+	if (FunctionLineTemp[id].size() > 0)
 	{
-		while (getline(origfile, line))
+		for (unsigned int i = 0; i < FunctionLineTemp[id].size(); ++i)
 		{
+			line = FunctionLineTemp[id][i];
+
 			if ((line.find("<hkobject>", 0) == string::npos) && (line.find("</hkobject>", 0) == string::npos) && (line.find("</hkparam>", 0) == string::npos || line.find("</hkparam>", 0) > 10))
 			{
 				storeline1.push_back(line);
 			}
 		}
-		origfile.close();
 	}
 	else
 	{
-		cout << "ERROR: Edit BSCyclicBlendTransitionGenerator Input Not Found (Original File: " << originalfile << ")" << endl;
+		cout << "ERROR: Edit BSCyclicBlendTransitionGenerator Input Not Found (ID: " << id << ")" << endl;
 		Error = true;
 	}
 
 	//stage 2 reading and identifying edits
 	vector<string> storeline2;
-	ifstream editfile(editedfile);
+	storeline2.reserve(FunctionLineNew[id].size());
 
-	if (editfile.is_open())
+	if (FunctionLineNew[id].size() > 0)
 	{
-		while (getline(editfile, line))
+		for (unsigned int i = 0; i < FunctionLineNew[id].size(); ++i)
 		{
+			line = FunctionLineNew[id][i];
+
 			if ((line.find("<hkobject>", 0) == string::npos) && (line.find("</hkobject>", 0) == string::npos) && (line.find("</hkparam>", 0) == string::npos || line.find("</hkparam>", 0) > 10))
 			{
 				storeline2.push_back(line);
 			}
 		}
-		editfile.close();
 	}
 	else
 	{
-		cout << "ERROR: Edit BSCyclicBlendTransitionGenerator Output Not Found (Edited File: " << editedfile << ")" << endl;
+		cout << "ERROR: Edit BSCyclicBlendTransitionGenerator Output Not Found (ID: " << id << ")" << endl;
 		Error = true;
 	}
 
@@ -486,16 +471,20 @@ void BSCyclicBlendTransitionGeneratorExport(string originalfile, string editedfi
 				if (IsChanged)
 				{
 					closepoint = i;
+
 					if (closepoint != openpoint)
 					{
 						output.push_back("<!-- ORIGINAL -->");
+
 						for (int j = openpoint; j < closepoint; j++)
 						{
 							output.push_back(storeline1[j]);
 						}
 					}
+
 					IsChanged = false;
 				}
+
 				output.push_back("<!-- CLOSE -->");
 				open = false;
 			}
@@ -512,6 +501,7 @@ void BSCyclicBlendTransitionGeneratorExport(string originalfile, string editedfi
 				open = true;
 			}
 		}
+
 		curline++;
 		output.push_back(storeline2[i]);
 	}
@@ -521,16 +511,20 @@ void BSCyclicBlendTransitionGeneratorExport(string originalfile, string editedfi
 		if (IsChanged)
 		{
 			closepoint = curline;
+
 			if (closepoint != openpoint)
 			{
 				output.push_back("<!-- ORIGINAL -->");
+
 				for (int j = openpoint; j < closepoint; j++)
 				{
 					output.push_back(storeline1[j]);
 				}
 			}
+
 			IsChanged = false;
 		}
+
 		output.push_back("<!-- CLOSE -->");
 		open = false;
 	}
@@ -538,94 +532,99 @@ void BSCyclicBlendTransitionGeneratorExport(string originalfile, string editedfi
 	NemesisReaderFormat(output, true);
 
 	// stage 3 output if it is edited
-	string filename = "cache/" + modcode + "/" + shortFileName + "/" + id + ".txt";
+	string filename = "mod/" + modcode + "/" + shortFileName + "/" + id + ".txt";
+
 	if (IsEdited)
 	{
 		ofstream outputfile(filename);
+
 		if (outputfile.is_open())
 		{
+			FunctionWriter fwrite(&outputfile);
+
 			for (unsigned int i = 0; i < output.size(); i++)
 			{
 				if (output[i].find("<hkparam name=\"EventToFreezeBlendValue\">", 0) != string::npos)
 				{
 					if ((output[i + 1].find("OPEN", 0) != string::npos) && (output[i + 1].find("MOD_CODE", 0) != string::npos))
 					{
-						outputfile << output[i] << "\n";
-						outputfile << "				<hkobject>" << "\n";
+						fwrite << output[i] << "\n";
+						fwrite << "				<hkobject>" << "\n";
 					}
 					else
 					{
-						outputfile << output[i] << "\n";
+						fwrite << output[i] << "\n";
 					}
 				}
 				else if (output[i].find("<hkparam name=\"id\">", 0) != string::npos)
 				{
 					if (((output[i - 1].find("OPEN", 0) != string::npos) && (output[i - 1].find("MOD_CODE", 0) != string::npos)) || (output[i - 1].find("ORIGINAL", 0) != string::npos))
 					{
-						outputfile << output[i] << "\n";
+						fwrite << output[i] << "\n";
 					}
 					else
 					{
-						outputfile << "				<hkobject>" << "\n";
-						outputfile << output[i] << "\n";
+						fwrite << "				<hkobject>" << "\n";
+						fwrite << output[i] << "\n";
 					}
 				}
 				else if (output[i].find("<hkparam name=\"payload\">", 0) != string::npos)
 				{
 					if ((output[i + 1].find("OPEN", 0) != string::npos) && (output[i + 1].find("MOD_CODE", 0) != string::npos))
 					{
-						outputfile << output[i] << "\n";
-						outputfile << "				</hkobject>" << "\n";
-						outputfile << "			</hkparam>" << "\n";
+						fwrite << output[i] << "\n";
+						fwrite << "				</hkobject>" << "\n";
+						fwrite << "			</hkparam>" << "\n";
 					}
 					else
 					{
-						outputfile << output[i] << "\n";
+						fwrite << output[i] << "\n";
 					}
 				}
 				else if (output[i].find("<hkparam name=\"EventToCrossBlend\">", 0) != string::npos)
 				{
 					if (((output[i - 1].find("OPEN", 0) != string::npos) && (output[i - 1].find("MOD_CODE", 0) != string::npos)) || (output[i - 1].find("ORIGINAL", 0) != string::npos))
 					{
-						outputfile << output[i] << "\n";
+						fwrite << output[i] << "\n";
 					}
 					else
 					{
-						outputfile << "				</hkobject>" << "\n";
-						outputfile << "			</hkparam>" << "\n";
-						outputfile << output[i] << "\n";
+						fwrite << "				</hkobject>" << "\n";
+						fwrite << "			</hkparam>" << "\n";
+						fwrite << output[i] << "\n";
 					}
 
 					if (output[i + 1].find("OPEN", 0) != string::npos)
 					{
-						outputfile << "				<hkobject>" << "\n";
+						fwrite << "				<hkobject>" << "\n";
 					}
 				}
 				else if (output[i].find("<hkparam name=\"fBlendParameter\">", 0) != string::npos)
 				{
 					if (((output[i - 1].find("OPEN", 0) != string::npos) && (output[i - 1].find("MOD_CODE", 0) != string::npos)) || (output[i - 1].find("ORIGINAL", 0) != string::npos))
 					{
-						outputfile << output[i] << "\n";
+						fwrite << output[i] << "\n";
 					}
 					else
 					{
-						outputfile << "				</hkobject>" << "\n";
-						outputfile << "			</hkparam>" << "\n";
-						outputfile << output[i] << "\n";
+						fwrite << "				</hkobject>" << "\n";
+						fwrite << "			</hkparam>" << "\n";
+						fwrite << output[i] << "\n";
 					}
 				}
 				else
 				{
-					outputfile << output[i] << "\n";
+					fwrite << output[i] << "\n";
 				}
 			}
-			outputfile << "		</hkobject>" << "\n";
+
+			fwrite << "		</hkobject>" << "\n";
 			outputfile.close();
 
 		}
 		else
 		{
-			cout << "ERROR: Edit BSCyclicBlendTransitionGenerator Output Not Found (New Edited File: " << editedfile << ")" << endl;
+			cout << "ERROR: Edit BSCyclicBlendTransitionGenerator Output Not Found (File: " << filename << ")" << endl;
 			Error = true;
 		}
 	}

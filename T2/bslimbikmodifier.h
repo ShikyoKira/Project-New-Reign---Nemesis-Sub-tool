@@ -28,6 +28,6 @@ private:
 	bool IsNegated = false;
 };
 
-extern void BSLimbIKModifierExport(std::string originalfile, std::string editedfile, std::string id);
+extern void BSLimbIKModifierExport(std::string id);
 
 #endif

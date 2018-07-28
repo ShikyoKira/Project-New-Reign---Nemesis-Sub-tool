@@ -30,10 +30,9 @@ private:
 	std::string tempaddress;
 	std::vector<std::string> payload;
 	std::string variablebindingset;
-	int payloadcount;
 	bool IsNegated = false;
 };
 
-extern void BSEventEveryNEventsModifierExport(std::string originalfile, std::string editedfile, std::string id);
+extern void BSEventEveryNEventsModifierExport(std::string id);
 
 #endif

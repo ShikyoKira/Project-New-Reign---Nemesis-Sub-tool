@@ -32,6 +32,6 @@ private:
 	bool IsNegated = false;
 };
 
-extern void hkbTimerModifierExport(std::string originalfile, std::string editedfile, std::string id);
+extern void hkbTimerModifierExport(std::string id);
 
 #endif

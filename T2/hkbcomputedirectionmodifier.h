@@ -28,6 +28,6 @@ private:
 	bool IsNegated = false;
 };
 
-extern void hkbComputeDirectionModifierExport(std::string originalfile, std::string editedfile, std::string id);
+extern void hkbComputeDirectionModifierExport(std::string id);
 
 #endif

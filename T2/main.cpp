@@ -89,10 +89,18 @@
 #include "hkbhandikcontrolsmodifier.h"
 #include "hkbbehaviorreferencegenerator.h"
 #include "bssynchronizedclipgenerator.h"
+#include "hkbmirroredskeletoninfo.h"
+#include "hkbcharacterstringdata.h"
+#include "hkbfootikdriverinfo.h"
+#include "hkbcharacterdata.h"
+#include "bsoffsetanimationgenerator.h"
+#include "hkbposematchinggenerator.h"
+#include "hkbstringcondition.h"
+#include "AnimData\animationdata.h"
 
 using namespace std;
 
-string GetClass(string id, string inputfile, bool compare); // get class
+string GetClass(string id, bool compare); // get class
 
 int GetFunctionLayer(int functionlayer, string tempadd, string preaddress); // get functionlayer
 
@@ -136,13 +144,14 @@ void Clearing(string file, bool edited); // clear and store file in vector
 void ClearIgnore(string file1, string file2); // clear serialized ignore
 void ClassIdentifier(string inputfile, string classname, string id, string preaddress, int functionlayer, bool compare); // idenfity class and record function
 void EditClassIdentifier(string originalfile, string editedfile, string classname, string id); // export edited file
+void AddBehavior(string filename, vecstr& storeline, bool edited);
 void Initialize(string originalfile); // initialize reading original file procedure
 void InitializeComparing(string editedfile); // initialize comparing procedure
 void GetEdits(); // getting edits from editedfile
 void ModCode(); // enter author code
 void DebugMode(); // debug on/off
 
-string GetClass(string id, string inputfile, bool compare)
+string GetClass(string id, bool compare)
 {
 	string line;
 	string tempID = id;
@@ -177,7 +186,7 @@ string GetClass(string id, string inputfile, bool compare)
 		{
 			usize size = FunctionLineEdited[tempID].size();
 
-			for (int i = 0; i < size; i++)
+			for (usize i = 0; i < size; i++)
 			{
 				string line = FunctionLineEdited[tempID][i];
 
@@ -190,7 +199,7 @@ string GetClass(string id, string inputfile, bool compare)
 		}
 		else
 		{
-			cout << "ERROR: GetClass Inputfile(File: " << inputfile << ", ID:" << id << ", tempID: " << tempID << ")" << endl;
+			cout << "ERROR: GetClass Inputfile(ID:" << id << ", tempID: " << tempID << ")" << endl;
 			Error = true;
 			return "null";
 		}
@@ -203,7 +212,7 @@ string GetClass(string id, string inputfile, bool compare)
 		{
 			usize size = FunctionLineOriginal[tempID].size();
 
-			for (int i = 0; i < size; i++)
+			for (usize i = 0; i < size; i++)
 			{
 				string line = FunctionLineOriginal[tempID][i];
 
@@ -216,13 +225,13 @@ string GetClass(string id, string inputfile, bool compare)
 		}
 		else
 		{
-			cout << "ERROR: GetClass Inputfile(File: " << inputfile << ", ID:" << id << ", tempID: " << tempID << ")" << endl;
+			cout << "ERROR: GetClass Inputfile(ID:" << id << ", tempID: " << tempID << ")" << endl;
 			Error = true;
 			return "null";
 		}
 	}
 	
-	cout << "ERROR: GetClass Not Found(File: " << inputfile << ", ID:" << id << ", tempID: " << tempID << ")" << endl;
+	cout << "ERROR: GetClass Not Found(ID:" << id << ", tempID: " << tempID << ")" << endl;
 	Error = true;
 
 	return "null";
@@ -244,7 +253,8 @@ template <typename T>
 void GoToMultiGenerator(T &ptr, string inputfile, string tempadd, string preaddress, int functionlayer, bool compare)
 {
 	int tempchildren = ptr->GetChildren();
-	usize tempint = 0;
+	int tempint = 0;
+
 	for (int i = 0; i < tempchildren; i++)
 	{
 		string nextclass = ptr->NextGenerator(i);
@@ -260,23 +270,23 @@ void GoToMultiGenerator(T &ptr, string inputfile, string tempadd, string preaddr
 
 				if (!IsForeign[parent[nextclass]])
 				{
-					ClassIdentifier(inputfile, GetClass(nextclass, inputfile, compare), nextclass, tempadd + to_string(tempint), GetFunctionLayer(0, tempadd, preaddress), compare);
+					ClassIdentifier(inputfile, GetClass(nextclass, compare), nextclass, tempadd + to_string(tempint), GetFunctionLayer(0, tempadd, preaddress), compare);
 				}
 				else
 				{
-					ClassIdentifier(inputfile, GetClass(nextclass, inputfile, compare), nextclass, tempadd, GetFunctionLayer(functionlayer, tempadd, preaddress), compare);
-
+					ClassIdentifier(inputfile, GetClass(nextclass, compare), nextclass, tempadd, GetFunctionLayer(functionlayer, tempadd, preaddress), compare);
 				}
 
-				if (!IsForeign[nextclass])
+				if (IsBranchOrigin[nextclass] || !IsForeign[nextclass])
 				{
 					tempint++;
 				}
+
+				IsBranchOrigin.erase(nextclass);
 			}
 			else
 			{
-				ClassIdentifier(inputfile, GetClass(nextclass, inputfile, compare), nextclass, tempadd + to_string(tempint), GetFunctionLayer(0, tempadd, preaddress), compare);
-
+				ClassIdentifier(inputfile, GetClass(nextclass, compare), nextclass, tempadd + to_string(tempint), GetFunctionLayer(0, tempadd, preaddress), compare);
 				tempint++;
 			}
 		}
@@ -287,6 +297,7 @@ template <typename T>
 void GoToGenerator(T &ptr, string inputfile, string tempadd, string preaddress, int functionlayer, bool compare)
 {
 	string nextclass = ptr->NextGenerator();
+
 	if (!Error)
 	{
 		if (!exchangeID[nextclass].empty()) // ID change protector
@@ -294,7 +305,7 @@ void GoToGenerator(T &ptr, string inputfile, string tempadd, string preaddress, 
 			nextclass = exchangeID[nextclass];
 		}
 
-		ClassIdentifier(inputfile, GetClass(nextclass, inputfile, compare), nextclass, tempadd, GetFunctionLayer(functionlayer, tempadd, preaddress), compare);
+		ClassIdentifier(inputfile, GetClass(nextclass, compare), nextclass, tempadd, GetFunctionLayer(functionlayer, tempadd, preaddress), compare);
 	}
 }
 
@@ -302,6 +313,7 @@ template <typename T>
 void GoToVariableBinding(T &ptr, string inputfile, string tempadd, string preaddress, int functionlayer, bool compare)
 {
 	string variablebindingset = ptr->GetVariableBindingSet();
+
 	if ((!ptr->IsBindingNull()) && (!Error))
 	{
 		if (!exchangeID[variablebindingset].empty()) // ID change protector
@@ -317,6 +329,7 @@ template <typename T>
 void GoToModifier(T &ptr, string inputfile, string tempadd, string preaddress, int functionlayer, bool compare)
 {
 	string modifier = ptr->GetModifier();
+
 	if ((modifier.find("null", 0) == string::npos) && (!Error))
 	{
 		if (!exchangeID[modifier].empty()) // ID change protector
@@ -324,7 +337,7 @@ void GoToModifier(T &ptr, string inputfile, string tempadd, string preaddress, i
 			modifier = exchangeID[modifier];
 		}
 
-		ClassIdentifier(inputfile, GetClass(modifier, inputfile, compare), modifier, tempadd, GetFunctionLayer(functionlayer, tempadd, preaddress), compare);
+		ClassIdentifier(inputfile, GetClass(modifier, compare), modifier, tempadd, GetFunctionLayer(functionlayer, tempadd, preaddress), compare);
 	}
 }
 
@@ -333,6 +346,7 @@ void GoToMultiModifier(T &ptr, string inputfile, string tempadd, string preaddre
 {
 	int tempchildren = ptr->GetChildren();
 	usize tempint = 0;
+
 	for (int i = 0; i < tempchildren; i++)
 	{
 		string modifier = ptr->GetModifier(i);
@@ -348,11 +362,11 @@ void GoToMultiModifier(T &ptr, string inputfile, string tempadd, string preaddre
 
 				if (!IsForeign[parent[modifier]])
 				{
-					ClassIdentifier(inputfile, GetClass(modifier, inputfile, compare), modifier, tempadd + to_string(tempint), GetFunctionLayer(0, tempadd, preaddress), compare);
+					ClassIdentifier(inputfile, GetClass(modifier, compare), modifier, tempadd + to_string(tempint), GetFunctionLayer(0, tempadd, preaddress), compare);
 				}
 				else
 				{
-					ClassIdentifier(inputfile, GetClass(modifier, inputfile, compare), modifier, tempadd, GetFunctionLayer(functionlayer, tempadd, preaddress), compare);
+					ClassIdentifier(inputfile, GetClass(modifier, compare), modifier, tempadd, GetFunctionLayer(functionlayer, tempadd, preaddress), compare);
 				}
 
 				if (!IsForeign[modifier])
@@ -362,8 +376,7 @@ void GoToMultiModifier(T &ptr, string inputfile, string tempadd, string preaddre
 			}
 			else
 			{
-				ClassIdentifier(inputfile, GetClass(modifier, inputfile, compare), modifier, tempadd + to_string(tempint), GetFunctionLayer(0, tempadd, preaddress), compare);
-
+				ClassIdentifier(inputfile, GetClass(modifier, compare), modifier, tempadd + to_string(tempint), GetFunctionLayer(0, tempadd, preaddress), compare);
 				tempint++;
 			}
 		}
@@ -374,6 +387,7 @@ template <typename T>
 void GoToWildcard(T &ptr, string inputfile, string tempadd, string preaddress, int functionlayer, bool compare)
 {
 	string wildcard = ptr->GetWildcard();
+
 	if ((!ptr->IsWildcardNull()) && (!Error))
 	{
 		if (!exchangeID[wildcard].empty()) // ID change protector
@@ -389,9 +403,11 @@ template <typename T>
 void GoToTransitionBlender(T &ptr, string inputfile, string tempadd, string preaddress, int functionlayer, bool compare)
 {
 	int TransitionCount = ptr->GetTransitionCount();
+
 	if ((TransitionCount != 0) && (!Error))
 	{
 		usize tempint = 0;
+
 		for (int i = 0; i < TransitionCount; i++)
 		{
 			string transition = ptr->GetTransition(i);
@@ -403,7 +419,14 @@ void GoToTransitionBlender(T &ptr, string inputfile, string tempadd, string prea
 					transition = exchangeID[transition];
 				}
 
-				ClassIdentifier(inputfile, "hkbBlendingTransitionEffect", transition, tempadd + to_string(tempint), GetFunctionLayer(functionlayer, tempadd, preaddress), compare);
+				if (!IsForeign[parent[transition]])
+				{
+					ClassIdentifier(inputfile, "hkbBlendingTransitionEffect", transition, tempadd + to_string(tempint), GetFunctionLayer(functionlayer, tempadd, preaddress), compare);
+				}
+				else
+				{
+					ClassIdentifier(inputfile, "hkbBlendingTransitionEffect", transition, tempadd, GetFunctionLayer(functionlayer, tempadd, preaddress), compare);
+				}
 
 				if (!IsForeign[transition])
 				{
@@ -413,7 +436,6 @@ void GoToTransitionBlender(T &ptr, string inputfile, string tempadd, string prea
 			else
 			{
 				ClassIdentifier(inputfile, "hkbBlendingTransitionEffect", transition, tempadd + to_string(tempint), GetFunctionLayer(functionlayer, tempadd, preaddress), compare);
-
 				tempint++;
 			}
 		}
@@ -424,6 +446,7 @@ template <typename T>
 void GoToEnterNotify(T &ptr, string inputfile, string tempadd, string preaddress, int functionlayer, bool compare)
 {
 	string enternotifyevent = ptr->GetEnterNotifyEvent();
+
 	if ((!ptr->IsEnterNotifyEventNull()) && (!Error))
 	{
 		if (!exchangeID[enternotifyevent].empty()) // ID change protector
@@ -439,6 +462,7 @@ template <typename T>
 void GoToExitNotify(T &ptr, string inputfile, string tempadd, string preaddress, int functionlayer, bool compare)
 {
 	string exitnotifyevent = ptr->GetExitNotifyEvent();
+
 	if ((!ptr->IsExitNotifyEventNull()) && (!Error))
 	{
 		if (!exchangeID[exitnotifyevent].empty()) // ID change protector
@@ -454,6 +478,7 @@ template <typename T>
 void GoToTransition(T &ptr, string inputfile, string tempadd, string preaddress, int functionlayer, bool compare)
 {
 	string transitions = ptr->GetTransitions();
+
 	if ((!ptr->IsTransitionsNull()) && (!Error))
 	{
 		if (!exchangeID[transitions].empty()) // ID change protector
@@ -485,6 +510,7 @@ template <typename T>
 void GoToData(T &ptr, string inputfile, string tempadd, string preaddress, int functionlayer, bool compare)
 {
 	string data = ptr->GetData();
+
 	if (!Error)
 	{
 		if (!exchangeID[data].empty()) // ID change protector
@@ -500,6 +526,7 @@ template <typename T>
 void GoToPayload(T &ptr, string inputfile, string tempadd, string preaddress, int functionlayer, bool compare)
 {
 	string payload = ptr->GetPayload();
+
 	if ((!ptr->IsPayloadNull()) && (!Error))
 	{
 		if (!exchangeID[payload].empty()) // ID change protector
@@ -515,9 +542,11 @@ template <typename T>
 void GoToMultiPayload(T &ptr, string inputfile, string tempadd, string preaddress, int functionlayer, bool compare)
 {
 	int payloadcount = ptr->GetPayloadCount();
+
 	if ((payloadcount != 0) && (!Error))
 	{
 		usize tempint = 0;
+
 		for (int i = 0; i < payloadcount; i++)
 		{
 			if ((!ptr->IsPayloadNull(i)) && (!Error))
@@ -531,7 +560,14 @@ void GoToMultiPayload(T &ptr, string inputfile, string tempadd, string preaddres
 						payload = exchangeID[payload];
 					}
 
-					ClassIdentifier(inputfile, "hkbStringEventPayload", payload, tempadd + to_string(tempint), GetFunctionLayer(functionlayer, tempadd, preaddress), compare);
+					if (!IsForeign[parent[payload]])
+					{
+						ClassIdentifier(inputfile, "hkbStringEventPayload", payload, tempadd + to_string(tempint), GetFunctionLayer(functionlayer, tempadd, preaddress), compare);
+					}
+					else
+					{
+						ClassIdentifier(inputfile, "hkbStringEventPayload", payload, tempadd, GetFunctionLayer(functionlayer, tempadd, preaddress), compare);
+					}
 
 					if (!IsForeign[payload])
 					{
@@ -541,7 +577,6 @@ void GoToMultiPayload(T &ptr, string inputfile, string tempadd, string preaddres
 				else
 				{
 					ClassIdentifier(inputfile, "hkbStringEventPayload", payload, tempadd + to_string(tempint), GetFunctionLayer(functionlayer, tempadd, preaddress), compare);
-
 					tempint++;
 				}
 			}
@@ -549,284 +584,239 @@ void GoToMultiPayload(T &ptr, string inputfile, string tempadd, string preaddres
 	}
 }
 
-void testest(string filename, vector<string> &fv)
+void AddBehavior(string filename, vecstr& storeline, bool edited)
 {
-	boost::posix_time::ptime mtime1 = boost::posix_time::microsec_clock::local_time();
-	
 	string line;
 	string namesearch = "SERIALIZE_IGNORED";
-	int numline = 0;
+	string tempID;
+	bool record = false;
+	bool eventOpen = false;
+	bool attriOption = false;
+	bool varOpen = false;
+	bool charOpen = false;
+	int counter = 0;
 
-	ifstream countbehaviorline(filename);
-	if (countbehaviorline.is_open())
+	for (unsigned int j = 0; j < storeline.size(); ++j)
 	{
-		while (getline(countbehaviorline, line))
+		if (Error)
 		{
-			if (Error)
+			return;
+		}
+
+		line = storeline[j];
+
+		if (edited)
+		{
+			if (line.find("#", 0) != string::npos)
 			{
-				return;
+				if (line.find("&#", 0) == string::npos && line.find(";", line.find("&#")) == string::npos)
+				{
+					usize tempint = 0;
+					usize size = count(line.begin(), line.end(), '#');
+
+					for (unsigned int i = 0; i < size; i++)
+					{
+						usize position = line.find("#", tempint);
+						tempint = line.find("#", position + 1);
+						string tempID;
+
+						if (tempint == -1)
+						{
+							string templine;
+
+							if (line.find("signature", 0) != string::npos)
+							{
+								templine = line.substr(0, line.find("class"));
+							}
+							else if (line.find("toplevelobject", 0) != string::npos)
+							{
+								templine = line.substr(line.find("toplevelobject"), line.find(">"));
+							}
+							else
+							{
+								templine = line.substr(position, tempint - position - 1);
+							}
+
+							tempID = "#" + boost::regex_replace(string(templine), boost::regex("[^0-9]*([0-9]+).*"), string("\\1"));
+						}
+						else
+						{
+							tempID = line.substr(position, tempint - position - 1);
+						}
+
+						int tempLength = tempID.length();
+
+						if (tempLength > 6)
+						{
+							cout << "ERROR: File contains invalid data(File: " << filename << ")" << endl;
+							Error = true;
+							return;
+						}
+
+						string strID = tempID.substr(1, tempLength - 1);
+						int intID = stoi(strID);
+
+						if (intID < 10000)
+						{
+							usize position2 = line.find(tempID);
+							line.replace(position2, tempLength, "#9" + strID);
+						}
+					}
+				}
 			}
 
-			if (line.find(namesearch, 0) == string::npos)
+			if (line.find("<hkparam name=\"eventNames\" numelements=\"") != string::npos && line.find("<hkparam name=\"eventNames\" numelements=\"0\">") == string::npos)
 			{
-				numline++;
+				eventOpen = true;
+			}
+			else if (line.find("<hkparam name=\"attributeNames\" numelements=\"") != string::npos && line.find("<hkparam name=\"attributeNames\" numelements=\"0\">") == string::npos)
+			{
+				attriOption = true;
+			}
+			else if (line.find("<hkparam name=\"variableNames\" numelements=\"") != string::npos && line.find("<hkparam name=\"variableNames\" numelements=\"0\">") == string::npos)
+			{
+				varOpen = true;
+			}
+			else if (line.find("<hkparam name=\"characterPropertyNames\" numelements=\"") != string::npos && line.find("<hkparam name=\"characterPropertyNames\" numelements=\"0\">") == string::npos)
+			{
+				charOpen = true;
+			}
+			else if (line.find("</hkparam>") != string::npos)
+			{
+				if (eventOpen)
+				{
+					eventOpen = false;
+				}
+				else if (attriOption)
+				{
+					attriOption = false;
+				}
+				else if (varOpen)
+				{
+					varOpen = false;
+				}
+				else if (charOpen)
+				{
+					charOpen = false;
+				}
+
+				counter = 0;
+			}
+
+			if (line.find("<hkcstring>") != string::npos && line.find("</hkcstring>") != string::npos)
+			{
+				if (eventOpen)
+				{
+					usize pos = line.find("<hkcstring>") + 11;
+					string templine = line.substr(pos, line.find("</hkcstring>") - pos);
+					eventID[to_string(counter++)] = templine;
+				}
+				else if (attriOption)
+				{
+					usize pos = line.find("<hkcstring>") + 11;
+					string templine = line.substr(pos, line.find("</hkcstring>") - pos);
+					attributeID[to_string(counter++)] = templine;
+				}
+				else if (varOpen)
+				{
+					usize pos = line.find("<hkcstring>") + 11;
+					string templine = line.substr(pos, line.find("</hkcstring>") - pos);
+					variableID[to_string(counter++)] = templine;
+				}
+				else if (charOpen)
+				{
+					usize pos = line.find("<hkcstring>") + 11;
+					string templine = line.substr(pos, line.find("</hkcstring>") - pos);
+					characterID[to_string(counter++)] = templine;
+				}
 			}
 		}
-		countbehaviorline.close();
-	}
-	else
-	{
-		cout << "ERROR: Fail to open file while clearing(File: " << filename << ")" << endl;
-		Error = true;
-	}
 
-	fv.resize(numline);
-
-	numline = 0;
-
-	ifstream behaviorfile(filename);
-	if (behaviorfile.is_open())
-	{
-		while (getline(behaviorfile, line))
+		if ((line.find("<hkobject name=\"", 0) != string::npos) && (record == false))
 		{
-			if (Error)
-			{
-				return;
-			}
+			tempID = line.substr(line.find("name") + 6, line.find("class") - line.find("name") - 8);
+			record = true;
+		}
 
-			if (line.find(namesearch, 0) == string::npos)
+		if (line.length() == 0)
+		{
+			record = false;
+		}
+		
+		if ((record == true) && (line.find(namesearch, 0) == string::npos))
+		{
+			if (!edited)
 			{
-				fv[numline] = line;
-				numline++;
+				FunctionLineOriginal[tempID].push_back(line);
+			}
+			else
+			{
+				FunctionLineEdited[tempID].push_back(line);
 			}
 		}
-		behaviorfile.close();
 	}
-	else
-	{
-		cout << "ERROR: Fail to open file while clearing(File: " << filename << ")" << endl;
-		Error = true;
-	}
-
-	boost::posix_time::ptime mtime2 = boost::posix_time::microsec_clock::local_time();
-	boost::posix_time::time_duration mdiff = mtime2 - mtime1;
-
-	if (Debug)
-	{
-		cout << "Reading time: " << mdiff.total_milliseconds() << endl;
-		cout << mtime2 << endl << mtime1 << endl << endl;
-	}
-
-
-	boost::posix_time::ptime time1 = boost::posix_time::microsec_clock::local_time();
-
-	ofstream output(filename);
-	if (output.is_open())
-	{
-		for (unsigned int i = 0; i < fv.size(); i++)
-		{
-			output << fv[i] << "\n";
-		}
-		output.close();
-	}
-	else
-	{
-		cout << "ERROR: Fail to open file while clearing(File: " << filename << ")" << endl;
-		Error = true;
-	}
-
-	boost::posix_time::ptime time2 = boost::posix_time::microsec_clock::local_time();
-	boost::posix_time::time_duration diff = time2 - time1;
-
-	if (Debug)
-	{
-		cout << "Writing time: " << diff.total_milliseconds() << endl;
-		cout << time2 << endl << time1 << endl << endl;
-	}
-
 }
 
 void Clearing(string filename, bool edited)
 {
 	boost::posix_time::ptime mtime1 = boost::posix_time::microsec_clock::local_time();
 
-	string line;
-	string namesearch = "SERIALIZE_IGNORED";
-	bool record = false;
+	vector<string> storeline;
+	GetFunctionLines(filename, storeline);
 
-	ifstream countbehaviorline(filename);
-	if (countbehaviorline.is_open())
+	if (Error)
 	{
-		string tempID;
-		bool eventOpen = false;
-		bool attriOption = false;
-		bool varOpen = false;
-		bool charOpen = false;
-		int counter = 0;
-		while (getline(countbehaviorline, line))
+		return;
+	}
+
+	if (!storeline.empty())
+	{
+		if (isOnlyNumber(storeline[0]))
 		{
-			if (Error)
+			if (storeline[1].find(".txt") == storeline[1].length() - 4)
 			{
+
+			}
+			else
+			{
+				cout << "ERROR: Unrecognized file. Fail to read file(File: " << filename << ")" << endl;
+				Error = true;
 				return;
 			}
+		}
+		else
+		{
+			int i = 0;
+			bool isBehavior = false;
 
-			if (edited)
+			while (i < 4)
 			{
-				if (line.find("#", 0) != string::npos)
+				if (storeline[i].find("<?xml version=\"1.0\" encoding=\"ascii\"?>") != string::npos)
 				{
-					if (line.find("<hkparam name=\"SyncAnimPrefix\">", 0) == string::npos)
-					{
-						usize tempint = 0;
-						usize size = count(line.begin(), line.end(), '#');
-
-						for (unsigned int i = 0; i < size; i++)
-						{
-							usize position = line.find("#", tempint);
-							tempint = line.find("#", position + 1);
-							string tempID;
-
-							if (tempint == -1)
-							{
-								string templine;
-
-								if (line.find("signature", 0) != string::npos)
-								{
-									templine = line.substr(0, line.find("class"));
-								}
-								else if (line.find("toplevelobject", 0) != string::npos)
-								{
-									templine = line.substr(line.find("toplevelobject"), line.find(">"));
-								}
-								else
-								{
-									templine = line.substr(position, tempint - position - 1);
-								}
-
-								tempID = "#" + boost::regex_replace(string(templine), boost::regex("[^0-9]*([0-9]+).*"), string("\\1"));
-							}
-							else
-							{
-								tempID = line.substr(position, tempint - position - 1);
-							}
-
-							int tempLength = tempID.length();
-
-							if (tempLength > 6)
-							{
-								cout << "ERROR: File contains invalid data(File: " << filename << ")" << endl;
-								Error = true;
-								return;
-							}
-
-							string strID = tempID.substr(1, tempLength - 1);
-							int intID = stoi(strID);
-
-							if (intID < 10000)
-							{
-								usize position2 = line.find(tempID);
-								line.replace(position2, tempLength, "#9" + strID);
-							}
-						}
-					}
+					isBehavior = true;
+					break;
 				}
 
-				if (line.find("<hkparam name=\"eventNames\" numelements=\"") != string::npos && line.find("<hkparam name=\"eventNames\" numelements=\"0\">") == string::npos)
-				{
-					eventOpen = true;
-				}
-				else if (line.find("<hkparam name=\"attributeNames\" numelements=\"") != string::npos && line.find("<hkparam name=\"attributeNames\" numelements=\"0\">") == string::npos)
-				{
-					attriOption = true;
-				}
-				else if (line.find("<hkparam name=\"variableNames\" numelements=\"") != string::npos && line.find("<hkparam name=\"variableNames\" numelements=\"0\">") == string::npos)
-				{
-					varOpen = true;
-				}
-				else if (line.find("<hkparam name=\"characterPropertyNames\" numelements=\"") != string::npos && line.find("<hkparam name=\"characterPropertyNames\" numelements=\"0\">") == string::npos)
-				{
-					charOpen = true;
-				}
-				else if (line.find("</hkparam>") != string::npos)
-				{
-					if (eventOpen)
-					{
-						eventOpen = false;
-					}
-					else if (attriOption)
-					{
-						attriOption = false;
-					}
-					else if (varOpen)
-					{
-						varOpen = false;
-					}
-					else if (charOpen)
-					{
-						charOpen = false;
-					}
-
-					counter = 0;
-				}
-
-				if (line.find("<hkcstring>") != string::npos && line.find("</hkcstring>") != string::npos)
-				{
-					if (eventOpen)
-					{
-						usize pos = line.find("<hkcstring>") + 11;
-						string templine = line.substr(pos, line.find("</hkcstring>") - pos);
-						eventID[to_string(counter++)] = templine;
-					}
-					else if (attriOption)
-					{
-						usize pos = line.find("<hkcstring>") + 11;
-						string templine = line.substr(pos, line.find("</hkcstring>") - pos);
-						attributeID[to_string(counter++)] = templine;
-					}
-					else if (varOpen)
-					{
-						usize pos = line.find("<hkcstring>") + 11;
-						string templine = line.substr(pos, line.find("</hkcstring>") - pos);
-						variableID[to_string(counter++)] = templine;
-					}
-					else if (charOpen)
-					{
-						usize pos = line.find("<hkcstring>") + 11;
-						string templine = line.substr(pos, line.find("</hkcstring>") - pos);
-						characterID[to_string(counter++)] = templine;
-					}
-				}
+				++i;
 			}
 
-			if ((line.find("<hkobject name=\"", 0) != string::npos) && (record == false))
+			if (isBehavior)
 			{
-				tempID = line.substr(line.find("name") + 6, line.find("class") - line.find("name") - 8);
-				record = true;
+				AddBehavior(filename, storeline, edited);
 			}
-
-			if (line.length() == 0)
+			else
 			{
-				record = false;
-			}
-
-
-			if ((record == true) && (line.find(namesearch, 0) == string::npos))
-			{
-				if (!edited)
-				{
-					FunctionLineOriginal[tempID].push_back(line);
-				}
-				else
-				{
-					FunctionLineEdited[tempID].push_back(line);
-				}
+				cout << "ERROR: Unrecognized file. Fail to read file(File: " << filename << ")" << endl;
+				Error = true;
+				return;
 			}
 		}
-		countbehaviorline.close();
 	}
 	else
 	{
 		cout << "ERROR: Fail to open file while clearing(File: " << filename << ")" << endl;
 		Error = true;
+		return;
 	}
 
 	boost::posix_time::ptime mtime2 = boost::posix_time::microsec_clock::local_time();
@@ -850,12 +840,14 @@ void ClearIgnore(string file1, string file2)
 	{
 		cout << "ERROR: Fail to read file (" + file1 + ")" << endl;
 		Error = true;
+		return;
 	}
 
 	if (FunctionLineEdited.size() < 5)
 	{
 		cout << "ERROR: Fail to read file (" + file1 + ")" << endl;
 		Error = true;
+		return;
 	}
 }
 
@@ -865,6 +857,7 @@ void ClassIdentifier(string inputfile, string classname, string id, string pread
 	{
 		bsboneswitchgeneratorbonedata bonedata(inputfile, id, preaddress, functionlayer, compare);
 		bsboneswitchgeneratorbonedata* tempptr = &bonedata;
+
 		if (!tempptr->IsNegate())
 		{
 			string tempadd = tempptr->GetAddress();
@@ -876,7 +869,6 @@ void ClassIdentifier(string inputfile, string classname, string id, string pread
 			GoToGenerator(tempptr, inputfile, tempadd, preaddress, functionlayer, compare);
 		}
 	}
-
 	else if (classname.find("BSBoneSwitchGenerator", 0) != string::npos)
 	{
 		bsboneswitchgenerator boneswitch(inputfile, id, preaddress, functionlayer, compare);
@@ -889,9 +881,11 @@ void ClassIdentifier(string inputfile, string classname, string id, string pread
 			GoToVariableBinding(tempptr, inputfile, tempadd, preaddress, functionlayer, compare);
 
 			int children = tempptr->GetChildren();
+
 			if ((children != 0) && (!Error))
 			{
 				usize tempint = 0;
+
 				for (int i = 0; i < children; i++)
 				{
 					string bonedata = tempptr->GetBoneData(i);
@@ -915,7 +909,6 @@ void ClassIdentifier(string inputfile, string classname, string id, string pread
 			GoToGenerator(tempptr, inputfile, tempadd, preaddress, functionlayer, compare);
 		}
 	}
-
 	else if (classname.find("BSCyclicBlendTransitionGenerator", 0) != string::npos)
 	{
 		
@@ -933,7 +926,6 @@ void ClassIdentifier(string inputfile, string classname, string id, string pread
 			GoToGenerator(tempptr, inputfile, tempadd, preaddress, functionlayer, compare);
 		}
 	}
-
 	else if (classname.find("BSiStateTaggingGenerator", 0) != string::npos)
 	{
 		bsistatetagginggenerator istate(inputfile, id, preaddress, functionlayer, compare);
@@ -948,12 +940,10 @@ void ClassIdentifier(string inputfile, string classname, string id, string pread
 			GoToGenerator(tempptr, inputfile, tempadd, preaddress, functionlayer, compare);
 		}
 	}
-
 	else if (classname.find("hkbBehaviorGraphStringData", 0) != string::npos)
 	{
 		hkbbehaviorgraphstringdata graphstringdata(inputfile, id, preaddress, functionlayer, compare);
 	}
-
 	else if (classname.find("hkbBehaviorGraphData", 0) != string::npos)
 	{
 		hkbbehaviorgraphdata graphdata(inputfile, id, preaddress, functionlayer, compare);
@@ -977,7 +967,6 @@ void ClassIdentifier(string inputfile, string classname, string id, string pread
 			}
 		}
 	}
-
 	else if (classname.find("hkbBehaviorGraph", 0) != string::npos)
 	{
 		hkbbehaviorgraph graph(inputfile, id, preaddress, functionlayer, compare);
@@ -995,7 +984,6 @@ void ClassIdentifier(string inputfile, string classname, string id, string pread
 			GoToGenerator(tempptr, inputfile, tempadd, preaddress, functionlayer, compare);
 		}
 	}
-
 	else if (classname.find("hkbBlenderGeneratorChild", 0) != string::npos)
 	{
 		hkbblendergeneratorchild blenderchild(inputfile, id, preaddress, functionlayer, compare);
@@ -1013,7 +1001,6 @@ void ClassIdentifier(string inputfile, string classname, string id, string pread
 			GoToGenerator(tempptr, inputfile, tempadd, preaddress, functionlayer, compare);
 		}
 	}
-
 	else if (classname.find("hkbBlenderGenerator", 0) != string::npos)
 	{
 		hkbblendergenerator blender(inputfile, id, preaddress, functionlayer, compare);
@@ -1028,7 +1015,6 @@ void ClassIdentifier(string inputfile, string classname, string id, string pread
 			GoToMultiGenerator(tempptr, inputfile, tempadd, preaddress, functionlayer, compare);
 		}
 	}
-
 	else if (classname.find("hkbBlendingTransitionEffect", 0) != string::npos)
 	{
 		hkbblendingtransitioneffect transitioneffect(inputfile, id, preaddress, functionlayer, compare);
@@ -1041,7 +1027,6 @@ void ClassIdentifier(string inputfile, string classname, string id, string pread
 			GoToVariableBinding(tempptr, inputfile, tempadd, preaddress, functionlayer, compare);
 		}
 	}
-
 	else if (classname.find("hkbBoneWeightArray", 0) != string::npos)
 	{
 		hkbboneweightarray boneweight(inputfile, id, preaddress, functionlayer, compare);
@@ -1054,12 +1039,10 @@ void ClassIdentifier(string inputfile, string classname, string id, string pread
 			GoToVariableBinding(tempptr, inputfile, tempadd, preaddress, functionlayer, compare);
 		}
 	}
-
 	else if (classname.find("hkbExpressionCondition", 0) != string::npos)
 	{
 		hkbexpressioncondition condition(inputfile, id, preaddress, functionlayer, compare);
 	}
-
 	else if (classname.find("hkbManualSelectorGenerator", 0) != string::npos)
 	{
 		hkbmanualselectorgenerator manualselector(inputfile, id, preaddress, functionlayer, compare);
@@ -1074,22 +1057,19 @@ void ClassIdentifier(string inputfile, string classname, string id, string pread
 			GoToMultiGenerator(tempptr, inputfile, tempadd, preaddress, functionlayer, compare);
 		}
 	}
-
 	else if (classname.find("hkRootLevelContainer", 0) != string::npos)
 	{
 		hkrootlevelcontainer root(inputfile, id, preaddress, 0, compare);
 		hkrootlevelcontainer* tempptr = &root;
 		
-
 		if (!tempptr->IsNegate())
 		{
 			string tempadd = tempptr->GetAddress();
 			string generator = tempptr->NextGenerator();
 
-			ClassIdentifier(inputfile, "hkbBehaviorGraph", generator, tempadd, functionlayer, compare);
+			ClassIdentifier(inputfile, GetClass(generator, compare), generator, tempadd, functionlayer, compare);
 		}
 	}
-
 	else if (classname.find("hkbStateMachineEventPropertyArray", 0) != string::npos)
 	{
 		hkbstatemachineeventpropertyarray eventarray(inputfile, id, preaddress, functionlayer, compare);
@@ -1103,7 +1083,6 @@ void ClassIdentifier(string inputfile, string classname, string id, string pread
 			GoToMultiPayload(tempptr, inputfile, tempadd, preaddress, functionlayer, compare);
 		}
 	}
-
 	else if (classname.find("hkbStateMachineStateInfo", 0) != string::npos)
 	{
 		hkbstatemachinestateinfo state(inputfile, id, preaddress, functionlayer, compare);
@@ -1127,7 +1106,6 @@ void ClassIdentifier(string inputfile, string classname, string id, string pread
 			GoToGenerator(tempptr, inputfile, tempadd, preaddress, functionlayer, compare);
 		}
 	}
-
 	else if (classname.find("hkbStateMachineTransitionInfoArray", 0) != string::npos)
 	{
 		hkbstatemachinetransitioninfoarray statetransition(inputfile, id, preaddress, functionlayer, compare);
@@ -1142,9 +1120,11 @@ void ClassIdentifier(string inputfile, string classname, string id, string pread
 
 			// condition function
 			int ConditionCount = tempptr->GetConditionCount();
+
 			if ((ConditionCount != 0) && (!Error))
 			{
 				usize tempint = 0;
+
 				for (int i = 0; i < ConditionCount; i++)
 				{
 					string condition = tempptr->GetCondition(i);
@@ -1156,7 +1136,7 @@ void ClassIdentifier(string inputfile, string classname, string id, string pread
 							condition = exchangeID[condition];
 						}
 
-						ClassIdentifier(inputfile, "hkbExpressionCondition", condition, tempadd + to_string(tempint), GetFunctionLayer(functionlayer, tempadd, preaddress), compare);
+						ClassIdentifier(inputfile, GetClass(condition, compare), condition, tempadd + to_string(tempint), GetFunctionLayer(functionlayer, tempadd, preaddress), compare);
 
 						if (!IsForeign[condition])
 						{
@@ -1165,7 +1145,7 @@ void ClassIdentifier(string inputfile, string classname, string id, string pread
 					}
 					else
 					{
-						ClassIdentifier(inputfile, "hkbExpressionCondition", condition, tempadd + to_string(tempint), GetFunctionLayer(functionlayer, tempadd, preaddress), compare);
+						ClassIdentifier(inputfile, GetClass(condition, compare), condition, tempadd + to_string(tempint), GetFunctionLayer(functionlayer, tempadd, preaddress), compare);
 
 						tempint++;
 					}
@@ -1173,7 +1153,6 @@ void ClassIdentifier(string inputfile, string classname, string id, string pread
 			}
 		}
 	}
-
 	else if (classname.find("hkbStateMachine", 0) != string::npos)
 	{
 		hkbstatemachine statemachine(inputfile, id, preaddress, functionlayer, compare);
@@ -1194,22 +1173,63 @@ void ClassIdentifier(string inputfile, string classname, string id, string pread
 			GoToMultiGenerator(tempptr, inputfile, tempadd, preaddress, functionlayer, compare);
 		}
 	}
-
 	else if (classname.find("hkbStringEventPayload", 0) != string::npos)
 	{
 		hkbstringeventpayload stringeventpayload(inputfile, id, preaddress, functionlayer, compare);
 	}
-
 	else if (classname.find("hkbVariableBindingSet", 0) != string::npos)
 	{
 		hkbvariablebindingset variablebindingset(inputfile, id, preaddress, functionlayer, compare);
 	}
-
 	else if (classname.find("hkbVariableValueSet", 0) != string::npos)
 	{
 		hkbvariablevalueset variablevalueset(inputfile, id, preaddress, functionlayer, compare);
-	}
+		hkbvariablevalueset* tempptr = &variablevalueset;
 
+		if (!tempptr->IsNegate())
+		{
+			int counter = tempptr->GetBoneCount();
+			string tempadd = tempptr->GetAddress();
+			int tempint = 0;
+
+			for (int i = 0; i < counter; i++)
+			{
+				string nextclass = tempptr->GetBoneArray(i);
+
+				if (!Error)
+				{
+					if (compare)
+					{
+						if (!exchangeID[nextclass].empty()) // ID change protector
+						{
+							nextclass = exchangeID[nextclass];
+						}
+
+						if (!IsForeign[parent[nextclass]])
+						{
+							ClassIdentifier(inputfile, "hkbBoneWeightArray", nextclass, tempadd + to_string(tempint), GetFunctionLayer(0, tempadd, preaddress), compare);
+						}
+						else
+						{
+							ClassIdentifier(inputfile, "hkbBoneWeightArray", nextclass, tempadd, GetFunctionLayer(functionlayer, tempadd, preaddress), compare);
+
+						}
+
+						if (!IsForeign[nextclass])
+						{
+							tempint++;
+						}
+					}
+					else
+					{
+						ClassIdentifier(inputfile, "hkbBoneWeightArray", nextclass, tempadd + to_string(tempint), GetFunctionLayer(0, tempadd, preaddress), compare);
+
+						tempint++;
+					}
+				}
+			}
+		}
+	}
 	else if (classname.find("hkbClipGenerator", 0) != string::npos)
 	{
 		hkbclipgenerator clipgenerator(inputfile, id, preaddress, functionlayer, compare);
@@ -1223,13 +1243,13 @@ void ClassIdentifier(string inputfile, string classname, string id, string pread
 
 			// trigger function
 			string triggers = tempptr->GetTriggers();
+
 			if ((!tempptr->IsTriggersNull()) && (!Error))
 			{
 				ClassIdentifier(inputfile, "hkbClipTriggerArray", triggers, tempadd, GetFunctionLayer(functionlayer, tempadd, preaddress), compare);
 			}
 		}
 	}
-
 	else if (classname.find("hkbClipTriggerArray", 0) != string::npos)
 	{
 		hkbcliptriggerarray cliptriggerarray(inputfile, id, preaddress, functionlayer, compare);
@@ -1241,8 +1261,7 @@ void ClassIdentifier(string inputfile, string classname, string id, string pread
 			
 			GoToMultiPayload(tempptr, inputfile, tempadd, preaddress, functionlayer, compare);
 		}
-	}
-	
+	}	
 	else if (classname.find("hkbBehaviorReferenceGenerator", 0) != string::npos)
 	{
 		hkbbehaviorreferencegenerator behaviorgenerator(inputfile, id, preaddress, functionlayer, compare);
@@ -1255,7 +1274,6 @@ void ClassIdentifier(string inputfile, string classname, string id, string pread
 			GoToVariableBinding(tempptr, inputfile, tempadd, preaddress, functionlayer, compare);
 		}
 	}
-
 	else if (classname.find("hkbModifierGenerator", 0) != string::npos)
 	{
 		hkbmodifiergenerator modifiergenerator(inputfile, id, preaddress, functionlayer, compare);
@@ -1271,8 +1289,7 @@ void ClassIdentifier(string inputfile, string classname, string id, string pread
 
 			GoToGenerator(tempptr, inputfile, tempadd, preaddress, functionlayer, compare);
 		}
-	}
-	
+	}	
 	else if (classname.find("hkbModifierList", 0) != string::npos)
 	{
 		hkbmodifierlist modifierlist(inputfile, id, preaddress, functionlayer, compare);
@@ -1287,7 +1304,6 @@ void ClassIdentifier(string inputfile, string classname, string id, string pread
 			GoToMultiModifier(tempptr, inputfile, tempadd, preaddress, functionlayer, compare);
 		}
 	}
-
 	else if (classname.find("BSSynchronizedClipGenerator", 0) != string::npos)
 	{
 		bssynchronizedclipgenerator synchronizedclip(inputfile, id, preaddress, functionlayer, compare);
@@ -1302,7 +1318,6 @@ void ClassIdentifier(string inputfile, string classname, string id, string pread
 			GoToGenerator(tempptr, inputfile, tempadd, preaddress, functionlayer, compare);
 		}
 	}
-
 	else if (classname.find("hkbTwistModifier", 0) != string::npos)
 	{
 		hkbtwistmodifier twistmodifier(inputfile, id, preaddress, functionlayer, compare);
@@ -1315,7 +1330,6 @@ void ClassIdentifier(string inputfile, string classname, string id, string pread
 			GoToVariableBinding(tempptr, inputfile, tempadd, preaddress, functionlayer, compare);
 		}
 	}
-
 	else if (classname.find("hkbEventDrivenModifier", 0) != string::npos)
 	{
 		hkbeventdrivenmodifier eventdrivenmodifier(inputfile, id, preaddress, functionlayer, compare);
@@ -1332,7 +1346,6 @@ void ClassIdentifier(string inputfile, string classname, string id, string pread
 			
 		}
 	}
-
 	else if (classname.find("BSIsActiveModifier", 0) != string::npos)
 	{
 		bsisactivemodifier isactivemodifier(inputfile, id, preaddress, functionlayer, compare);
@@ -1345,7 +1358,6 @@ void ClassIdentifier(string inputfile, string classname, string id, string pread
 			GoToVariableBinding(tempptr, inputfile, tempadd, preaddress, functionlayer, compare);
 		}
 	}
-
 	else if (classname.find("BSLimbIKModifier", 0) != string::npos)
 	{
 		bslimbikmodifier limbik(inputfile, id, preaddress, functionlayer, compare);
@@ -1358,7 +1370,6 @@ void ClassIdentifier(string inputfile, string classname, string id, string pread
 			GoToVariableBinding(tempptr, inputfile, tempadd, preaddress, functionlayer, compare);
 		}
 	}
-
 	else if (classname.find("BSInterpValueModifier", 0) != string::npos)
 	{
 		bsinterpvaluemodifier interpvaluemodifier(inputfile, id, preaddress, functionlayer, compare);
@@ -1371,7 +1382,6 @@ void ClassIdentifier(string inputfile, string classname, string id, string pread
 			GoToVariableBinding(tempptr, inputfile, tempadd, preaddress, functionlayer, compare);
 		}
 	}
-
 	else if (classname.find("BSGetTimeStepModifier", 0) != string::npos)
 	{
 		bsgettimestepmodifier gettimestep(inputfile, id, preaddress, functionlayer, compare);
@@ -1384,7 +1394,6 @@ void ClassIdentifier(string inputfile, string classname, string id, string pread
 			GoToVariableBinding(tempptr, inputfile, tempadd, preaddress, functionlayer, compare);
 		}
 	}
-
 	else if (classname.find("hkbFootIkControlsModifier", 0) != string::npos)
 	{
 		hkbfootikcontrolsmodifier footik(inputfile, id, preaddress, functionlayer, compare);
@@ -1399,7 +1408,6 @@ void ClassIdentifier(string inputfile, string classname, string id, string pread
 			GoToMultiPayload(tempptr, inputfile, tempadd, preaddress, functionlayer, compare);
 		}
 	}
-
 	else if (classname.find("hkbGetHandleOnBoneModifier", 0) != string::npos)
 	{
 		hkbgethandleonbonemodifier gethandleonbone(inputfile, id, preaddress, functionlayer, compare);
@@ -1411,8 +1419,7 @@ void ClassIdentifier(string inputfile, string classname, string id, string pread
 
 			GoToVariableBinding(tempptr, inputfile, tempadd, preaddress, functionlayer, compare);
 		}
-	}
-	
+	}	
 	else if (classname.find("hkbTransformVectorModifier", 0) != string::npos)
 	{
 		hkbtransformvectormodifier transformvector(inputfile, id, preaddress, functionlayer, compare);
@@ -1425,7 +1432,6 @@ void ClassIdentifier(string inputfile, string classname, string id, string pread
 			GoToVariableBinding(tempptr, inputfile, tempadd, preaddress, functionlayer, compare);
 		}
 	}
-
 	else if (classname.find("hkbProxyModifier", 0) != string::npos)
 	{
 		hkbproxymodifier proxymodifier(inputfile, id, preaddress, functionlayer, compare);
@@ -1438,7 +1444,6 @@ void ClassIdentifier(string inputfile, string classname, string id, string pread
 			GoToVariableBinding(tempptr, inputfile, tempadd, preaddress, functionlayer, compare);
 		}
 	}
-
 	else if (classname.find("hkbLookAtModifier", 0) != string::npos)
 	{
 		hkblookatmodifier hkblookat(inputfile, id, preaddress, functionlayer, compare);
@@ -1451,7 +1456,6 @@ void ClassIdentifier(string inputfile, string classname, string id, string pread
 			GoToVariableBinding(tempptr, inputfile, tempadd, preaddress, functionlayer, compare);
 		}
 	}
-
 	else if (classname.find("hkbMirrorModifier", 0) != string::npos)
 	{
 		hkbmirrormodifier mirrormodifier(inputfile, id, preaddress, functionlayer, compare);
@@ -1464,7 +1468,6 @@ void ClassIdentifier(string inputfile, string classname, string id, string pread
 			GoToVariableBinding(tempptr, inputfile, tempadd, preaddress, functionlayer, compare);
 		}
 	}
-
 	else if (classname.find("hkbGetWorldFromModelModifier", 0) != string::npos)
 	{
 		hkbgetworldfrommodelmodifier getworld(inputfile, id, preaddress, functionlayer, compare);
@@ -1477,7 +1480,6 @@ void ClassIdentifier(string inputfile, string classname, string id, string pread
 			GoToVariableBinding(tempptr, inputfile, tempadd, preaddress, functionlayer, compare);
 		}
 	}
-
 	else if (classname.find("hkbSenseHandleModifier", 0) != string::npos)
 	{
 		hkbsensehandlemodifier sensehandle(inputfile, id, preaddress, functionlayer, compare);
@@ -1492,7 +1494,6 @@ void ClassIdentifier(string inputfile, string classname, string id, string pread
 			GoToPayload(tempptr, inputfile, tempadd, preaddress, functionlayer, compare);
 		}
 	}
-
 	else if (classname.find("hkbEvaluateExpressionModifier", 0) != string::npos)
 	{
 		hkbevaluateexpressionmodifier evaluateexpression(inputfile, id, preaddress, functionlayer, compare);
@@ -1512,12 +1513,10 @@ void ClassIdentifier(string inputfile, string classname, string id, string pread
 		}
 
 	}
-
 	else if (classname.find("hkbExpressionDataArray", 0) != string::npos)
 	{
 		hkbexpressiondataarray expressiondataarray(inputfile, id, preaddress, functionlayer, compare);
 	}
-
 	else if (classname.find("hkbEvaluateHandleModifier", 0) != string::npos)
 	{
 		hkbevaluatehandlemodifier evaluatehandle(inputfile, id, preaddress, functionlayer, compare);
@@ -1530,7 +1529,6 @@ void ClassIdentifier(string inputfile, string classname, string id, string pread
 			GoToVariableBinding(tempptr, inputfile, tempadd, preaddress, functionlayer, compare);
 		}
 	}
-
 	else if (classname.find("hkbAttachmentModifier", 0) != string::npos)
 	{
 		hkbattachmentmodifier attachmentmodifier(inputfile, id, preaddress, functionlayer, compare);
@@ -1545,7 +1543,6 @@ void ClassIdentifier(string inputfile, string classname, string id, string pread
 			GoToMultiPayload(tempptr, inputfile, tempadd, preaddress, functionlayer, compare);
 		}
 	}
-
 	else if (classname.find("hkbAttributeModifier", 0) != string::npos)
 	{
 		hkbattributemodifier attributemodifier(inputfile, id, preaddress, functionlayer, compare);
@@ -1558,7 +1555,6 @@ void ClassIdentifier(string inputfile, string classname, string id, string pread
 			GoToVariableBinding(tempptr, inputfile, tempadd, preaddress, functionlayer, compare);
 		}
 	}
-
 	else if (classname.find("hkbCombineTransformsModifier", 0) != string::npos)
 	{
 		hkbcombinetransformsmodifier combinetransforms(inputfile, id, preaddress, functionlayer, compare);
@@ -1571,7 +1567,6 @@ void ClassIdentifier(string inputfile, string classname, string id, string pread
 			GoToVariableBinding(tempptr, inputfile, tempadd, preaddress, functionlayer, compare);
 		}
 	}
-
 	else if (classname.find("hkbComputeRotationFromAxisAngleModifier", 0) != string::npos)
 	{
 		hkbcomputerotationfromaxisanglemodifier computerotationfromaxis(inputfile, id, preaddress, functionlayer, compare);
@@ -1584,7 +1579,6 @@ void ClassIdentifier(string inputfile, string classname, string id, string pread
 			GoToVariableBinding(tempptr, inputfile, tempadd, preaddress, functionlayer, compare);
 		}
 	}
-
 	else if (classname.find("hkbComputeRotationToTargetModifier", 0) != string::npos)
 	{
 		hkbcomputerotationtotargetmodifier computerotationtotarget(inputfile, id, preaddress, functionlayer, compare);
@@ -1597,7 +1591,6 @@ void ClassIdentifier(string inputfile, string classname, string id, string pread
 			GoToVariableBinding(tempptr, inputfile, tempadd, preaddress, functionlayer, compare);
 		}
 	}
-
 	else if (classname.find("hkbEventsFromRangeModifier", 0) != string::npos)
 	{
 		hkbeventsfromrangemodifier eventsfromrange(inputfile, id, preaddress, functionlayer, compare);
@@ -1616,7 +1609,6 @@ void ClassIdentifier(string inputfile, string classname, string id, string pread
 			}
 		}
 	}
-
 	else if (classname.find("hkbEventRangeDataArray", 0) != string::npos)
 	{
 		hkbeventrangedataarray eventrangedata(inputfile, id, preaddress, functionlayer, compare);
@@ -1629,7 +1621,6 @@ void ClassIdentifier(string inputfile, string classname, string id, string pread
 			GoToMultiPayload(tempptr, inputfile, tempadd, preaddress, functionlayer, compare);
 		}
 	}
-
 	else if (classname.find("hkbMoveCharacterModifier", 0) != string::npos)
 	{
 		hkbmovecharactermodifier movecharactermodifier(inputfile, id, preaddress, functionlayer, compare);
@@ -1642,7 +1633,6 @@ void ClassIdentifier(string inputfile, string classname, string id, string pread
 			GoToVariableBinding(tempptr, inputfile, tempadd, preaddress, functionlayer, compare);
 		}
 	}
-
 	else if (classname.find("hkbExtractRagdollPoseModifier", 0) != string::npos)
 	{
 		hkbextractragdollposemodifier extractragdoll(inputfile, id, preaddress, functionlayer, compare);
@@ -1655,7 +1645,6 @@ void ClassIdentifier(string inputfile, string classname, string id, string pread
 			GoToVariableBinding(tempptr, inputfile, tempadd, preaddress, functionlayer, compare);
 		}
 	}
-
 	else if (classname.find("BSModifyOnceModifier", 0) != string::npos)
 	{
 		bsmodifyoncemodifier modifyoncemodifier(inputfile, id, preaddress, functionlayer, compare);
@@ -1670,17 +1659,16 @@ void ClassIdentifier(string inputfile, string classname, string id, string pread
 			if (!tempptr->IsModifierNull(0))
 			{
 				string modifier = tempptr->GetModifier(0);
-				ClassIdentifier(inputfile, GetClass(modifier, inputfile, compare), modifier, tempadd, GetFunctionLayer(functionlayer, tempadd, preaddress), compare);
+				ClassIdentifier(inputfile, "hkbEvaluateExpressionModifier", modifier, tempadd + "0", GetFunctionLayer(functionlayer, tempadd, preaddress), compare);
 			}
 
 			if (!tempptr->IsModifierNull(1))
 			{
 				string modifier = tempptr->GetModifier(1);
-				ClassIdentifier(inputfile, GetClass(modifier, inputfile, compare), modifier, tempadd, GetFunctionLayer(functionlayer, tempadd, preaddress), compare);
+				ClassIdentifier(inputfile, "hkbEvaluateExpressionModifier", modifier, tempadd + "1", GetFunctionLayer(functionlayer, tempadd, preaddress), compare);
 			}
 		}
 	}
-
 	else if (classname.find("BSEventOnDeactivateModifier", 0) != string::npos)
 	{
 		bseventondeactivatemodifier eventondeactivate(inputfile, id, preaddress, functionlayer, compare);
@@ -1695,7 +1683,6 @@ void ClassIdentifier(string inputfile, string classname, string id, string pread
 			GoToPayload(tempptr, inputfile, tempadd, preaddress, functionlayer, compare);
 		}
 	}
-
 	else if (classname.find("BSEventEveryNEventsModifier", 0) != string::npos)
 	{
 		bseventeveryneventsmodifier eventeverynevents(inputfile, id, preaddress, functionlayer, compare);
@@ -1710,7 +1697,6 @@ void ClassIdentifier(string inputfile, string classname, string id, string pread
 			GoToMultiPayload(tempptr, inputfile, tempadd, preaddress, functionlayer, compare);
 		}
 	}
-
 	else if (classname.find("BSRagdollContactListenerModifier", 0) != string::npos)
 	{
 		bsragdollcontactlistenermodifier ragdollcontactlistener(inputfile, id, preaddress, functionlayer, compare);
@@ -1731,7 +1717,6 @@ void ClassIdentifier(string inputfile, string classname, string id, string pread
 			}
 		}
 	}
-
 	else if (classname.find("hkbPoweredRagdollControlsModifier", 0) != string::npos)
 	{
 		hkbpoweredragdollcontrolmodifier poweredragdoll(inputfile, id, preaddress, functionlayer, compare);
@@ -1742,9 +1727,20 @@ void ClassIdentifier(string inputfile, string classname, string id, string pread
 			string tempadd = tempptr->GetAddress();
 
 			GoToVariableBinding(tempptr, inputfile, tempadd, preaddress, functionlayer, compare);
+			
+			if (!tempptr->IsBoneNull())
+			{
+				string bones = tempptr->GetBone();
+				ClassIdentifier(inputfile, "hkbBoneIndexArray", bones, tempadd, GetFunctionLayer(functionlayer, tempadd, preaddress), compare);
+			}
+
+			if (!tempptr->IsBoneWeightNull())
+			{
+				string boneweights = tempptr->GetBoneWeight();
+				ClassIdentifier(inputfile, "hkbBoneWeightArray", boneweights, tempadd, GetFunctionLayer(functionlayer, tempadd, preaddress), compare);
+			}
 		}
 	}
-
 	else if (classname.find("BSEventOnFalseToTrueModifier", 0) != string::npos)
 	{
 		bseventonfalsetotruemodifier eventonfalsetotrue(inputfile, id, preaddress, functionlayer, compare);
@@ -1759,7 +1755,6 @@ void ClassIdentifier(string inputfile, string classname, string id, string pread
 			GoToMultiPayload(tempptr, inputfile, tempadd, preaddress, functionlayer, compare);
 		}
 	}
-
 	else if (classname.find("BSDirectAtModifier", 0) != string::npos)
 	{
 		bsdirectatmodifier directatmodifier(inputfile, id, preaddress, functionlayer, compare);
@@ -1772,7 +1767,6 @@ void ClassIdentifier(string inputfile, string classname, string id, string pread
 			GoToVariableBinding(tempptr, inputfile, tempadd, preaddress, functionlayer, compare);
 		}
 	}
-
 	else if (classname.find("BSDistTriggerModifier", 0) != string::npos)
 	{
 		bsdisttriggermodifier distmodifier(inputfile, id, preaddress, functionlayer, compare);
@@ -1787,7 +1781,6 @@ void ClassIdentifier(string inputfile, string classname, string id, string pread
 			GoToPayload(tempptr, inputfile, tempadd, preaddress, functionlayer, compare);
 		}
 	}
-
 	else if (classname.find("BSDecomposeVectorModifier", 0) != string::npos)
 	{
 		bsdecomposevectormodifier decomposevector(inputfile, id, preaddress, functionlayer, compare);
@@ -1800,7 +1793,6 @@ void ClassIdentifier(string inputfile, string classname, string id, string pread
 			GoToVariableBinding(tempptr, inputfile, tempadd, preaddress, functionlayer, compare);
 		}
 	}
-
 	else if (classname.find("BSComputeAddBoneAnimModifier", 0) != string::npos)
 	{
 		bscomputeaddboneanimmodifier computeboneanim(inputfile, id, preaddress, functionlayer, compare);
@@ -1813,7 +1805,6 @@ void ClassIdentifier(string inputfile, string classname, string id, string pread
 			GoToVariableBinding(tempptr, inputfile, tempadd, preaddress, functionlayer, compare);
 		}
 	}
-
 	else if (classname.find("BSTweenerModifier", 0) != string::npos)
 	{
 		bstweenermodifier tweenermodifier(inputfile, id, preaddress, functionlayer, compare);
@@ -1826,7 +1817,6 @@ void ClassIdentifier(string inputfile, string classname, string id, string pread
 			GoToVariableBinding(tempptr, inputfile, tempadd, preaddress, functionlayer, compare);
 		}
 	}
-
 	else if (classname.find("BSIStateManagerModifier", 0) != string::npos)
 	{
 		bsistatemanagermodifier istatemanager(inputfile, id, preaddress, functionlayer, compare);
@@ -1839,7 +1829,6 @@ void ClassIdentifier(string inputfile, string classname, string id, string pread
 			GoToVariableBinding(tempptr, inputfile, tempadd, preaddress, functionlayer, compare);
 		}
 	}
-
 	else if (classname.find("hkbTimerModifier", 0) != string::npos)
 	{
 		hkbtimermodifier timer(inputfile, id, preaddress, functionlayer, compare);
@@ -1854,7 +1843,6 @@ void ClassIdentifier(string inputfile, string classname, string id, string pread
 			GoToPayload(tempptr, inputfile, tempadd, preaddress, functionlayer, compare);
 		}
 	}
-
 	else if (classname.find("hkbRotateCharacterModifier", 0) != string::npos)
 	{
 		hkbrotatecharactermodifier rotatecharactermodifier(inputfile, id, preaddress, functionlayer, compare);
@@ -1867,7 +1855,6 @@ void ClassIdentifier(string inputfile, string classname, string id, string pread
 			GoToVariableBinding(tempptr, inputfile, tempadd, preaddress, functionlayer, compare);
 		}
 	}
-
 	else if (classname.find("hkbDampingModifier", 0) != string::npos)
 	{
 		hkbdampingmodifier dampingmodifier(inputfile, id, preaddress, functionlayer, compare);
@@ -1880,7 +1867,6 @@ void ClassIdentifier(string inputfile, string classname, string id, string pread
 			GoToVariableBinding(tempptr, inputfile, tempadd, preaddress, functionlayer, compare);
 		}
 	}
-
 	else if (classname.find("hkbDelayedModifier", 0) != string::npos)
 	{
 		hkbdelayedmodifier delayedmodifier(inputfile, id, preaddress, functionlayer, compare);
@@ -1895,7 +1881,6 @@ void ClassIdentifier(string inputfile, string classname, string id, string pread
 			GoToModifier(tempptr, inputfile, tempadd, preaddress, functionlayer, compare);
 		}
 	}
-
 	else if (classname.find("hkbGetUpModifier", 0) != string::npos)
 	{
 		hkbgetupmodifier getupmodifier(inputfile, id, preaddress, functionlayer, compare);
@@ -1908,7 +1893,6 @@ void ClassIdentifier(string inputfile, string classname, string id, string pread
 			GoToVariableBinding(tempptr, inputfile, tempadd, preaddress, functionlayer, compare);
 		}
 	}
-
 	else if (classname.find("hkbKeyframeBonesModifier", 0) != string::npos)
 	{
 		hkbkeyframebonesmodifier keybonesmodifier(inputfile, id, preaddress, functionlayer, compare);
@@ -1927,7 +1911,6 @@ void ClassIdentifier(string inputfile, string classname, string id, string pread
 			}
 		}
 	}
-
 	else if (classname.find("hkbBoneIndexArray", 0) != string::npos)
 	{
 		hkbboneindexarray boneindex(inputfile, id, preaddress, functionlayer, compare);
@@ -1940,7 +1923,6 @@ void ClassIdentifier(string inputfile, string classname, string id, string pread
 			GoToVariableBinding(tempptr, inputfile, tempadd, preaddress, functionlayer, compare);
 		}
 	}
-
 	else if (classname.find("hkbComputeDirectionModifier", 0) != string::npos)
 	{
 		hkbcomputedirectionmodifier computedirection(inputfile, id, preaddress, functionlayer, compare);
@@ -1953,7 +1935,6 @@ void ClassIdentifier(string inputfile, string classname, string id, string pread
 			GoToVariableBinding(tempptr, inputfile, tempadd, preaddress, functionlayer, compare);
 		}
 	}
-
 	else if (classname.find("hkbRigidBodyRagdollControlsModifier", 0) != string::npos)
 	{
 		hkbrigidbodyragdollcontrolsmodifier rigidbodyragdoll(inputfile, id, preaddress, functionlayer, compare);
@@ -1972,7 +1953,6 @@ void ClassIdentifier(string inputfile, string classname, string id, string pread
 			}
 		}
 	}
-
 	else if (classname.find("BSSpeedSamplerModifier", 0) != string::npos)
 	{
 		bsspeedsamplermodifier speedsampler(inputfile, id, preaddress, functionlayer, compare);
@@ -1985,7 +1965,6 @@ void ClassIdentifier(string inputfile, string classname, string id, string pread
 			GoToVariableBinding(tempptr, inputfile, tempadd, preaddress, functionlayer, compare);
 		}
 	}
-
 	else if (classname.find("hkbDetectCloseToGroundModifier", 0) != string::npos)
 	{
 		hkbdetectclosetogroundmodifier detectoclosetoground(inputfile, id, preaddress, functionlayer, compare);
@@ -2000,7 +1979,6 @@ void ClassIdentifier(string inputfile, string classname, string id, string pread
 			GoToPayload(tempptr, inputfile, tempadd, preaddress, functionlayer, compare);
 		}
 	}
-
 	else if (classname.find("BSLookAtModifier", 0) != string::npos)
 	{
 		bslookatmodifier lookatmodifier(inputfile, id, preaddress, functionlayer, compare);
@@ -2015,7 +1993,6 @@ void ClassIdentifier(string inputfile, string classname, string id, string pread
 			GoToPayload(tempptr, inputfile, tempadd, preaddress, functionlayer, compare);
 		}
 	}
-
 	else if (classname.find("BSTimerModifier", 0) != string::npos)
 	{
 		bstimermodifier timermodifier(inputfile, id, preaddress, functionlayer, compare);
@@ -2030,7 +2007,6 @@ void ClassIdentifier(string inputfile, string classname, string id, string pread
 			GoToPayload(tempptr, inputfile, tempadd, preaddress, functionlayer, compare);
 		}
 	}
-
 	else if (classname.find("BSPassByTargetTriggerModifier", 0) != string::npos)
 	{
 		bspassbytargettriggermodifier passbytargetmodifier(inputfile, id, preaddress, functionlayer, compare);
@@ -2045,7 +2021,6 @@ void ClassIdentifier(string inputfile, string classname, string id, string pread
 			GoToPayload(tempptr, inputfile, tempadd, preaddress, functionlayer, compare);
 		}
 	}
-
 	else if (classname.find("hkbHandIkControlsModifier", 0) != string::npos)
 	{
 		hkbhandikcontrolsmodifier handikmodifier(inputfile, id, preaddress, functionlayer, compare);
@@ -2058,419 +2033,454 @@ void ClassIdentifier(string inputfile, string classname, string id, string pread
 			GoToVariableBinding(tempptr, inputfile, tempadd, preaddress, functionlayer, compare);
 		}
 	}
+	else if (classname.find("hkbMirroredSkeletonInfo", 0) != string::npos)
+	{
+		hkbmirroredskeletoninfo mirroredskeleton(inputfile, id, preaddress, functionlayer, compare);
+	}
+	else if (classname.find("hkbCharacterStringData", 0) != string::npos)
+	{
+		hkbcharacterstringdata charstringdata(inputfile, id, preaddress, functionlayer, compare);
+	}
+	else if (classname.find("hkbFootIkDriverInfo", 0) != string::npos)
+	{
+		hkbfootikdriverinfo footikinfo(inputfile, id, preaddress, functionlayer, compare);
+	}
+	else if (classname.find("hkbCharacterData", 0) != string::npos)
+	{
+		hkbcharacterdata chardata(inputfile, id, preaddress, functionlayer, compare);
+		hkbcharacterdata* tempptr = &chardata;
 
+		if (!tempptr->IsNegate())
+		{
+			string tempadd = tempptr->GetAddress();
+
+			if (tempptr->HasCharProperty())
+			{
+				string charprop = tempptr->GetCharPropertyValues();
+				ClassIdentifier(inputfile, "hkbVariableValueSet", charprop, tempadd, GetFunctionLayer(functionlayer, tempadd, preaddress), compare);
+			}
+
+			if (tempptr->HasFootIK())
+			{
+				string footik = tempptr->GetFootIK();
+				ClassIdentifier(inputfile, "hkbFootIkDriverInfo", footik, tempadd, GetFunctionLayer(functionlayer, tempadd, preaddress), compare);
+			}
+
+			if (tempptr->HasHandIK())
+			{
+				cout << "WARNING: hkbHandIkDverInfo is not supported in the current version. Changes made in this node will be ignored";
+
+				// string handik = tempptr->GetHandIK();
+				// ClassIdentifier(inputfile, "hkbHandIkDriverInfo", handik, tempadd, GetFunctionLayer(functionlayer, tempadd, preaddress), compare);
+			}
+
+			string stringdata = tempptr->GetStringData();
+			ClassIdentifier(inputfile, "hkbCharacterStringData", stringdata, tempadd, GetFunctionLayer(functionlayer, tempadd, preaddress), compare);
+
+			string skeleton = tempptr->GetSkeletonInfo();
+			ClassIdentifier(inputfile, "hkbMirroredSkeletonInfo", skeleton, tempadd, GetFunctionLayer(functionlayer, tempadd, preaddress), compare);
+		}
+	}
+	else if (classname.find("BSOffsetAnimationGenerator", 0) != string::npos)
+	{
+		bsoffsetanimationgenerator offsetanimation(inputfile, id, preaddress, functionlayer, compare);
+		bsoffsetanimationgenerator* tempptr = &offsetanimation;
+
+		if (!tempptr->IsNegate())
+		{
+			string tempadd = tempptr->GetAddress();
+
+			GoToVariableBinding(tempptr, inputfile, tempadd, preaddress, functionlayer, compare);
+
+			if (!tempptr->IsClipNull())
+			{
+				string clipgenerator = tempptr->GetClipGenerator();
+				ClassIdentifier(inputfile, "hkbClipGenerator", clipgenerator, tempadd, GetFunctionLayer(functionlayer, tempadd, preaddress), compare);
+			}
+
+			string generator = tempptr->NextGenerator();
+			ClassIdentifier(inputfile, GetClass(generator, compare), generator, tempadd, GetFunctionLayer(functionlayer, tempadd, preaddress), compare);
+		}
+	}
+	else if (classname.find("hkbPoseMatchingGenerator", 0) != string::npos)
+	{
+		hkbposematchinggenerator posematch(inputfile, id, preaddress, functionlayer, compare);
+		hkbposematchinggenerator* tempptr = &posematch;
+
+		if (!tempptr->IsNegate())
+		{
+			string tempadd = tempptr->GetAddress();
+
+			GoToVariableBinding(tempptr, inputfile, tempadd, preaddress, functionlayer, compare);
+
+			GoToMultiGenerator(tempptr, inputfile, tempadd, preaddress, functionlayer, compare);
+		}
+	}
+	else if (classname.find("hkbStringCondition", 0) != string::npos)
+	{
+		hkbstringcondition condition(inputfile, id, preaddress, functionlayer, compare);
+	}
 	else
 	{
 		cout << "ERROR: Class Not Found (File: " << inputfile << ", Classname: " << classname << ", ID: " << id << ", Preaddress: " << preaddress << ")" << endl;
 		Error = true;
+		return;
 	}
 }
 
-void EditClassIdentifier(string originalfile, string editedfile, string classname, string id)
+void EditClassIdentifier(string classname, string id)
 {
 	if (classname.find("BSBoneSwitchGeneratorBoneData", 0) != string::npos)
 	{
-		BSBoneSwitchGeneratorBoneDataExport(originalfile, editedfile, id);
+		BSBoneSwitchGeneratorBoneDataExport(id);
 	}
-
 	else if (classname.find("BSBoneSwitchGenerator", 0) != string::npos)
 	{
-		BSBoneSwitchGeneratorExport(originalfile, editedfile, id);
+		BSBoneSwitchGeneratorExport(id);
 	}
-
 	else if (classname.find("BSCyclicBlendTransitionGenerator", 0) != string::npos)
 	{
-		BSCyclicBlendTransitionGeneratorExport(originalfile, editedfile, id);
+		BSCyclicBlendTransitionGeneratorExport(id);
 	}
-
 	else if (classname.find("BSiStateTaggingGenerator", 0) != string::npos)
 	{
-		BSiStateTaggingGeneratorExport(originalfile, editedfile, id);
+		BSiStateTaggingGeneratorExport(id);
 	}
-
 	else if (classname.find("hkbBehaviorGraphStringData", 0) != string::npos)
 	{
-		hkbBehaviorGraphStringDataExport(originalfile, editedfile, id);
+		hkbBehaviorGraphStringDataExport(id);
 	}
-
 	else if (classname.find("hkbBehaviorGraphData", 0) != string::npos)
 	{
-		hkbBehaviorGraphDataExport(originalfile, editedfile, id);
+		hkbBehaviorGraphDataExport(id);
 	}
-
 	else if (classname.find("hkbBehaviorGraph", 0) != string::npos)
 	{
-		hkbBehaviorGraphExport(originalfile, editedfile, id);
+		hkbBehaviorGraphExport(id);
 	}
-
 	else if (classname.find("hkbBlenderGeneratorChild", 0) != string::npos)
 	{
-		hkbBlenderGeneratorChildExport(originalfile, editedfile, id);
+		hkbBlenderGeneratorChildExport(id);
 	}
-
 	else if (classname.find("hkbBlenderGenerator", 0) != string::npos)
 	{
-		hkbBlenderGeneratorExport(originalfile, editedfile, id);
+		hkbBlenderGeneratorExport(id);
 	}
-
 	else if (classname.find("hkbBlendingTransitionEffect", 0) != string::npos)
 	{
-		hkbBlendingTransitionEffectExport(originalfile, editedfile, id);
+		hkbBlendingTransitionEffectExport(id);
 	}
-
 	else if (classname.find("hkbBoneWeightArray", 0) != string::npos)
 	{
-		hkbBoneWeightArrayExport(originalfile, editedfile, id);
+		hkbBoneWeightArrayExport(id);
 	}
-
 	else if (classname.find("hkbExpressionCondition", 0) != string::npos)
 	{
-		hkbExpressionConditionExport(originalfile, editedfile, id);
+		hkbExpressionConditionExport(id);
 	}
-
 	else if (classname.find("hkbManualSelectorGenerator", 0) != string::npos)
 	{
-		hkbManualSelectorGeneratorExport(originalfile, editedfile, id);
+		hkbManualSelectorGeneratorExport(id);
 	}
-
 	else if (classname.find("hkRootLevelContainer", 0) != string::npos)
 	{
-		hkRootLevelContainerExport(originalfile, editedfile, id);
+		hkRootLevelContainerExport(id);
 	}
-
 	else if (classname.find("hkbStateMachineEventPropertyArray", 0) != string::npos)
 	{
-		hkbStateMachineEventPropertyArrayExport(originalfile, editedfile, id);
+		hkbStateMachineEventPropertyArrayExport(id);
 	}
-
 	else if (classname.find("hkbStateMachineStateInfo", 0) != string::npos)
 	{
-		hkbStateMachineStateInfoExport(originalfile, editedfile, id);
+		hkbStateMachineStateInfoExport(id);
 	}
-
 	else if (classname.find("hkbStateMachineTransitionInfoArray", 0) != string::npos)
 	{
-		hkbStateMachineTransitionInfoArrayExport(originalfile, editedfile, id);
+		hkbStateMachineTransitionInfoArrayExport(id);
 	}
-
 	else if (classname.find("hkbStateMachine", 0) != string::npos)
 	{
-		hkbStateMachineExport(originalfile, editedfile, id);
+		hkbStateMachineExport(id);
 	}
-
 	else if (classname.find("hkbStringEventPayload", 0) != string::npos)
 	{
-		hkbStringEventPayloadExport(originalfile, editedfile, id);
+		hkbStringEventPayloadExport(id);
 	}
-
 	else if (classname.find("hkbVariableBindingSet", 0) != string::npos)
 	{
-		hkbVariableBindingSetExport(originalfile, editedfile, id);
+		hkbVariableBindingSetExport(id);
 	}
-
 	else if (classname.find("hkbVariableValueSet", 0) != string::npos)
 	{
-		hkbVariableValueSetExport(originalfile, editedfile, id);
+		hkbVariableValueSetExport(id);
 	}
-
 	else if (classname.find("hkbClipGenerator", 0) != string::npos)
 	{
-		hkbClipGeneratorExport(originalfile, editedfile, id);
+		hkbClipGeneratorExport(id);
 	}
-
 	else if (classname.find("hkbClipTriggerArray", 0) != string::npos)
 	{
-		hkbClipTriggerArrayExport(originalfile, editedfile, id);
+		hkbClipTriggerArrayExport(id);
 	}
-
 	else if (classname.find("hkbBehaviorReferenceGenerator", 0) != string::npos)
 	{
-		hkbBehaviorReferenceGeneratorExport(originalfile, editedfile, id);
+		hkbBehaviorReferenceGeneratorExport(id);
 	}
-
 	else if (classname.find("hkbModifierGenerator", 0) != string::npos)
 	{
-		hkbModifierGeneratorExport(originalfile, editedfile, id);
+		hkbModifierGeneratorExport(id);
 	}
-
 	else if (classname.find("hkbModifierList", 0) != string::npos)
 	{
-		hkbModifierListExport(originalfile, editedfile, id);
+		hkbModifierListExport(id);
 	}
-
 	else if (classname.find("BSSynchronizedClipGenerator", 0) != string::npos)
 	{
-		BSSynchronizedClipGeneratorExport(originalfile, editedfile, id);
+		BSSynchronizedClipGeneratorExport(id);
 	}
-
 	else if (classname.find("hkbTwistModifier", 0) != string::npos)
 	{
-		hkbTwistModifierExport(originalfile, editedfile, id);
+		hkbTwistModifierExport(id);
 	}
-
 	else if (classname.find("hkbEventDrivenModifier", 0) != string::npos)
 	{
-		hkbEventDrivenModifierExport(originalfile, editedfile, id);
+		hkbEventDrivenModifierExport(id);
 	}
-
 	else if (classname.find("BSIsActiveModifier", 0) != string::npos)
 	{
-		BSIsActiveModifierExport(originalfile, editedfile, id);
+		BSIsActiveModifierExport(id);
 	}
-
 	else if (classname.find("BSLimbIKModifier", 0) != string::npos)
 	{
-		BSLimbIKModifierExport(originalfile, editedfile, id);
+		BSLimbIKModifierExport(id);
 	}
-
 	else if (classname.find("BSInterpValueModifier", 0) != string::npos)
 	{
-		BSInterpValueModifierExport(originalfile, editedfile, id);
+		BSInterpValueModifierExport(id);
 	}
-
 	else if (classname.find("BSGetTimeStepModifier", 0) != string::npos)
 	{
-		BSGetTimeStepModifierExport(originalfile, editedfile, id);
+		BSGetTimeStepModifierExport(id);
 	}
-
 	else if (classname.find("hkbFootIkControlsModifier", 0) != string::npos)
 	{
-		hkbFootIkControlsModifierExport(originalfile, editedfile, id);
+		hkbFootIkControlsModifierExport(id);
 	}
-
 	else if (classname.find("hkbGetHandleOnBoneModifier", 0) != string::npos)
 	{
-		hkbGetHandleOnBoneModifierExport(originalfile, editedfile, id);
+		hkbGetHandleOnBoneModifierExport(id);
 	}
-
 	else if (classname.find("hkbTransformVectorModifier", 0) != string::npos)
 	{
-		hkbTransformVectorModifierExport(originalfile, editedfile, id);
+		hkbTransformVectorModifierExport(id);
 	}
-
 	else if (classname.find("hkbProxyModifier", 0) != string::npos)
 	{
-		hkbProxyModifierExport(originalfile, editedfile, id);
+		hkbProxyModifierExport(id);
 	}
-
 	else if (classname.find("hkbLookAtModifier", 0) != string::npos)
 	{
-		hkbLookAtModifierExport(originalfile, editedfile, id);
+		hkbLookAtModifierExport(id);
 	}
-
 	else if (classname.find("hkbMirrorModifier", 0) != string::npos)
 	{
-		hkbMirrorModifierExport(originalfile, editedfile, id);
+		hkbMirrorModifierExport(id);
 	}
-
 	else if (classname.find("hkbGetWorldFromModelModifier", 0) != string::npos)
 	{
-		hkbGetWorldFromModelModifierExport(originalfile, editedfile, id);
+		hkbGetWorldFromModelModifierExport(id);
 	}
-
 	else if (classname.find("hkbSenseHandleModifier", 0) != string::npos)
 	{
-		hkbSenseHandleModifierExport(originalfile, editedfile, id);
+		hkbSenseHandleModifierExport(id);
 	}
-
 	else if (classname.find("hkbEvaluateExpressionModifier", 0) != string::npos)
 	{
-		hkbEvaluateExpressionModifierExport(originalfile, editedfile, id);
+		hkbEvaluateExpressionModifierExport(id);
 	}
-
 	else if (classname.find("hkbExpressionDataArray", 0) != string::npos)
 	{
-		hkbExpressionDataArrayExport(originalfile, editedfile, id);
+		hkbExpressionDataArrayExport(id);
 	}
-
 	else if (classname.find("hkbEvaluateHandleModifier", 0) != string::npos)
 	{
-		hkbEvaluateHandleModifierExport(originalfile, editedfile, id);
+		hkbEvaluateHandleModifierExport(id);
 	}
-
 	else if (classname.find("hkbAttachmentModifier", 0) != string::npos)
 	{
-		hkbAttachmentModifierExport(originalfile, editedfile, id);
+		hkbAttachmentModifierExport(id);
 	}
-
 	else if (classname.find("hkbAttributeModifier", 0) != string::npos)
 	{
-		hkbAttributeModifierExport(originalfile, editedfile, id);
+		hkbAttributeModifierExport(id);
 	}
-
 	else if (classname.find("hkbCombineTransformsModifier", 0) != string::npos)
 	{
-		hkbCombineTransformsModifierExport(originalfile, editedfile, id);
+		hkbCombineTransformsModifierExport(id);
 	}
-
 	else if (classname.find("hkbComputeRotationFromAxisAngleModifier", 0) != string::npos)
 	{
-		hkbComputeRotationFromAxisAngleModifierExport(originalfile, editedfile, id);
+		hkbComputeRotationFromAxisAngleModifierExport(id);
 	}
-
 	else if (classname.find("hkbComputeRotationToTargetModifier", 0) != string::npos)
 	{
-		hkbComputeRotationToTargetModifierExport(originalfile, editedfile, id);
+		hkbComputeRotationToTargetModifierExport(id);
 	}
-
 	else if (classname.find("hkbEventsFromRangeModifier", 0) != string::npos)
 	{
-		hkbEventsFromRangeModifierExport(originalfile, editedfile, id);
+		hkbEventsFromRangeModifierExport(id);
 	}
-
 	else if (classname.find("hkbEventRangeDataArray", 0) != string::npos)
 	{
-		hkbEventRangeDataArrayExport(originalfile, editedfile, id);
+		hkbEventRangeDataArrayExport(id);
 	}
-
 	else if (classname.find("hkbMoveCharacterModifier", 0) != string::npos)
 	{
-		hkbMoveCharacterModifierExport(originalfile, editedfile, id);
+		hkbMoveCharacterModifierExport(id);
 	}
-
 	else if (classname.find("hkbExtractRagdollPoseModifier", 0) != string::npos)
 	{
-		hkbExtractRagdollPoseModifierExport(originalfile, editedfile, id);
+		hkbExtractRagdollPoseModifierExport(id);
 	}
-
 	else if (classname.find("BSModifyOnceModifier", 0) != string::npos)
 	{
-		BSModifyOnceModifierExport(originalfile, editedfile, id);
+		BSModifyOnceModifierExport(id);
 	}
-
 	else if (classname.find("BSEventOnDeactivateModifier", 0) != string::npos)
 	{
-		BSEventOnDeactivateModifierExport(originalfile, editedfile, id);
+		BSEventOnDeactivateModifierExport(id);
 	}
-
 	else if (classname.find("BSEventEveryNEventsModifier", 0) != string::npos)
 	{
-		BSEventEveryNEventsModifierExport(originalfile, editedfile, id);
+		BSEventEveryNEventsModifierExport(id);
 	}
-
 	else if (classname.find("BSRagdollContactListenerModifier", 0) != string::npos)
 	{
-		BSRagdollContactListenerModifierExport(originalfile, editedfile, id);
+		BSRagdollContactListenerModifierExport(id);
 	}
-
 	else if (classname.find("hkbPoweredRagdollControlsModifier", 0) != string::npos)
 	{
-		hkbPoweredRagdollControlsModifierExport(originalfile, editedfile, id);
+		hkbPoweredRagdollControlsModifierExport(id);
 	}
-
 	else if (classname.find("BSEventOnFalseToTrueModifier", 0) != string::npos)
 	{
-		BSEventOnFalseToTrueModifierExport(originalfile, editedfile, id);
+		BSEventOnFalseToTrueModifierExport(id);
 	}
-
 	else if (classname.find("BSDirectAtModifier", 0) != string::npos)
 	{
-		BSDirectAtModifierExport(originalfile, editedfile, id);
+		BSDirectAtModifierExport(id);
 	}
-
 	else if (classname.find("BSDistTriggerModifier", 0) != string::npos)
 	{
-		BSDistTriggerModifierExport(originalfile, editedfile, id);
+		BSDistTriggerModifierExport(id);
 	}
-
 	else if (classname.find("BSDecomposeVectorModifier", 0) != string::npos)
 	{
-		BSDecomposeVectorModifierExport(originalfile, editedfile, id);
+		BSDecomposeVectorModifierExport(id);
 	}
-
 	else if (classname.find("BSComputeAddBoneAnimModifier", 0) != string::npos)
 	{
-		BSComputeAddBoneAnimModifierExport(originalfile, editedfile, id);
+		BSComputeAddBoneAnimModifierExport(id);
 	}
-
 	else if (classname.find("BSTweenerModifier", 0) != string::npos)
 	{
-		BSTweenerModifierExport(originalfile, editedfile, id);
+		BSTweenerModifierExport(id);
 	}
-
 	else if (classname.find("BSIStateManagerModifier", 0) != string::npos)
 	{
-		BSIStateManagerModifierExport(originalfile, editedfile, id);
+		BSIStateManagerModifierExport(id);
 	}
-
 	else if (classname.find("hkbTimerModifier", 0) != string::npos)
 	{
-		hkbTimerModifierExport(originalfile, editedfile, id);
+		hkbTimerModifierExport(id);
 	}
-
 	else if (classname.find("hkbRotateCharacterModifier", 0) != string::npos)
 	{
-		hkbRotateCharacterModifierExport(originalfile, editedfile, id);
+		hkbRotateCharacterModifierExport(id);
 	}
-
 	else if (classname.find("hkbDampingModifier", 0) != string::npos)
 	{
-		hkbDampingModifierExport(originalfile, editedfile, id);
+		hkbDampingModifierExport(id);
 	}
-
 	else if (classname.find("hkbDelayedModifier", 0) != string::npos)
 	{
-		hkbDelayedModifierExport(originalfile, editedfile, id);
+		hkbDelayedModifierExport(id);
 	}
-
 	else if (classname.find("hkbGetUpModifier", 0) != string::npos)
 	{
-		hkbGetUpModifierExport(originalfile, editedfile, id);
+		hkbGetUpModifierExport(id);
 	}
-
 	else if (classname.find("hkbKeyframeBonesModifier", 0) != string::npos)
 	{
-		hkbKeyframeBonesModifierExport(originalfile, editedfile, id);
+		hkbKeyframeBonesModifierExport(id);
 	}
-
 	else if (classname.find("hkbBoneIndexArray", 0) != string::npos)
 	{
-		hkbBoneIndexArrayExport(originalfile, editedfile, id);
+		hkbBoneIndexArrayExport(id);
 	}
-
 	else if (classname.find("hkbComputeDirectionModifier", 0) != string::npos)
 	{
-		hkbComputeDirectionModifierExport(originalfile, editedfile, id);
+		hkbComputeDirectionModifierExport(id);
 	}
-
 	else if (classname.find("hkbRigidBodyRagdollControlsModifier", 0) != string::npos)
 	{
-		hkbRigidBodyRagdollControlsModifierExport(originalfile, editedfile, id);
+		hkbRigidBodyRagdollControlsModifierExport(id);
 	}
-
 	else if (classname.find("BSSpeedSamplerModifier", 0) != string::npos)
 	{
-		BSSpeedSamplerModifierExport(originalfile, editedfile, id);
+		BSSpeedSamplerModifierExport(id);
 	}
-
 	else if (classname.find("hkbDetectCloseToGroundModifier", 0) != string::npos)
 	{
-		hkbDetectCloseToGroundModifierExport(originalfile, editedfile, id);
+		hkbDetectCloseToGroundModifierExport(id);
 	}
-
 	else if (classname.find("BSLookAtModifier", 0) != string::npos)
 	{
-		BSLookAtModifierExport(originalfile, editedfile, id);
+		BSLookAtModifierExport(id);
 	}
-
 	else if (classname.find("BSTimerModifier", 0) != string::npos)
 	{
-		BSTimerModifierExport(originalfile, editedfile, id);
+		BSTimerModifierExport(id);
 	}
-
 	else if (classname.find("BSPassByTargetTriggerModifier", 0) != string::npos)
 	{
-		BSPassByTargetTriggerModifierExport(originalfile, editedfile, id);
+		BSPassByTargetTriggerModifierExport(id);
 	}
-
 	else if (classname.find("hkbHandIkControlsModifier", 0) != string::npos)
 	{
-		hkbHandIkControlsModifierExport(originalfile, editedfile, id);
+		hkbHandIkControlsModifierExport(id);
 	}
-
+	else if (classname.find("hkbMirroredSkeletonInfo", 0) != string::npos)
+	{
+		hkbMirroredSkeletonInfoExport(id);
+	}
+	else if (classname.find("hkbCharacterStringData", 0) != string::npos)
+	{
+		hkbCharacterStringDataExport(id);
+	}
+	else if (classname.find("hkbFootIkDriverInfo", 0) != string::npos)
+	{
+		hkbFootIkDriverInfoExport(id);
+	}
+	else if (classname.find("hkbCharacterData", 0) != string::npos)
+	{
+		hkbCharacterDataExport(id);
+	}
+	else if (classname.find("BSOffsetAnimationGenerator", 0) != string::npos)
+	{
+		BSOffsetAnimationGeneratorExport(id);
+	}
+	else if (classname.find("hkbPoseMatchingGenerator", 0) != string::npos)
+	{
+		hkbPoseMatchingGeneratorExport(id);
+	}
+	else if (classname.find("hkbStringCondition", 0) != string::npos)
+	{
+		hkbStringConditionExport(id);
+	}
 	else
 	{
-		cout << "ERROR: Edit Class Not Found (Original File: " << originalfile << ", Edited File: " << editedfile << ", Classname: " << classname << ", ID: " << id << ")" << endl;
+		cout << "ERROR: Edit Class Not Found (Classname: " << classname << ", ID: " << id << ")" << endl;
 		Error = true;
 		return;
 	}
@@ -2498,6 +2508,7 @@ void Initialize(string originalfilename)
 	{
 		cout << "ERROR: Initialization Input(File: " << originalfilename << ")" << endl;
 		Error = true;
+		return;
 	}
 
 	ClassIdentifier(originalfilename, "hkRootLevelContainer", search, "root=", 0, false);
@@ -2554,10 +2565,12 @@ void InitializeComparing(string editedfilename)
 				int tempint = line.find(search) + 16;
 				search = line.substr(tempint, line.length() - tempint - 2);
 				string tempID = search.substr(1, search.length() - 1);
+
 				if (stoi(tempID) < 10000)
 				{
 					search = "#9" + tempID;
 				}
+
 				break;
 			}
 		}
@@ -2566,6 +2579,7 @@ void InitializeComparing(string editedfilename)
 	{
 		cout << "ERROR: Initialization Input(File: " << editedfilename << ")" << endl;
 		Error = true;
+		return;
 	}
 
 	ClassIdentifier(editedfilename, "hkRootLevelContainer", search, "root=", 0, true);
@@ -2583,36 +2597,31 @@ void GetEdits()
 		cout << "Identifying changes made to the behavior" << endl;
 	}
 	
+	{
+		unordered_map<string, bool> tempExist = IsExist;
+
+		for (auto& it : tempExist)
+		{
+			if (!it.second)
+			{
+				IsExist.erase(IsExist.find(it.first));
+			}
+		}
+	}
+
 	for (unordered_map<string, bool>::iterator it = IsExist.begin(); it != IsExist.end(); it++)
 	{
 		if (it->second == true)
 		{
 			string id = it->first;
-			string originalfile = "temp/" + id + ".txt";
-			string editedfile = "new/" + id + ".txt";
-			if (IsFileExist(originalfile) && IsFileExist(editedfile))
+
+			if (!FunctionLineTemp[id].empty() && !FunctionLineNew[id].empty())
 			{
-				EditClassIdentifier(originalfile, editedfile, GetClass(id, originalfile, false), id);
+				EditClassIdentifier(GetClass(id, false), id);
 			}
-			else if (!IsFileExist(originalfile) && IsFileExist(editedfile))
+			else if (FunctionLineTemp[id].empty() && !FunctionLineNew[id].empty())
 			{
-				vector<string> storeline;
-				string line;
-				ifstream input(editedfile);
-				if (input.is_open())
-				{
-					while (getline(input, line))
-					{
-						storeline.push_back(line);
-					}
-					input.close();
-				}
-				else
-				{
-					cout << "ERROR: Fail to copy edited file (File: " << editedfile << ", ModCode: " << modcode << ")" << endl;
-					Error = true;
-					return;
-				}
+				vector<string> storeline = FunctionLineNew[id];
 
 				for (unsigned int j = 0; j < storeline.size(); j++) // changing newID to modCode ID
 				{
@@ -2621,6 +2630,7 @@ void GetEdits()
 						usize tempint = 0;
 						int position = 0;
 						usize size = count(storeline[j].begin(), storeline[j].end(), '#');
+
 						for (unsigned int i = 0; i < size; i++)
 						{
 							position = storeline[j].find("#", tempint);
@@ -2635,7 +2645,7 @@ void GetEdits()
 								{
 									templine = storeline[j].substr(0, storeline[j].find("class"));
 								}
-								else if (line.find("toplevelobject", 0) != string::npos)
+								else if (storeline[j].find("toplevelobject", 0) != string::npos)
 								{
 									templine = storeline[j].substr(storeline[j].find("toplevelobject"), storeline[j].find(">"));
 								}
@@ -2658,6 +2668,7 @@ void GetEdits()
 							if (intID > 10000)
 							{
 								int position2 = storeline[j].find(tempID);
+
 								string modID;
 
 								if (!newID[tempID].empty())
@@ -2690,18 +2701,22 @@ void GetEdits()
 					functioncount++;
 				}
 
-				ofstream output("cache/" + modcode + "/" + shortFileName + "/" + modID2 + ".txt"); // changing newID to modCode ID
+				ofstream output("mod/" + modcode + "/" + shortFileName + "/" + modID2 + ".txt"); // changing newID to modCode ID
+
 				if (output.is_open())
 				{
+					FunctionWriter fwrite(&output);
+
 					for (unsigned int i = 0; i < storeline.size(); i++)
 					{
-						output << storeline[i] << "\n";
+						fwrite << storeline[i] << "\n";
 					}
+
 					output.close();
 				}
 				else
 				{
-					cout << "ERROR: Fail to paste edited file (File: " << editedfile << ", ModCode: " << modcode << ")" << endl;
+					cout << "ERROR: Fail to paste edited file (ID: " << id << ", ModCode: " << modcode << ")" << endl;
 					Error = true;
 					return;
 				}
@@ -2709,8 +2724,13 @@ void GetEdits()
 			}
 			else
 			{
-				cout << "ERROR: Missing File (File: " << editedfile << ")" << endl;
+				cout << "ERROR: Missing File (ID: " << id << ")" << endl;
 				Error = true;
+				return;
+			}
+
+			if (Error)
+			{
 				return;
 			}
 		}
@@ -2730,6 +2750,7 @@ void ModCode()
 	cout << "Enter \"-1\" to exit" << endl << "--------------------------------------------------------------------------------" << endl;
 	cout << "Enter your unique mod code: ";
 	cin >> tempcode;
+
 	if (((tempcode.length() < 4) && (tempcode != "-1")) || (tempcode.length() > 6) || (tempcode.find("\\", 0) != string::npos) || (tempcode.find("/", 0) != string::npos) || (tempcode.find(":", 0) != string::npos) || (tempcode.find("*", 0) != string::npos) || (tempcode.find("?", 0) != string::npos) || (tempcode.find("\"", 0) != string::npos) || (tempcode.find("<", 0) != string::npos) || (tempcode.find(">", 0) != string::npos) || (tempcode.find("|", 0) != string::npos) || (tempcode == "vanilla"))
 	{
 		ModCode();
@@ -2746,6 +2767,7 @@ void DebugMode()
 	cout << "Do you want to turn on debug mode? (Y/N)";
 	string tempstr;
 	cin >> tempstr;
+
 	if ((tempstr == "y") || (tempstr == "Y"))
 	{
 		Debug = true;
@@ -2757,50 +2779,48 @@ void DebugMode()
 		Debug = false;
 		return;
 	}
+
 	DebugMode();
 }
 
-void test()
+boost::posix_time::ptime time1;
+
+#include <boost\filesystem.hpp>
+
+size_t wordFind(string line, string word, bool isLast = false)
 {
-	boost::posix_time::ptime time3 = boost::posix_time::microsec_clock::local_time();
-	
-	modcode = "asdf";
-	targetfilename = "output.txt";
+	boost::algorithm::to_lower(line);
+	boost::algorithm::to_lower(word);
 
-	hkbBehaviorGraphDataExport("temp/#0087.txt", "new/#0087.txt", "#0087");
-	
+	if (isLast)
+	{
+		size_t pos = 0;
+		int ref = sameWordCount(line, word);
 
-	boost::posix_time::ptime time4 = boost::posix_time::microsec_clock::local_time();
-	boost::posix_time::time_duration diff = time4 - time3;
+		if (ref != 0)
+		{
+			for (int i = 0; i < ref; ++i)
+			{
+				pos = line.find(word, pos + 1);
+			}
 
-	cout << "Total time: " << diff.total_milliseconds() << " milliseconds" << endl;
-	cout << time4 << endl << time3 << endl << endl;
+			return pos;
+		}
 
+		return string::npos;
+	}
+
+	return line.find(word);
 }
-
-boost::posix_time::ptime time1 = boost::posix_time::microsec_clock::local_time();
 
 void start()
 {
-
 	targetfilename = "output.txt";
 	shortFileName = targetfilename.substr(0, targetfilename.find_last_of("."));
 	targetfilenameedited = "output2.txt";
 	shortFileNameEdited = targetfilenameedited.substr(0, targetfilenameedited.find_last_of("."));
-	string directory = "cache/";
-
-
-	string filename = "new/" + targetfilenameedited;
-
-	if (IsFileExist(filename))
-	{
-		if (remove(filename.c_str()) != 0)
-		{
-			perror("Error deleting file");
-			Error = true;
-		}
-	}
-
+	string directory = "mod/";
+	
 	thread t([=](){ClearIgnore(targetfilename, targetfilenameedited); return 1; });
 	
 	if (Error)
@@ -2832,14 +2852,11 @@ void start()
 
 	t.join();
 
-	string newfolder = "new";
-	string tempfolder = "temp";
-
-	if ((CreateDirectory(directory.c_str(), NULL) || ERROR_ALREADY_EXISTS == GetLastError()) && (CreateDirectory(newfolder.c_str(), NULL) || ERROR_ALREADY_EXISTS == GetLastError()) && (CreateDirectory(tempfolder.c_str(), NULL) || ERROR_ALREADY_EXISTS == GetLastError()))
+	if ((CreateDirectoryA(directory.c_str(), NULL) || ERROR_ALREADY_EXISTS == GetLastError()))
 	{
-		if (CreateDirectory((directory + modcode).c_str(), NULL) || ERROR_ALREADY_EXISTS == GetLastError())
+		if (CreateDirectoryA((directory + modcode).c_str(), NULL) || ERROR_ALREADY_EXISTS == GetLastError())
 		{
-			if (CreateDirectory((directory + modcode + "/" + shortFileName).c_str(), NULL) || ERROR_ALREADY_EXISTS == GetLastError())
+			if (CreateDirectoryA((directory + modcode + "/" + shortFileName).c_str(), NULL) || ERROR_ALREADY_EXISTS == GetLastError())
 			{
 				Initialize(targetfilename);
 				
@@ -2855,18 +2872,21 @@ void start()
 			{
 				cout << "ERROR: Fail to create folder for target file (folder: " << shortFileName << ")" << endl;
 				Error = true;
+				return;
 			}
 		}
 		else
 		{
 			cout << "ERROR: Fail to create directory for target modcode (ModCode: " << modcode << ")" << endl;
 			Error = true;
+			return;
 		}
 	}
 	else
 	{
-		cout << "ERROR: Fail to create cache folder for Nemesis (Folder: " << directory << ")" << endl;
+		cout << "ERROR: Fail to create mod folder for Nemesis (Folder: " << directory << ")" << endl;
 		Error = true;
+		return;
 	}
 	
 
@@ -2876,26 +2896,8 @@ void start()
 		return;
 	}
 
-	if (IsFileExist(filename))
-	{
-		if (remove(filename.c_str()) != 0)
-		{
-			perror("Error deleting file");
-			Error = true;
-			return;
-		}
-	}
-	
 	GetEdits();
 	
-	if ((!Debug) && (!Error))
-	{
-		boost::filesystem::path newPath("new/");
-		boost::filesystem::path tempPath("temp/");
-		boost::filesystem::remove_all(newPath);
-		boost::filesystem::remove_all(tempPath);
-	}
-
 	if (!Error)
 	{
 		for (int i = 0; i < 15; i++)
@@ -2904,7 +2906,6 @@ void start()
 		}
 
 		cout << endl << "                                      DONE!" << endl;
-
 
 		for (int i = 0; i < 10; i++)
 		{
@@ -2915,12 +2916,61 @@ void start()
 	{
 		cout << "ERROR: Fail to complete processing files" << endl;
 	}
+}
 
+int formatGroupReplace(string& curline, int point)
+{
+	int open = 0;
+	int curGroup;
+	int curAnim;
+
+	for (unsigned int i = point; i < curline.length(); ++i)
+	{
+		if (curline[i] == '[')
+		{
+			++open;
+
+			if (open > 1)
+			{
+				i = formatGroupReplace(curline, curGroup);
+				--open;
+			}
+
+			curGroup = i + 1;
+		}
+		else if (curline[i] == ']')
+		{
+			--open;
+
+			if (open < 0)
+			{
+				break;
+			}
+
+			curAnim = i + 1;
+		}
+	}
+
+	string originalLine = curline.substr(point, curAnim - point);
+	curline.replace(point, curAnim - point, "haha");
+	cout << originalLine << endl;
+
+	return point + 4 - 1;
+}
+
+void test()
+{
+	time1 = boost::posix_time::microsec_clock::local_time();
+	
+	modcode = "test";
+	shortFileName = "test";
+	GetFunctionLines("file.txt", FunctionLineTemp["#0077"]);
+	GetFunctionLines("file2.txt", FunctionLineNew["#0077"]);
+	hkbVariableValueSetExport("#0077");
 }
 
 int main()
 {
-
 	// test();
 
 	start();
@@ -2935,18 +2985,8 @@ int main()
 		cout << "Total processing time: " << duration / 1000 << " seconds" << endl;
 	}
 	
-
-	cin.sync();
-	cin.get();
+	cout << '\a';
+	system("pause");
 
 	return 0;
 }
-
-
-
-
-
-
-
-
-

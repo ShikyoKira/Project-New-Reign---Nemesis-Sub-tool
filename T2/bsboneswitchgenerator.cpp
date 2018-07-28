@@ -1,12 +1,13 @@
 #include "bsboneswitchgenerator.h"
 #include "Global.h"
+#include "generatorlines.h"
 
 using namespace std;
 
 bsboneswitchgenerator::bsboneswitchgenerator(string filepath, string id, string preaddress, int functionlayer, bool compare)
 {
 	tempaddress = preaddress;
-	address = preaddress + "e" + to_string(functionlayer) + ">";
+	address = preaddress + "e" + to_string(functionlayer) + ">region";
 
 	if ((!IsExist[id]) && (!Error))
 	{
@@ -22,6 +23,7 @@ bsboneswitchgenerator::bsboneswitchgenerator(string filepath, string id, string 
 	else if (!Error)
 	{
 		string dummyID = CrossReferencing(id, address, functionlayer, compare);
+
 		if (compare)
 		{
 			Dummy(dummyID);
@@ -41,7 +43,6 @@ bsboneswitchgenerator::bsboneswitchgenerator(string filepath, string id, string 
 		else
 		{
 			IsNegated = true;
-
 			address = region[id];
 		}
 	}
@@ -58,7 +59,6 @@ void bsboneswitchgenerator::nonCompare(string filepath, string id)
 		cout << "--------------------------------------------------------------" << endl << "BSBoneSwitchGenerator(ID: " << id << ") has been initialized!" << endl;
 	}
 
-	vector<string> storeline;
 	string line;
 	bool pauseline = false;
 
@@ -66,7 +66,7 @@ void bsboneswitchgenerator::nonCompare(string filepath, string id)
 	{
 		usize size = FunctionLineOriginal[id].size();
 
-		for (int i = 0; i < size; i++)
+		for (usize i = 0; i < size; ++i)
 		{
 			line = FunctionLineOriginal[id][i];
 
@@ -81,9 +81,10 @@ void bsboneswitchgenerator::nonCompare(string filepath, string id)
 				{
 					usize tempint = 0;
 					usize size = count(line.begin(), line.end(), '#');
+
 					for (unsigned int i = 0; i < size; i++)
 					{
-						int position = line.find("#", tempint);
+						usize position = line.find("#", tempint);
 						tempint = line.find("#", position + 1);
 						string tempbonedata = line.substr(position, tempint - position - 1);
 						bonedata.push_back(tempbonedata);
@@ -97,6 +98,7 @@ void bsboneswitchgenerator::nonCompare(string filepath, string id)
 				if (line.find("<hkparam name=\"variableBindingSet\">", 0) != string::npos)
 				{
 					variablebindingset = line.substr(38, line.find("</hkparam>") - 38);
+
 					if (variablebindingset != "null")
 					{
 						parent[variablebindingset] = id;
@@ -106,19 +108,26 @@ void bsboneswitchgenerator::nonCompare(string filepath, string id)
 				else if (line.find("<hkparam name=\"pDefaultGenerator\">", 0) != string::npos)
 				{
 					generator = line.substr(37, line.find("</hkparam>") - 37);
-					parent[generator] = id;
-					referencingIDs[generator].push_back(id);
+
+					if (generator != "null")
+					{
+						parent[generator] = id;
+						referencingIDs[generator].push_back(id);
+					}
 				}
 				else if (line.find("<hkparam name=\"ChildrenA\" numelements=", 0) != string::npos)
 				{
 					children = stoi(line.substr(42, line.length() - 44));
 					bonedata.reserve(children);
+					elements[id + "T"] = children;
 					pauseline = true;
 
 				}
+				else if (line.find("<hkparam name=\"name\">", 0) != string::npos)
+				{
+					name = line.substr(24, line.find("</hkparam>") - 24);
+				}
 			}
-			
-			storeline.push_back(line);
 		}
 	}
 	else
@@ -127,22 +136,12 @@ void bsboneswitchgenerator::nonCompare(string filepath, string id)
 		Error = true;
 	}
 
-	ofstream output("temp/" + id + ".txt");
-	if (output.is_open())
-	{
-		for (unsigned int i = 0; i < storeline.size(); i++)
-		{
-			output << storeline[i] << "\n";
-		}
-		output.close();
-	}
-	else
-	{
-		cout << "ERROR: BSBoneSwitchGenerator Outputfile(File: " << filepath << ", ID: " << id << ")" << endl;
-		Error = true;
-	}
-
+	FunctionLineTemp[id] = FunctionLineOriginal[id];
 	RecordID(id, address); // record address for compare purpose and idcount without updating referenceID
+	
+	address = name + "(i" + to_string(regioncount[name]) + ")=>";
+	regioncount[name]++;
+	region[id] = address;
 
 	if ((Debug) && (!Error))
 	{
@@ -166,7 +165,7 @@ void bsboneswitchgenerator::Compare(string filepath, string id)
 	{
 		usize size = FunctionLineEdited[id].size();
 
-		for (int i = 0; i < size; i++)
+		for (usize i = 0; i < size; ++i)
 		{
 			line = FunctionLineEdited[id][i];
 
@@ -181,9 +180,10 @@ void bsboneswitchgenerator::Compare(string filepath, string id)
 				{
 					int curgen = 1;
 					usize size = count(line.begin(), line.end(), '#');
+
 					for (unsigned int i = 0; i < size; i++)
 					{
-						int position = 0;
+						usize position = 0;
 						usize tempint = 0;
 
 						for (int j = 0; j < curgen; j++)
@@ -214,6 +214,7 @@ void bsboneswitchgenerator::Compare(string filepath, string id)
 				if (line.find("<hkparam name=\"variableBindingSet\">", 0) != string::npos)
 				{
 					variablebindingset = line.substr(38, line.find("</hkparam>") - 38);
+
 					if (variablebindingset != "null")
 					{
 						if (!exchangeID[variablebindingset].empty())
@@ -222,6 +223,7 @@ void bsboneswitchgenerator::Compare(string filepath, string id)
 							variablebindingset = exchangeID[variablebindingset];
 							line.replace(tempint, line.find("</hkparam>") - tempint, variablebindingset);
 						}
+
 						parent[variablebindingset] = id;
 						referencingIDs[variablebindingset].push_back(id);
 					}
@@ -229,14 +231,19 @@ void bsboneswitchgenerator::Compare(string filepath, string id)
 				else if (line.find("<hkparam name=\"pDefaultGenerator\">", 0) != string::npos)
 				{
 					generator = line.substr(37, line.find("</hkparam>") - 37);
+
 					if (!exchangeID[generator].empty())
 					{
 						int tempint = line.find(generator);
 						generator = exchangeID[generator];
 						line.replace(tempint, line.find("</hkparam>") - tempint, generator);
 					}
-					parent[generator] = id;
-					referencingIDs[generator].push_back(id);
+
+					if (generator != "null")
+					{
+						parent[generator] = id;
+						referencingIDs[generator].push_back(id);
+					}
 				}
 				else if (line.find("<hkparam name=\"ChildrenA\" numelements=", 0) != string::npos)
 				{
@@ -259,17 +266,16 @@ void bsboneswitchgenerator::Compare(string filepath, string id)
 	if (IsOldFunction(filepath, id, address)) // is this new function or old
 	{
 		IsForeign[id] = false;
-
 		string tempid;
-		if (!addressChange[address].empty())
+
+		if (addressChange.find(address) != addressChange.end())
 		{
-			tempid = addressID[addressChange[address]];
+			tempaddress = addressChange[address];
 			addressChange.erase(addressChange.find(address));
+			address = tempaddress;
 		}
-		else
-		{
-			tempid = addressID[address];
-		}
+
+		tempid = addressID[address];
 		elements[tempid] = children;
 		exchangeID[id] = tempid;
 
@@ -283,34 +289,24 @@ void bsboneswitchgenerator::Compare(string filepath, string id)
 		{
 			referencingIDs[variablebindingset].pop_back();
 			referencingIDs[variablebindingset].push_back(tempid);
+			parent[variablebindingset] = tempid;
 		}
 
 		for (unsigned int i = 0; i < bonedata.size(); i++)
 		{
 			referencingIDs[bonedata[i]].pop_back();
 			referencingIDs[bonedata[i]].push_back(tempid);
+			parent[bonedata[i]] = tempid;
 		}
 
-		referencingIDs[generator].pop_back();
-		referencingIDs[generator].push_back(tempid);
+		if (generator != "null")
+		{
+			referencingIDs[generator].pop_back();
+			referencingIDs[generator].push_back(tempid);
+			parent[generator] = tempid;
+		}
 
-		string inputfile = "temp/" + tempid + ".txt";
-		vector<string> storeline;
-		storeline.reserve(FileLineCount(inputfile));
-		ifstream input(inputfile); // read old function
-		if (input.is_open())
-		{
-			while (getline(input, line))
-			{
-				storeline.push_back(line);
-			}
-			input.close();
-		}
-		else
-		{
-			cout << "ERROR: BSBoneSwitchGenerator Inputfile(File: " << filepath << ", newID: " << id << ", oldID: " << tempid << ")" << endl;
-			Error = true;
-		}
+		vector<string> storeline = FunctionLineTemp[tempid];
 
 		// stage 3
 		int curline = 1;
@@ -328,6 +324,7 @@ void bsboneswitchgenerator::Compare(string filepath, string id)
 				{
 					IsNewChild = true;
 				}
+
 				newstoreline.push_back(newline[i]);
 				curline++;
 			}
@@ -341,6 +338,7 @@ void bsboneswitchgenerator::Compare(string filepath, string id)
 						{
 							newstoreline.push_back(newchild[j]);
 						}
+
 						newstoreline.push_back(newline[i]);
 						curline++;
 					}
@@ -356,7 +354,7 @@ void bsboneswitchgenerator::Compare(string filepath, string id)
 
 					if (size < size2)
 					{
-						int position = 0;
+						usize position = 0;
 						usize tempint = 0;
 
 						for (unsigned int j = 0; j < size + 1; j++)
@@ -364,6 +362,7 @@ void bsboneswitchgenerator::Compare(string filepath, string id)
 							position = newline[i].find("#", tempint);
 							tempint = newline[i].find("#", position + 1);
 						}
+
 						newstoreline.push_back(newline[i].substr(0, position - 1));
 						newchild.push_back("				" + newline[i].substr(position, -1));
 					}
@@ -382,46 +381,19 @@ void bsboneswitchgenerator::Compare(string filepath, string id)
 			}
 		}
 
-		ofstream output("new/" + tempid + ".txt"); // output stored function data
-		if (output.is_open())
-		{
-			for (unsigned int i = 0; i < newstoreline.size(); i++)
-			{
-				output << newstoreline[i] << "\n";
-			}
-			output.close();
-		}
-		else
-		{
-			cout << "ERROR: BSBoneSwitchGenerator Outputfile(File: " << filepath << ", newID: " << id << ", oldID: " << tempid << ")" << endl;
-			Error = true;
-		}
+		FunctionLineNew[tempid] = newstoreline;
 
 		if ((Debug) && (!Error))
 		{
 			cout << "Comparing BSBoneSwitchGenerator(newID: " << id << ") with BSBoneSwitchGenerator(oldID: " << tempid << ") is complete!" << endl;
 		}
-	}
 
+		address = region[tempid];
+	}
 	else
 	{
 		IsForeign[id] = true;
-
-		ofstream output("new/" + id + ".txt"); // output stored function data
-		if (output.is_open())
-		{
-			for (unsigned int i = 0; i < newline.size(); i++)
-			{
-				output << newline[i] << "\n";
-			}
-		}
-		else
-		{
-			cout << "ERROR: BSBoneSwitchGenerator Outputfile(File: " << filepath << ", ID: " << id << ")" << endl;
-			Error = true;
-		}
-		output.close();
-
+		FunctionLineNew[id] = newline;
 		address = tempaddress;
 	}
 
@@ -440,15 +412,15 @@ void bsboneswitchgenerator::Dummy(string id)
 		cout << "--------------------------------------------------------------" << endl << "Dummy BSBoneSwitchGenerator(ID: " << id << ") has been initialized!" << endl;
 	}
 
-	string line;
-	string filepath = "new/" + id + ".txt";
-	ifstream file(filepath);
 	bool pauseline = false;
+	string line;
 
-	if (file.is_open())
+	if (FunctionLineNew[id].size() > 0)
 	{
-		while (getline(file, line))
+		for (unsigned int i = 0; i < FunctionLineNew[id].size(); ++i)
 		{
+			line = FunctionLineNew[id][i];
+
 			if (pauseline)
 			{
 				if (line.find("</hkparam>", 0) != string::npos)
@@ -460,15 +432,18 @@ void bsboneswitchgenerator::Dummy(string id)
 				{
 					usize tempint = 0;
 					usize size = count(line.begin(), line.end(), '#');
+
 					for (unsigned int i = 0; i < size; i++)
 					{
-						int position = line.find("#", tempint);
+						usize position = line.find("#", tempint);
 						tempint = line.find("#", position + 1);
 						string tempbonedata = line.substr(position, tempint - position - 1);
+
 						if (!exchangeID[tempbonedata].empty())
 						{
 							tempbonedata = exchangeID[tempbonedata];
 						}
+
 						bonedata.push_back(tempbonedata);
 						parent[tempbonedata] = id;
 					}
@@ -479,23 +454,30 @@ void bsboneswitchgenerator::Dummy(string id)
 				if (line.find("<hkparam name=\"variableBindingSet\">", 0) != string::npos)
 				{
 					variablebindingset = line.substr(38, line.find("</hkparam>") - 38);
+
 					if (variablebindingset != "null")
 					{
 						if (!exchangeID[variablebindingset].empty())
 						{
 							variablebindingset = exchangeID[variablebindingset];
 						}
+
 						parent[variablebindingset] = id;
 					}
 				}
 				else if (line.find("<hkparam name=\"pDefaultGenerator\">", 0) != string::npos)
 				{
 					generator = line.substr(37, line.find("</hkparam>") - 37);
+
 					if (!exchangeID[generator].empty())
 					{
 						generator = exchangeID[generator];
 					}
-					parent[generator] = id;
+
+					if (generator != "null")
+					{
+						parent[generator] = id;
+					}
 				}
 				else if (line.find("<hkparam name=\"ChildrenA\" numelements=", 0) != string::npos)
 				{
@@ -505,15 +487,19 @@ void bsboneswitchgenerator::Dummy(string id)
 				}
 			}
 		}
-		file.close();
 	}
 	else
 	{
-		cout << "ERROR: Dummy BSBoneSwitchGenerator Inputfile(File: " << filepath << ", ID: " << id << ")" << endl;
+		cout << "ERROR: Dummy BSBoneSwitchGenerator Inputfile(ID: " << id << ")" << endl;
 		Error = true;
 	}
 
 	RecordID(id, address, true); // record address for compare purpose and idcount without updating referenceID
+
+	if (!region[id].empty())
+	{
+		address = region[id];
+	}
 
 	if ((Debug) && (!Error))
 	{
@@ -563,49 +549,15 @@ bool bsboneswitchgenerator::IsNegate()
 	return IsNegated;
 }
 
-void BSBoneSwitchGeneratorExport(string originalfile, string editedfile, string id)
+void BSBoneSwitchGeneratorExport(string id)
 {
 	//stage 1 reading
 	vector<string> storeline1;
-	string line;
-	ifstream origfile(originalfile);
-
-	if (origfile.is_open())
-	{
-		while (getline(origfile, line))
-		{
-			if ((line.find("<hkobject>", 0) == string::npos) && (line.find("</hkobject>", 0) == string::npos) && (line.find("</hkparam>", 0) == string::npos || line.find("</hkparam>", 0) > 10))
-			{
-				storeline1.push_back(line);
-			}
-		}
-		origfile.close();
-	}
-	else
-	{
-		cout << "ERROR: Edit BSBoneSwitchGenerator Input Not Found (Original File: " << originalfile << ")" << endl;
-		Error = true;
-	}
-
-	//stage 2 reading and identifying edits
 	vector<string> storeline2;
-	ifstream editfile(editedfile);
 
-	if (editfile.is_open())
+	if (!generatorLines(storeline1, storeline2, id, "BSBoneSwitchGenerator"))
 	{
-		while (getline(editfile, line))
-		{
-			if ((line.find("<hkobject>", 0) == string::npos) && (line.find("</hkobject>", 0) == string::npos) && (line.find("</hkparam>", 0) == string::npos || line.find("</hkparam>", 0) > 10))
-			{
-				storeline2.push_back(line);
-			}
-		}
-		editfile.close();
-	}
-	else
-	{
-		cout << "ERROR: Edit BSBoneSwitchGenerator Output Not Found (Edited File: " << editedfile << ")" << endl;
-		Error = true;
+		return;
 	}
 
 	vector<string> output;
@@ -627,16 +579,20 @@ void BSBoneSwitchGeneratorExport(string originalfile, string editedfile, string 
 					if (IsChanged)
 					{
 						closepoint = curline;
+
 						if (closepoint != openpoint)
 						{
 							output.push_back("<!-- ORIGINAL -->");
+
 							for (int j = openpoint; j < closepoint; j++)
 							{
 								output.push_back(storeline1[j]);
 							}
 						}
+
 						IsChanged = false;
 					}
+
 					output.push_back("<!-- CLOSE -->");
 					open = false;
 				}
@@ -652,6 +608,7 @@ void BSBoneSwitchGeneratorExport(string originalfile, string editedfile, string 
 					open = true;
 				}
 			}
+
 			output.push_back(storeline2[i]);
 			curline++;
 		}
@@ -674,41 +631,50 @@ void BSBoneSwitchGeneratorExport(string originalfile, string editedfile, string 
 		if (IsChanged)
 		{
 			closepoint = curline;
+
 			if (closepoint != openpoint)
 			{
 				output.push_back("<!-- ORIGINAL -->");
+
 				for (int j = openpoint; j < closepoint; j++)
 				{
 					output.push_back(storeline1[j]);
 				}
 			}
+
 			IsChanged = false;
 		}
+
 		output.push_back("<!-- CLOSE -->");
 		open = false;
 	}
 
 	NemesisReaderFormat(output);
 
-	// stage 3 output if it is edited
-	string filename = "cache/" + modcode + "/" + shortFileName + "/" + id + ".txt";
+	// stage 2 output if it is edited
+	string filename = "mod/" + modcode + "/" + shortFileName + "/" + id + ".txt";
+
 	if (IsEdited)
 	{
 		ofstream outputfile(filename);
+
 		if (outputfile.is_open())
 		{
+			FunctionWriter fwrite(&outputfile);
+
 			for (unsigned int i = 0; i < output.size(); i++)
 			{
-				outputfile << output[i] << "\n";
+				fwrite << output[i] << "\n";
 			}
-			outputfile << "			</hkparam>" << "\n";
-			outputfile << "		</hkobject>" << "\n";
+
+			fwrite << "			</hkparam>" << "\n";
+			fwrite << "		</hkobject>" << "\n";
 			outputfile.close();
 
 		}
 		else
 		{
-			cout << "ERROR: Edit BSBoneSwitchGenerator Output Not Found (New Edited File: " << editedfile << ")" << endl;
+			cout << "ERROR: Edit BSBoneSwitchGenerator Output Not Found (File: " << filename << ")" << endl;
 			Error = true;
 		}
 	}

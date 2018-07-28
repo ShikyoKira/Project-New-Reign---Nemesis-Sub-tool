@@ -31,6 +31,6 @@ private:
 	bool IsNegated = false;
 };
 
-extern void hkbClipGeneratorExport(std::string originalfile, std::string editedfile, std::string id);
+extern void hkbClipGeneratorExport(std::string id);
 
 #endif

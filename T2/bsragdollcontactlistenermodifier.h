@@ -36,6 +36,6 @@ private:
 	bool IsNegated = false;
 };
 
-extern void BSRagdollContactListenerModifierExport(std::string originalfile, std::string editedfile, std::string id);
+extern void BSRagdollContactListenerModifierExport(std::string id);
 
 #endif

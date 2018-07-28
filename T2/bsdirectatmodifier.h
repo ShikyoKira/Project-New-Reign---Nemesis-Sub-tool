@@ -28,6 +28,6 @@ private:
 	bool IsNegated = false;
 };
 
-extern void BSDirectAtModifierExport(std::string originalfile, std::string editedfile, std::string id);
+extern void BSDirectAtModifierExport(std::string id);
 
 #endif

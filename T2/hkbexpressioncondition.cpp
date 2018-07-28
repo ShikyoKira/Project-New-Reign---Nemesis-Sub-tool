@@ -12,7 +12,7 @@ hkbexpressioncondition::hkbexpressioncondition(string filepath, string id, strin
 	{
 		if (compare)
 		{
-			Compare(filepath, id);
+			Compare(filepath, id, functionlayer);
 		}
 		else
 		{
@@ -21,16 +21,79 @@ hkbexpressioncondition::hkbexpressioncondition(string filepath, string id, strin
 	}
 	else if (!Error)
 	{
-		string dummyID = CrossReferencing(id, address, functionlayer, compare, true);
-		if (compare)
+		bool statusChange = false;
+
+		if (IsForeign[id])
 		{
-			IsNegated = true;
+			statusChange = true;
+		}
+
+		string dummyID = CrossReferencing(id, address, functionlayer, compare);
+
+		if (addressChange.find(address) != addressChange.end())
+		{
+			string tempAdd = addressChange[address];
+			addressChange.erase(addressChange.find(address));
+			address = tempAdd;
+
+			IsForeign[id] = false;
+			exchangeID[id] = dummyID;
+
+			if ((Debug) && (!Error))
+			{
+				cout << "Comparing hkbExpressionCondition (newID: " << id << ") with hkbExpressionCondition (oldID: " << dummyID << ")" << endl;
+			}
+
+			ReferenceReplacementExt(id, dummyID); // replacing reference in previous functions that is using newID
+
+			{
+				vector<string> emptyVS;
+				FunctionLineNew[dummyID] = emptyVS;
+			}
+
+			FunctionLineNew[dummyID].push_back(FunctionLineTemp[dummyID][0]);
+
+			for (unsigned int i = 1; i < FunctionLineEdited[id].size(); i++)
+			{
+				FunctionLineNew[dummyID].push_back(FunctionLineEdited[id][i]);
+			}
+
+			if ((Debug) && (!Error))
+			{
+				cout << "Comparing hkbExpressionCondition (newID: " << id << ") with hkbExpressionCondition (oldID: " << dummyID << ") is complete!" << endl;
+			}
+
+			RecordID(id, address, true);
+
+			if ((Debug) && (!Error))
+			{
+				cout << "hkbExpressionCondition (ID: " << id << ") is complete!" << endl;
+			}
+
+			Dummy(dummyID);
 		}
 		else
 		{
-			IsNegated = true;
+			if (compare)
+			{
+				if (statusChange)
+				{
+					Dummy(dummyID);
+				}
 
-			address = region[id];
+				if (IsForeign[id])
+				{
+					address = preaddress;
+				}
+				else if (!statusChange)
+				{
+					IsNegated = true;
+				}
+			}
+			else
+			{
+				IsNegated = true;
+			}
 		}
 	}
 	else
@@ -46,38 +109,15 @@ void hkbexpressioncondition::nonCompare(string filepath, string id)
 		cout << "--------------------------------------------------------------" << endl << "hkbExpressionCondition(ID: " << id << ") has been initialized!" << endl;
 	}
 
-	vector<string> storeline;
 	string line;
 
 	if (!FunctionLineOriginal[id].empty())
 	{
-		usize size = FunctionLineOriginal[id].size();
-
-		for (int i = 0; i < size; i++)
-		{
-			line = FunctionLineOriginal[id][i];
-
-			storeline.push_back(line);
-		}
+		FunctionLineTemp[id] = FunctionLineOriginal[id];
 	}
 	else
 	{
-		cout << "ERROR: hkbExpressionCondition Inputfile(File: " << filepath << ", ID: " << id << ")" << endl;
-		Error = true;
-	}
-
-	ofstream output("temp/" + id + ".txt");
-	if (output.is_open())
-	{
-		for (unsigned int i = 0; i < storeline.size(); i++)
-		{
-			output << storeline[i] << "\n";
-		}
-		output.close();
-	}
-	else
-	{
-		cout << "ERROR: hkbExpressionCondition Outputfile(File: " << filepath << ", ID: " << id << ")" << endl;
+		cout << "ERROR: hkbExpressionCondition Inputfile (File: " << filepath << ", ID: " << id << ")" << endl;
 		Error = true;
 	}
 
@@ -85,113 +125,186 @@ void hkbexpressioncondition::nonCompare(string filepath, string id)
 
 	if ((Debug) && (!Error))
 	{
-		cout << "hkbExpressionCondition(ID: " << id << ") is complete!" << endl;
+		cout << "hkbExpressionCondition (ID: " << id << ") is complete!" << endl;
 	}
 }
 
-void hkbexpressioncondition::Compare(string filepath, string id)
+void hkbexpressioncondition::Compare(string filepath, string id, int functionlayer)
 {
 	if (Debug)
 	{
-		cout << "--------------------------------------------------------------" << endl << "hkbExpressionCondition(ID: " << id << ") has been initialized!" << endl;
+		cout << "--------------------------------------------------------------" << endl << "hkbExpressionCondition (ID: " << id << ") has been initialized!" << endl;
 	}
 
 	// stage 1
-	vector<string> newline;
 	string line;
+	string tempid;
+	bool pass = false;
+	int backCounter = tempaddress.length() - 1;
 
-	if (!FunctionLineEdited[id].empty())
+	if (FunctionLineEdited[id].empty())
 	{
-		usize size = FunctionLineEdited[id].size();
-
-		for (int i = 0; i < size; i++)
-		{
-			line = FunctionLineEdited[id][i];
-			
-			newline.push_back(line);
-		}
-	}
-	else
-	{
-		cout << "ERROR: hkbExpressionCondition Inputfile(File: " << filepath << ", ID: " << id << ")" << endl;
+		cout << "ERROR: hkbExpressionCondition Inputfile (File: " << filepath << ", ID: " << id << ")" << endl;
 		Error = true;
+		return;
 	}
+
+	while (isdigit(tempaddress[backCounter]))
+	{
+		line = tempaddress[backCounter] + line;
+		--backCounter;
+	}
+
+	line = line + "l" + to_string(functionlayer);
 
 	// stage 2
-	if ((addressID[address] != "") && (!IsForeign[parent[id]])) // is this new function or old for non generator
+	if (conditionOldFunction(id, address, functionlayer, line, false) != "") // is this new function or old for non generator
 	{
-		IsForeign[id] = false;
+		if (addressChange.find(address) != addressChange.end())
+		{
+			string tempAdd = addressChange[address];
+			addressChange.erase(addressChange.find(address));
+			tempid = addressID[tempAdd];
+		}
+		else
+		{
+			tempid = addressID[address];
+		}
 
-		string tempid = addressID[address];
+		pass = true;
+
+		if (pass != pass)
+		{
+			string functionlayer = boost::regex_replace(string(address.substr(address.find_last_of("l"))), boost::regex("[^0-9]*([0-9]+).*"), string("\\1"));
+			int num = elements[parent[id]];
+			string preadd = tempaddress.substr(0, tempaddress.length() - boost::regex_replace(string(tempaddress.substr(tempaddress.find_last_of(">") + 1)), boost::regex("[^0-9]*([0-9]+).*"), string("\\1")).length());
+			string expression = FunctionLineEdited[id][1];
+
+			map<string, string> debugAddress;
+
+			for (auto& add : addressID)
+			{
+				debugAddress[add.first] = add.second;
+			}
+
+			for (int i = 0; i < 1000; ++i)
+			{
+				string tempadd = preadd + to_string(i) + "l" + functionlayer + ">";
+
+				if (addressID[tempadd].empty())
+				{
+					num = max(num, i);
+					break;
+				}
+			}
+
+			if (!addressID[address].empty())
+			{
+				if (FunctionLineOriginal[addressID[address]][1] == expression)
+				{
+					pass = true;
+				}
+			}
+
+			if (!pass)
+			{
+				for (int i = 0; i < num; ++i)
+				{
+					string tempadd = preadd + to_string(i) + "l" + functionlayer + ">";
+
+					if (!addressID[tempadd].empty())
+					{
+						if (FunctionLineOriginal[addressID[tempadd]][1] == expression)
+						{
+							tempid = addressID[tempadd];
+
+							if (IsExist[tempid])
+							{
+								string unchangedID;
+								pass = true;
+
+								for (auto& ID : exchangeID)
+								{
+									if (ID.second == tempid)
+									{
+										unchangedID = ID.first;
+										break;
+									}
+								}
+
+								if (unchangedID.length() == 0)
+								{
+									cout << "ERROR: hkbExpressionCondition missing wrong reference (Adjusted ID: " << tempid << ", Original ID: " << id << ")" << endl;
+									Error = true;
+									return;
+								}
+
+								if (tempid != unchangedID)
+								{
+									int wrongReferenceInt = stoi(tempid.substr(1, tempid.length() - 1));
+									int rightReferenceInt = stoi(unchangedID.substr(1, unchangedID.length() - 1));
+
+									if (!IsExist[unchangedID])
+									{
+										FunctionLineNew[unchangedID] = FunctionLineEdited[unchangedID];
+										IsExist[unchangedID] = true;
+										idcount.insert(rightReferenceInt);
+									}
+
+									FunctionLineNew[tempid].clear();
+									IsExist.erase(IsExist.find(tempid));
+									idcount.erase(wrongReferenceInt);
+								}
+
+								ReferenceReplacementExt(tempid, unchangedID);
+							}
+
+							break;
+						}
+					}
+				}
+			}
+		}
+
+		if (!IsExist[tempid])
+		{
+			// pass = true;
+		}
+	}
+
+	if (pass)
+	{
 		exchangeID[id] = tempid;
+		IsForeign[id] = false;
 
 		if ((Debug) && (!Error))
 		{
-			cout << "Comparing hkbExpressionCondition(newID: " << id << ") with hkbExpressionCondition(oldID: " << tempid << ")" << endl;
+			cout << "Comparing hkbExpressionCondition (newID: " << id << ") with hkbExpressionCondition (oldID: " << tempid << ")" << endl;
 		}
 
 		ReferenceReplacementExt(id, tempid); // replacing reference in previous functions that is using newID
 
-		string inputfile = "temp/" + tempid + ".txt";
-		vector<string> storeline;
-		storeline.reserve(FileLineCount(inputfile));
-		ifstream input(inputfile); // read old function
-		if (input.is_open())
 		{
-			while (getline(input, line))
-			{
-				storeline.push_back(line);
-			}
-			input.close();
-		}
-		else
-		{
-			cout << "ERROR: hkbExpressionCondition Inputfile(File: " << filepath << ", newID: " << id << ", oldID: " << tempid << ")" << endl;
-			Error = true;
+			vector<string> emptyVS;
+			FunctionLineNew[tempid] = emptyVS;
 		}
 
-		// stage 3
-		ofstream output("new/" + tempid + ".txt"); // output stored function data
-		if (output.is_open())
+		FunctionLineNew[tempid].push_back(FunctionLineTemp[tempid][0]);
+
+		for (unsigned int i = 1; i < FunctionLineEdited[id].size(); i++)
 		{
-			output << storeline[0] << "\n";
-			for (unsigned int i = 1; i < newline.size(); i++)
-			{
-				output << newline[i] << "\n";
-			}
-			output.close();
-		}
-		else
-		{
-			cout << "ERROR: hkbExpressionCondition Outputfile(File: " << filepath << ", newID: " << id << ", oldID: " << tempid << ")" << endl;
-			Error = true;
+			FunctionLineNew[tempid].push_back(FunctionLineEdited[id][i]);
 		}
 
 		if ((Debug) && (!Error))
 		{
-			cout << "Comparing hkbExpressionCondition(newID: " << id << ") with hkbExpressionCondition(oldID: " << tempid << ") is complete!" << endl;
+			cout << "Comparing hkbExpressionCondition (newID: " << id << ") with hkbExpressionCondition (oldID: " << tempid << ") is complete!" << endl;
 		}
 	}
-
 	else
 	{
 		IsForeign[id] = true;
-
-		ofstream output("new/" + id + ".txt"); // output stored function data
-		if (output.is_open())
-		{
-			for (unsigned int i = 0; i < newline.size(); i++)
-			{
-				output << newline[i] << "\n";
-			}
-			output.close();
-		}
-		else
-		{
-			cout << "ERROR: hkbExpressionCondition Outputfile(File: " << filepath << ", ID: " << id << ")" << endl;
-			Error = true;
-		}
-
+		FunctionLineNew[id] = FunctionLineEdited[id];
 		address = tempaddress;
 	}
 
@@ -199,7 +312,7 @@ void hkbexpressioncondition::Compare(string filepath, string id)
 
 	if ((Debug) && (!Error))
 	{
-		cout << "hkbExpressionCondition(ID: " << id << ") is complete!" << endl;
+		cout << "hkbExpressionCondition (ID: " << id << ") is complete!" << endl;
 	}
 }
 
@@ -207,19 +320,12 @@ void hkbexpressioncondition::Dummy(string id)
 {
 	if (Debug)
 	{
-		cout << "--------------------------------------------------------------" << endl << "Dummy hkbExpressionCondition(ID: " << id << ") has been initialized!" << endl;
+		cout << "--------------------------------------------------------------" << endl << "Dummy hkbExpressionCondition (ID: " << id << ") has been initialized!" << endl;
 	}
 
-	string filepath = "new/" + id + ".txt";
-	ifstream file(filepath);
-
-	if (file.is_open())
+	if (FunctionLineNew[id].empty())
 	{
-		file.close();
-	}
-	else
-	{
-		cout << "ERROR: Dummy hkbExpressionCondition Inputfile(File: " << filepath << ", ID: " << id << ")" << endl;
+		cout << "ERROR: Dummy hkbExpressionCondition Inputfile (ID: " << id << ")" << endl;
 		Error = true;
 	}
 
@@ -227,7 +333,7 @@ void hkbexpressioncondition::Dummy(string id)
 
 	if ((Debug) && (!Error))
 	{
-		cout << "Dummy hkbExpressionCondition(ID: " << id << ") is complete!" << endl;
+		cout << "Dummy hkbExpressionCondition (ID: " << id << ") is complete!" << endl;
 	}
 }
 
@@ -241,51 +347,19 @@ bool hkbexpressioncondition::IsNegate()
 	return IsNegated;
 }
 
-void hkbExpressionConditionExport(string originalfile, string editedfile, string id)
+void hkbExpressionConditionExport(string id)
 {
 	// stage 1 reading
-	vector<string> storeline1;
-	ifstream origfile(originalfile);
-	string line;
+	vector<string> storeline1 = FunctionLineTemp[id];
 
-	if (origfile.is_open())
-	{
-		while (getline(origfile, line))
-		{
-			storeline1.push_back(line);
-		}
-		origfile.close();
-	}
-	else
-	{
-		cout << "ERROR: Edit hkbExpressionCondition Input Not Found (Original File: " << originalfile << ")" << endl;
-		Error = true;
-		return;
-	}
-
-	vector<string> storeline2;
-	ifstream editfile(editedfile);
-
-	if (editfile.is_open())
-	{
-		while (getline(editfile, line))
-		{
-			storeline2.push_back(line);
-		}
-		editfile.close();
-	}
-	else
-	{
-		cout << "ERROR: Edit hkbExpressionCondition Output Not Found (Edited File: " << editedfile << ")" << endl;
-		Error = true;
-		return;
-	}
+	vector<string> storeline2 = FunctionLineNew[id];
 
 	// stage 2 identify edits
 	vector<string> output;
 	bool IsEdited = false;
 
 	output.push_back(storeline2[0]);
+
 	if ((storeline1[1].find(storeline2[1], 0) == string::npos) || (storeline1[1].length() != storeline2[1].length()))
 	{
 		output.push_back("<!-- MOD_CODE ~" + modcode + "~ OPEN -->");
@@ -295,24 +369,30 @@ void hkbExpressionConditionExport(string originalfile, string editedfile, string
 		output.push_back("<!-- CLOSE -->");
 		IsEdited = true;
 	}
+
 	output.push_back(storeline2[2]);
 
 	// stage 3 output if it is edited
-	string filename = "cache/" + modcode + "/" + shortFileName + "/" + id + ".txt";
+	string filename = "mod/" + modcode + "/" + shortFileName + "/" + id + ".txt";
+
 	if (IsEdited)
 	{
 		ofstream outputfile(filename);
+
 		if (outputfile.is_open())
 		{
+			FunctionWriter fwrite(&outputfile);
+
 			for (unsigned int i = 0; i < output.size(); i++)
 			{
-				outputfile << output[i] << "\n";
+				fwrite << output[i] << "\n";
 			}
+
 			outputfile.close();
 		}
 		else
 		{
-			cout << "ERROR: Edit hkbExpressionCondition Output Not Found (New Edited File: " << editedfile << ")" << endl;
+			cout << "ERROR: Edit hkbExpressionCondition Output Not Found (File: " << filename << ")" << endl;
 			Error = true;
 			return;
 		}

@@ -23,6 +23,6 @@ private:
 	bool IsNegated = false;
 };
 
-extern void hkbVariableBindingSetExport(std::string originalfile, std::string editedfile, std::string id);
+extern void hkbVariableBindingSetExport(std::string id);
 
 #endif

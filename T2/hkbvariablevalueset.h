@@ -2,6 +2,7 @@
 #define HKBVARIABLEVALUESET_H_
 
 #include <string>
+#include <vector>
 #include <iostream>
 #include <fstream>
 #include <cstdio>
@@ -15,15 +16,20 @@ public:
 	void Compare(std::string filepath, std::string id);
 	void Dummy(std::string id);
 
+	int GetBoneCount();
+	std::string GetBoneArray(int order);
+
 	std::string GetAddress();
 	bool IsNegate();
 
 private:
 	std::string address;
 	std::string tempaddress;
+	std::vector<std::string> boneArray;
+	int boneCount = 0;
 	bool IsNegated = false;
 };
 
-extern void hkbVariableValueSetExport(std::string originalfile, std::string editedfile, std::string id);
+extern void hkbVariableValueSetExport(std::string id);
 
 #endif

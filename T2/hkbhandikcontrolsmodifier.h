@@ -28,6 +28,6 @@ private:
 	bool IsNegated = false;
 };
 
-extern void hkbHandIkControlsModifierExport(std::string originalfile, std::string editedfile, std::string id);
+extern void hkbHandIkControlsModifierExport(std::string id);
 
 #endif

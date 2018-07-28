@@ -28,6 +28,6 @@ private:
 	bool IsNegated = false;
 };
 
-extern void hkbLookAtModifierExport(std::string originalfile, std::string editedfile, std::string id);
+extern void hkbLookAtModifierExport(std::string id);
 
 #endif

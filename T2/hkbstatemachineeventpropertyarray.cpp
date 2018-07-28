@@ -1,7 +1,20 @@
 #include "hkbstatemachineeventpropertyarray.h"
 #include "Global.h"
+#include "highestscore.h"
 
 using namespace std;
+
+struct events
+{
+	bool proxy = true;
+
+	unsigned int id;
+	string payload;
+};
+
+void inputEvent(vector<string>& input, shared_ptr<events> transition);
+void eventInfoProcess(string line, vector<shared_ptr<events>>& binds, shared_ptr<events>& curBind);
+bool matchScoring(vector<shared_ptr<events>>& ori, vector<shared_ptr<events>>& edit, string id);
 
 hkbstatemachineeventpropertyarray::hkbstatemachineeventpropertyarray(string filepath, string id, string preaddress, int functionlayer, bool compare)
 {
@@ -21,10 +34,30 @@ hkbstatemachineeventpropertyarray::hkbstatemachineeventpropertyarray(string file
 	}
 	else if (!Error)
 	{
+		bool statusChange = false;
+
+		if (IsForeign[id])
+		{
+			statusChange = true;
+		}
+
 		string dummyID = CrossReferencing(id, address, functionlayer, compare, true);
+
 		if (compare)
 		{
-			IsNegated = true;
+			if (statusChange)
+			{
+				Dummy(dummyID);
+			}
+
+			if (IsForeign[id])
+			{
+				address = preaddress;
+			}
+			else if (!statusChange)
+			{
+				IsNegated = true;
+			}
 		}
 		else
 		{
@@ -41,64 +74,48 @@ void hkbstatemachineeventpropertyarray::nonCompare(string filepath, string id)
 {
 	if (Debug)
 	{
-		cout << "--------------------------------------------------------------" << endl << "hkbStateMachineEventPropertyArray(ID: " << id << ") has been initialized!" << endl;
+		cout << "--------------------------------------------------------------" << endl << "hkbStateMachineEventPropertyArray (ID: " << id << ") has been initialized!" << endl;
 	}
 
-	vector<string> storeline;
 	string line;
-	payloadcount = 0;
 
 	if (!FunctionLineOriginal[id].empty())
 	{
 		usize size = FunctionLineOriginal[id].size();
 
-		for (int i = 0; i < size; i++)
+		for (usize i = 0; i < size; ++i)
 		{
 			line = FunctionLineOriginal[id][i];
 
 			if (line.find("<hkparam name=\"payload\">", 0) != string::npos)
 			{
 				payload.push_back(line.substr(29, line.find("</hkparam>") - 29));
-				if (payload[payloadcount] != "null")
+
+				if (payload.back() != "null")
 				{
-					if (!exchangeID[payload[payloadcount]].empty())
+					if (!exchangeID[payload.back()].empty())
 					{
-						payload[payloadcount] = exchangeID[payload[payloadcount]];
+						payload.back() = exchangeID[payload.back()];
 					}
-					referencingIDs[payload[payloadcount]].push_back(id);
+
+					referencingIDs[payload.back()].push_back(id);
 				}
-				payloadcount++;
+
 			}
-
-			storeline.push_back(line);
 		}
 	}
 	else
 	{
-		cout << "ERROR: hkbStateMachineEventPropertyArray Inputfile(File: " << filepath << ", ID: " << id << ")" << endl;
+		cout << "ERROR: hkbStateMachineEventPropertyArray Inputfile (File: " << filepath << ", ID: " << id << ")" << endl;
 		Error = true;
 	}
 
-	ofstream output("temp/" + id + ".txt");
-	if (output.is_open())
-	{
-		for (unsigned int i = 0; i < storeline.size(); i++)
-		{
-			output << storeline[i] << "\n";
-		}
-		output.close();
-	}
-	else
-	{
-		cout << "ERROR: hkbStateMachineEventPropertyArray Outputfile(File: " << filepath << ", ID: " << id << ")" << endl;
-		Error = true;
-	}
-
+	FunctionLineTemp[id] = FunctionLineOriginal[id];
 	RecordID(id, address); // record address for compare purpose and idcount without updating referenceID
 
 	if ((Debug) && (!Error))
 	{
-		cout << "hkbStateMachineEventPropertyArray(ID: " << id << ") is complete!" << endl;
+		cout << "hkbStateMachineEventPropertyArray (ID: " << id << ") is complete!" << endl;
 	}
 }
 
@@ -106,36 +123,37 @@ void hkbstatemachineeventpropertyarray::Compare(string filepath, string id)
 {
 	if (Debug)
 	{
-		cout << "--------------------------------------------------------------" << endl << "hkbStateMachineEventPropertyArray(ID: " << id << ") has been initialized!" << endl;
+		cout << "--------------------------------------------------------------" << endl << "hkbStateMachineEventPropertyArray (ID: " << id << ") has been initialized!" << endl;
 	}
 
 	// stage 1
 	vector<string> newline;
 	string line;
-	payloadcount = 0;
 
 	if (!FunctionLineEdited[id].empty())
 	{
 		usize size = FunctionLineEdited[id].size();
 
-		for (int i = 0; i < size; i++)
+		for (usize i = 0; i < size; ++i)
 		{
 			line = FunctionLineEdited[id][i];
 
 			if (line.find("<hkparam name=\"payload\">", 0) != string::npos)
 			{
 				payload.push_back(line.substr(29, line.find("</hkparam>") - 29));
-				if (payload[payloadcount] != "null")
+
+				if (payload.back() != "null")
 				{
-					if (!exchangeID[payload[payloadcount]].empty())
+					if (!exchangeID[payload.back()].empty())
 					{
-						int tempint = line.find(payload[payloadcount]);
-						payload[payloadcount] = exchangeID[payload[payloadcount]];
-						line.replace(tempint, line.find("</hkparam>") - tempint, payload[payloadcount]);
+						int tempint = line.find(payload.back());
+						payload.back() = exchangeID[payload.back()];
+						line.replace(tempint, line.find("</hkparam>") - tempint, payload.back());
 					}
-					referencingIDs[payload[payloadcount]].push_back(id);
+
+					parent[payload.back()] = id;
+					referencingIDs[payload.back()].push_back(id);
 				}
-				payloadcount++;
 			}
 
 			newline.push_back(line);
@@ -143,7 +161,7 @@ void hkbstatemachineeventpropertyarray::Compare(string filepath, string id)
 	}
 	else
 	{
-		cout << "ERROR: hkbStateMachineEventPropertyArray Inputfile(File: " << filepath << ", ID: " << id << ")" << endl;
+		cout << "ERROR: hkbStateMachineEventPropertyArray Inputfile (File: " << filepath << ", ID: " << id << ")" << endl;
 		Error = true;
 	}
 
@@ -151,13 +169,21 @@ void hkbstatemachineeventpropertyarray::Compare(string filepath, string id)
 	if ((addressID[address] != "") && (!IsForeign[parent[id]])) // is this new function or old for non generator
 	{
 		IsForeign[id] = false;
+		string tempid;
 
-		string tempid = addressID[address];
+		if (addressChange.find(address) != addressChange.end())
+		{
+			tempaddress = addressChange[address];
+			addressChange.erase(addressChange.find(address));
+			address = tempaddress;
+		}
+
+		tempid = addressID[address];
 		exchangeID[id] = tempid;
 
 		if ((Debug) && (!Error))
 		{
-			cout << "Comparing hkbStateMachineEventPropertyArray(newID: " << id << ") with hkbStateMachineEventPropertyArray(oldID: " << tempid << ")" << endl;
+			cout << "Comparing hkbStateMachineEventPropertyArray (newID: " << id << ") with hkbStateMachineEventPropertyArray(oldID: " << tempid << ")" << endl;
 		}
 
 		ReferenceReplacementExt(id, tempid); // replacing reference in previous functions that is using newID
@@ -168,69 +194,31 @@ void hkbstatemachineeventpropertyarray::Compare(string filepath, string id)
 			{
 				referencingIDs[payload[i]].pop_back();
 				referencingIDs[payload[i]].push_back(tempid);
+				parent[payload[i]] = tempid;
 			}
 		}
 
-		string inputfile = "temp/" + tempid + ".txt";
-		vector<string> storeline;
-		storeline.reserve(FileLineCount(inputfile));
-		ifstream input(inputfile); // read old function
-		if (input.is_open())
 		{
-			while (getline(input, line))
-			{
-				storeline.push_back(line);
-			}
-			input.close();
-		}
-		else
-		{
-			cout << "ERROR: hkbStateMachineEventPropertyArray Inputfile(File: " << filepath << ", newID: " << id << ", oldID: " << tempid << ")" << endl;
-			Error = true;
+			vector<string> emptyVS;
+			FunctionLineNew[tempid] = emptyVS;
 		}
 
-		// stage 3
-		ofstream output("new/" + tempid + ".txt"); // output stored function data
-		if (output.is_open())
+		FunctionLineNew[tempid].push_back(FunctionLineTemp[tempid][0]);
+
+		for (unsigned int i = 1; i < newline.size(); i++)
 		{
-			output << storeline[0] << "\n";
-			for (unsigned int i = 1; i < newline.size(); i++)
-			{
-				output << newline[i] << "\n";
-			}
-			output.close();
-		}
-		else
-		{
-			cout << "ERROR: hkbStateMachineEventPropertyArray Outputfile(File: " << filepath << ", newID: " << id << ", oldID: " << tempid << ")" << endl;
-			Error = true;
+			FunctionLineNew[tempid].push_back(newline[i]);
 		}
 
 		if ((Debug) && (!Error))
 		{
-			cout << "Comparing hkbStateMachineEventPropertyArray(newID: " << id << ") with hkbStateMachineEventPropertyArray(oldID: " << tempid << ") is complete!" << endl;
+			cout << "Comparing hkbStateMachineEventPropertyArray (newID: " << id << ") with hkbStateMachineEventPropertyArray(oldID: " << tempid << ") is complete!" << endl;
 		}
 	}
-
 	else
 	{
 		IsForeign[id] = true;
-
-		ofstream output("new/" + id + ".txt"); // output stored function data
-		if (output.is_open())
-		{
-			for (unsigned int i = 0; i < newline.size(); i++)
-			{
-				output << newline[i] << "\n";
-			}
-			output.close();
-		}
-		else
-		{
-			cout << "ERROR: hkbStateMachineEventPropertyArray Outputfile(File: " << filepath << ", ID: " << id << ")" << endl;
-			Error = true;
-		}
-
+		FunctionLineNew[id] = newline;
 		address = tempaddress;
 	}
 
@@ -238,7 +226,7 @@ void hkbstatemachineeventpropertyarray::Compare(string filepath, string id)
 
 	if ((Debug) && (!Error))
 	{
-		cout << "hkbStateMachineEventPropertyArray(ID: " << id << ") is complete!" << endl;
+		cout << "hkbStateMachineEventPropertyArray (ID: " << id << ") is complete!" << endl;
 	}
 }
 
@@ -246,37 +234,36 @@ void hkbstatemachineeventpropertyarray::Dummy(string id)
 {
 	if (Debug)
 	{
-		cout << "--------------------------------------------------------------" << endl << "Dummy hkbStateMachineEventPropertyArray(ID: " << id << ") has been initialized!" << endl;
+		cout << "--------------------------------------------------------------" << endl << "Dummy hkbStateMachineEventPropertyArray (ID: " << id << ") has been initialized!" << endl;
 	}
-	
-	string line;
-	string filepath = "new/" + id + ".txt";
-	ifstream file(filepath);
-	payloadcount = 0;
 
-	if (file.is_open())
+	string line;
+
+	if (FunctionLineNew[id].size() > 0)
 	{
-		while (getline(file, line))
+		for (unsigned int i = 0; i < FunctionLineNew[id].size(); ++i)
 		{
+			line = FunctionLineNew[id][i];
+
 			if (line.find("<hkparam name=\"payload\">", 0) != string::npos)
 			{
 				payload.push_back(line.substr(29, line.find("</hkparam>") - 29));
 
-				if (payload[payloadcount] != "null")
+				if (payload.back() != "null")
 				{
-					if (!exchangeID[payload[payloadcount]].empty())
+					if (!exchangeID[payload.back()].empty())
 					{
-						payload[payloadcount] = exchangeID[payload[payloadcount]];
+						payload.back() = exchangeID[payload.back()];
 					}
+
+					parent[payload.back()] = id;
 				}
-				payloadcount++;
 			}
 		}
-		file.close();
 	}
 	else
 	{
-		cout << "ERROR: Dummy hkbStateMachineEventPropertyArray Inputfile(File: " << filepath << ", ID: " << id << ")" << endl;
+		cout << "ERROR: Dummy hkbStateMachineEventPropertyArray Inputfile (ID: " << id << ")" << endl;
 		Error = true;
 	}
 
@@ -284,13 +271,13 @@ void hkbstatemachineeventpropertyarray::Dummy(string id)
 
 	if ((Debug) && (!Error))
 	{
-		cout << "Dummy hkbStateMachineEventPropertyArray(ID: " << id << ") is complete!" << endl;
+		cout << "Dummy hkbStateMachineEventPropertyArray (ID: " << id << ") is complete!" << endl;
 	}
 }
 
 int hkbstatemachineeventpropertyarray::GetPayloadCount()
 {
-	return payloadcount;
+	return int(payload.size());
 }
 
 string hkbstatemachineeventpropertyarray::GetPayload(int child)
@@ -320,218 +307,207 @@ bool hkbstatemachineeventpropertyarray::IsNegate()
 	return IsNegated;
 }
 
-void hkbStateMachineEventPropertyArrayExport(string originalfile, string editedfile, string id)
+void hkbStateMachineEventPropertyArrayExport(string id)
 {
 	// stage 1 reading
-	vector<string> storeline1;
-	ifstream origfile(originalfile);
-	string line;
+	vector<shared_ptr<events>> oriEvents;
+	shared_ptr<events> curEvent;
 
-	if (origfile.is_open())
+	if (FunctionLineTemp[id].size() > 0)
 	{
-		while (getline(origfile, line))
+		for (unsigned int i = 0; i < FunctionLineTemp[id].size(); ++i)
 		{
-			if ((line.find("<hkobject>", 0) == string::npos) && (line.find("</hkobject>", 0) == string::npos) && (line.find("</hkparam>", 0) == string::npos || line.find("</hkparam>", 0) > 10))
-			{
-				storeline1.push_back(line);
-			}
+			eventInfoProcess(FunctionLineTemp[id][i], oriEvents, curEvent);
 		}
-		origfile.close();
 	}
 	else
 	{
-		cout << "ERROR: Edit hkbStateMachineEventPropertyArray Input Not Found (Original File: " << originalfile << ")" << endl;
+		cout << "ERROR: Edit hkbStateMachineEventPropertyArray Input Not Found (ID: " << id << ")" << endl;
 		Error = true;
 		return;
 	}
 
-	vector<string> storeline2;
-	ifstream editfile(editedfile);
-
-	if (editfile.is_open())
+	if (curEvent)
 	{
-		while (getline(editfile, line))
+		curEvent->proxy = false;
+		oriEvents.push_back(curEvent);
+	}
+
+	curEvent = nullptr;
+	vector<shared_ptr<events>> newEvents;
+
+	if (FunctionLineNew[id].size() > 0)
+	{
+		for (unsigned int i = 0; i < FunctionLineNew[id].size(); ++i)
 		{
-			if ((line.find("<hkobject>", 0) == string::npos) && (line.find("</hkobject>", 0) == string::npos) && (line.find("</hkparam>", 0) == string::npos || line.find("</hkparam>", 0) > 10))
-			{
-				storeline2.push_back(line);
-			}
+			eventInfoProcess(FunctionLineNew[id][i], newEvents, curEvent);
 		}
-		editfile.close();
 	}
 	else
 	{
-		cout << "ERROR: Edit hkbStateMachineEventPropertyArray Output Not Found (Edited File: " << editedfile << ")" << endl;
+		cout << "ERROR: Edit hkbStateMachineEventPropertyArray Output Not Found (ID: " << id << ")" << endl;
 		Error = true;
+		return;
+	}
+
+	if (curEvent)
+	{
+		curEvent->proxy = false;
+		newEvents.push_back(curEvent);
+	}
+
+	if (!matchScoring(oriEvents, newEvents, id))
+	{
 		return;
 	}
 
 	// stage 2 identify edits
 	vector<string> output;
-	bool newtransition = false;
-	bool IsChanged = false;
-	bool open = false;
 	bool IsEdited = false;
-	int curline = 2;
-	int openpoint;
-	int closepoint;
 
-	output.push_back(storeline2[0]);
-	if ((storeline1[1].find(storeline2[1], 0) == string::npos) || (storeline1[1].length() != storeline2[1].length()))
+	output.push_back(FunctionLineNew[id][0]);
+
+	if ((FunctionLineTemp[id][1].find(FunctionLineNew[id][1], 0) == string::npos) || (FunctionLineTemp[id][1].length() != FunctionLineNew[id][1].length()))
 	{
 		output.push_back("<!-- MOD_CODE ~" + modcode + "~ OPEN -->");
-		openpoint = curline - 1;
-		IsChanged = true;
+		output.push_back(FunctionLineNew[id][1]);
+		output.push_back("<!-- ORIGINAL -->");
+		output.push_back(FunctionLineTemp[id][1]);
+		output.push_back("<!-- CLOSE -->");
 		IsEdited = true;
-		open = true;
 	}
-	output.push_back(storeline2[1]);
-
-	for (unsigned int i = 2; i < storeline2.size(); i++)
+	else
 	{
-		if (!newtransition) // existing data
+		output.push_back(FunctionLineTemp[id][1]);
+	}
+
+	for (unsigned int i = 0; i < oriEvents.size(); i++)
+	{
+		vector<string> storeline;
+		bool open = false;
+
+		if (newEvents[i]->proxy)
 		{
-			if ((storeline1[curline].find(storeline2[i], 0) != string::npos) && (storeline1[curline].length() == storeline2[i].length()))
-			{
-				if (open)
-				{
-					if (IsChanged)
-					{
-						closepoint = curline;
-						if (closepoint != openpoint)
-						{
-							output.push_back("<!-- ORIGINAL -->");
-							for (int j = openpoint; j < closepoint; j++)
-							{
-								output.push_back(storeline1[j]);
-							}
-						}
-					}
-					output.push_back("<!-- CLOSE -->");
-					IsChanged = false;
-					open = false;
-				}
-			}
-			else
-			{
-				if (!open)
-				{
-					output.push_back("<!-- MOD_CODE ~" + modcode + "~ OPEN -->");
-					openpoint = curline;
-					IsChanged = true;
-					IsEdited = true;
-					open = true;
-				}
-			}
-			output.push_back(storeline2[i]);
+			vector<string> instore;
+			output.push_back("<!-- MOD_CODE ~" + modcode + "~ OPEN -->");
+			IsEdited = true;
+			bool nobreak = true;
 
-			if (curline != storeline1.size() - 1)
+			while (i < oriEvents.size())
 			{
-				curline++;
-			}
-			else
-			{
-				newtransition = true;
+				if (!newEvents[i]->proxy)
+				{
+					output.push_back("<!-- ORIGINAL -->");
+					output.insert(output.end(), instore.begin(), instore.end());
+					output.push_back("<!-- CLOSE -->");
+					nobreak = false;
+					--i;
+					break;
+				}
+
+				int add = 0;
+
+				while (add < 4)
+				{
+					output.push_back("");
+					++add;
+				}
+
+				inputEvent(instore, oriEvents[i]);
+				++i;
 			}
 
-			if (i == storeline2.size() - 1) // if close no new element
+			if (nobreak)
 			{
-				if (open)
-				{
-					if (IsChanged)
-					{
-						closepoint = curline + 1;
-						if (closepoint != openpoint)
-						{
-							output.push_back("<!-- ORIGINAL -->");
-							for (int j = openpoint; j < closepoint; j++)
-							{
-								output.push_back(storeline1[j]);
-							}
-						}
-					}
-					output.push_back("<!-- CLOSE -->");
-					IsChanged = false;
-					open = false;
-				}
+				output.push_back("<!-- ORIGINAL -->");
+				output.insert(output.end(), instore.begin(), instore.end());
+				output.push_back("<!-- CLOSE -->");
 			}
 		}
-		else // new added data
+		else if (!oriEvents[i]->proxy)
 		{
-			if (i != storeline2.size() - 1)
+			output.push_back("				<hkobject>");
+
+			if (oriEvents[i]->id != newEvents[i]->id)
+			{
+				output.push_back("<!-- MOD_CODE ~" + modcode + "~ OPEN -->");
+				output.push_back("					<hkparam name=\"id\">" + to_string(newEvents[i]->id) + "</hkparam>");
+				storeline.push_back("					<hkparam name=\"id\">" + to_string(oriEvents[i]->id) + "</hkparam>");
+				open = true;
+				IsEdited = true;
+			}
+			else
+			{
+				output.push_back("					<hkparam name=\"id\">" + to_string(oriEvents[i]->id) + "</hkparam>");
+			}
+
+			if (oriEvents[i]->payload != newEvents[i]->payload)
 			{
 				if (!open)
 				{
 					output.push_back("<!-- MOD_CODE ~" + modcode + "~ OPEN -->");
-					IsEdited = true;
 					open = true;
+					IsEdited = true;
 				}
-				output.push_back(storeline2[i]);
+
+				output.push_back("					<hkparam name=\"payload\">" + newEvents[i]->payload + "</hkparam>");
+				storeline.push_back("					<hkparam name=\"payload\">" + oriEvents[i]->payload + "</hkparam>");
 			}
 			else
 			{
-				output.push_back(storeline2[i]);
 				if (open)
 				{
-					if (IsChanged)
-					{
-						closepoint = curline + 1;
-						if (closepoint != openpoint)
-						{
-							output.push_back("<!-- ORIGINAL -->");
-							for (int j = openpoint; j < closepoint; j++)
-							{
-								output.push_back(storeline1[j]);
-							}
-						}
-					}
+					output.push_back("<!-- ORIGINAL -->");
+					output.insert(output.end(), storeline.begin(), storeline.end());
 					output.push_back("<!-- CLOSE -->");
+					storeline.clear();
 					open = false;
 				}
+
+				output.push_back("					<hkparam name=\"payload\">" + oriEvents[i]->payload + "</hkparam>");
 			}
+
+			output.push_back("				</hkobject>");
+		}
+		else
+		{
+			output.push_back("<!-- MOD_CODE ~" + modcode + "~ OPEN -->");
+			IsEdited = true;
+
+			while (i < oriEvents.size())
+			{
+				inputEvent(output, newEvents[i]);
+				++i;
+			}
+
+			output.push_back("<!-- CLOSE -->");
 		}
 	}
+
+	output.push_back("			</hkparam>");
+	output.push_back("		</hkobject>");
 
 	// stage 3 output if it is edited
-	string filename = "cache/" + modcode + "/" + shortFileName + "/" + id + ".txt";
+	string filename = "mod/" + modcode + "/" + shortFileName + "/" + id + ".txt";
+
 	if (IsEdited)
 	{
 		ofstream outputfile(filename);
+
 		if (outputfile.is_open())
 		{
+			FunctionWriter fwrite(&outputfile);
+
 			for (unsigned int i = 0; i < output.size(); i++)
 			{
-				if (output[i].find("<hkparam name=\"id\">", 0) != string::npos && output[i].find("<hkparam name=\"id\">-1</hkparam>", 0) == string::npos)
-				{
-					outputfile << "				<hkobject>" << "\n";
-					usize eventpos = output[i].find("id\">") + 4;
-					string eventid = output[i].substr(eventpos, output[i].find("</hkparam>"));
-
-					if (eventID[eventid].length() != 0)
-					{
-						output[i].replace(eventpos, output[i].find("</hkparam>") - eventpos, "$eventID[" + eventID[eventid] + "]$");
-					}
-
-					outputfile << output[i] << "\n";
-				}
-				else if (output[i].find("<hkparam name=\"payload\">", 0) != string::npos)
-				{
-					outputfile << output[i] << "\n";
-					outputfile << "				</hkobject>" << "\n";
-				}
-				else
-				{
-					outputfile << output[i] << "\n";
-				}
+				fwrite << output[i] << "\n";
 			}
 
-			outputfile << "			</hkparam>" << "\n";
-			outputfile << "		</hkobject>" << "\n";
 			outputfile.close();
 		}
 		else
 		{
-			cout << "ERROR: Edit hkbStateMachineEventPropertyArray Output Not Found (New Edited File: " << editedfile << ")" << endl;
+			cout << "ERROR: Edit hkbStateMachineEventPropertyArray Output Not Found (File: " << filename << ")" << endl;
 			Error = true;
 			return;
 		}
@@ -544,6 +520,350 @@ void hkbStateMachineEventPropertyArrayExport(string originalfile, string editedf
 			{
 				perror("Error deleting file");
 				Error = true;
+			}
+		}
+	}
+}
+
+void eventInfoProcess(string line, vector<shared_ptr<events>>& eventlist, shared_ptr<events>& curEvent)
+{
+	if (line.find("<hkparam name=\"id\">") != string::npos)
+	{
+		if (curEvent)
+		{
+			curEvent->proxy = false;
+			eventlist.push_back(curEvent);
+		}
+
+		curEvent = make_shared<events>();
+		size_t pos = line.find("<hkparam name=\"id\">") + 19;
+		curEvent->id = abs(stoi(line.substr(pos, line.find("</hkparam>", pos) - pos)));
+	}
+	else if (line.find("<hkparam name=\"payload\">") != string::npos)
+	{
+		size_t pos = line.find("<hkparam name=\"payload\">") + 24;
+		curEvent->payload = line.substr(pos, line.find("</hkparam>", pos) - pos);
+	}
+}
+
+void inputEvent(vector<string>& input, shared_ptr<events> element)
+{
+	input.push_back("				<hkobject>");
+	input.push_back("					<hkparam name=\"id\">" + to_string(element->id) + "</hkparam>");
+	input.push_back("					<hkparam name=\"payload\">" + element->payload + "</hkparam>");
+	input.push_back("				</hkobject>");
+}
+
+bool matchScoring(vector<shared_ptr<events>>& ori, vector<shared_ptr<events>>& edit, string id)
+{
+	if (ori.size() == 0)
+	{
+		cout << "ERROR: hkbStateMachineEventPropertyArray empty original trigger (ID: " << id << ")" << endl;
+		Error = true;
+		return false;
+	}
+
+	int counter = 0;
+	map<int, map<int, int>> scorelist;
+	map<int, bool> taken;
+	vector<shared_ptr<events>> newOri;
+	vector<shared_ptr<events>> newEdit;
+
+	// match scoring
+	for (unsigned int i = 0; i < ori.size(); ++i)
+	{
+		for (unsigned int j = 0; j < edit.size(); ++j)
+		{
+			scorelist[i][j] = 0;
+
+			if (ori[i]->id == edit[j]->id)
+			{
+				scorelist[i][j] += 10;
+			}
+
+			if (ori[i]->payload == edit[j]->payload)
+			{
+				++scorelist[i][j];
+			}
+		}
+	}
+
+	vector<orderPair> pairing = highestScore(scorelist, ori.size(), edit.size());
+
+	// assigning
+	for (auto& order : pairing)
+	{
+		if (order.original == -1)
+		{
+			newOri.push_back(make_shared<events>());
+		}
+		else
+		{
+			newOri.push_back(ori[order.original]);
+		}
+
+		if (order.edited == -1)
+		{
+			newEdit.push_back(make_shared<events>());
+		}
+		else
+		{
+			newEdit.push_back(edit[order.edited]);
+		}
+	}
+
+	ori = newOri;
+	edit = newEdit;
+	return true;
+}
+
+namespace keepsake
+{
+	void hkbStateMachineEventPropertyArrayExport(string id)
+	{
+		// stage 1 reading
+		vector<string> storeline1;
+		storeline1.reserve(FunctionLineTemp[id].size());
+		string line;
+
+		if (FunctionLineTemp[id].size() > 0)
+		{
+			for (unsigned int i = 0; i < FunctionLineTemp[id].size(); ++i)
+			{
+				line = FunctionLineTemp[id][i];
+
+				if ((line.find("<hkobject>", 0) == string::npos) && (line.find("</hkobject>", 0) == string::npos) && (line.find("</hkparam>", 0) == string::npos || line.find("</hkparam>", 0) > 10))
+				{
+					storeline1.push_back(line);
+				}
+			}
+		}
+		else
+		{
+			cout << "ERROR: Edit hkbStateMachineEventPropertyArray Input Not Found (ID: " << id << ")" << endl;
+			Error = true;
+			return;
+		}
+
+		vector<string> storeline2;
+		storeline2.reserve(FunctionLineNew[id].size());
+
+		if (FunctionLineNew[id].size() > 0)
+		{
+			for (unsigned int i = 0; i < FunctionLineNew[id].size(); ++i)
+			{
+				line = FunctionLineNew[id][i];
+
+				if ((line.find("<hkobject>", 0) == string::npos) && (line.find("</hkobject>", 0) == string::npos) && (line.find("</hkparam>", 0) == string::npos || line.find("</hkparam>", 0) > 10))
+				{
+					storeline2.push_back(line);
+				}
+			}
+		}
+		else
+		{
+			cout << "ERROR: Edit hkbStateMachineEventPropertyArray Output Not Found (ID: " << id << ")" << endl;
+			Error = true;
+			return;
+		}
+
+		// stage 2 identify edits
+		vector<string> output;
+		bool newtransition = false;
+		bool IsChanged = false;
+		bool open = false;
+		bool IsEdited = false;
+		int curline = 2;
+		int openpoint;
+		int closepoint;
+
+		output.push_back(storeline2[0]);
+
+		if ((storeline1[1].find(storeline2[1], 0) == string::npos) || (storeline1[1].length() != storeline2[1].length()))
+		{
+			output.push_back("<!-- MOD_CODE ~" + modcode + "~ OPEN -->");
+			openpoint = curline - 1;
+			IsChanged = true;
+			IsEdited = true;
+			open = true;
+		}
+
+		output.push_back(storeline2[1]);
+
+		for (unsigned int i = 2; i < storeline2.size(); i++)
+		{
+			if (!newtransition) // existing data
+			{
+				if ((storeline1[curline].find(storeline2[i], 0) != string::npos) && (storeline1[curline].length() == storeline2[i].length()))
+				{
+					if (open)
+					{
+						if (IsChanged)
+						{
+							closepoint = curline;
+
+							if (closepoint != openpoint)
+							{
+								output.push_back("<!-- ORIGINAL -->");
+
+								for (int j = openpoint; j < closepoint; j++)
+								{
+									output.push_back(storeline1[j]);
+								}
+							}
+						}
+
+						output.push_back("<!-- CLOSE -->");
+						IsChanged = false;
+						open = false;
+					}
+				}
+				else
+				{
+					if (!open)
+					{
+						output.push_back("<!-- MOD_CODE ~" + modcode + "~ OPEN -->");
+						openpoint = curline;
+						IsChanged = true;
+						IsEdited = true;
+						open = true;
+					}
+				}
+
+				output.push_back(storeline2[i]);
+
+				if (curline != storeline1.size() - 1)
+				{
+					curline++;
+				}
+				else
+				{
+					newtransition = true;
+				}
+
+				if (i == storeline2.size() - 1) // if close no new element
+				{
+					if (open)
+					{
+						if (IsChanged)
+						{
+							closepoint = curline + 1;
+
+							if (closepoint != openpoint)
+							{
+								output.push_back("<!-- ORIGINAL -->");
+
+								for (int j = openpoint; j < closepoint; j++)
+								{
+									output.push_back(storeline1[j]);
+								}
+							}
+						}
+
+						output.push_back("<!-- CLOSE -->");
+						IsChanged = false;
+						open = false;
+					}
+				}
+			}
+			else // new added data
+			{
+				if (i != storeline2.size() - 1)
+				{
+					if (!open)
+					{
+						output.push_back("<!-- MOD_CODE ~" + modcode + "~ OPEN -->");
+						IsEdited = true;
+						open = true;
+					}
+
+					output.push_back(storeline2[i]);
+				}
+				else
+				{
+					output.push_back(storeline2[i]);
+
+					if (open)
+					{
+						if (IsChanged)
+						{
+							closepoint = curline + 1;
+
+							if (closepoint != openpoint)
+							{
+								output.push_back("<!-- ORIGINAL -->");
+
+								for (int j = openpoint; j < closepoint; j++)
+								{
+									output.push_back(storeline1[j]);
+								}
+							}
+						}
+
+						output.push_back("<!-- CLOSE -->");
+						open = false;
+					}
+				}
+			}
+		}
+
+		// stage 3 output if it is edited
+		string filename = "mod/" + modcode + "/" + shortFileName + "/" + id + ".txt";
+
+		if (IsEdited)
+		{
+			ofstream outputfile(filename);
+
+			if (outputfile.is_open())
+			{
+				FunctionWriter fwrite(&outputfile);
+
+				for (unsigned int i = 0; i < output.size(); i++)
+				{
+					if (output[i].find("<hkparam name=\"id\">", 0) != string::npos && output[i].find("<hkparam name=\"id\">-1</hkparam>", 0) == string::npos)
+					{
+						fwrite << "				<hkobject>" << "\n";
+						usize eventpos = output[i].find("id\">") + 4;
+						string eventid = output[i].substr(eventpos, output[i].find("</hkparam>"));
+
+						if (eventID[eventid].length() != 0)
+						{
+							output[i].replace(eventpos, output[i].find("</hkparam>") - eventpos, "$eventID[" + eventID[eventid] + "]$");
+						}
+
+						fwrite << output[i] << "\n";
+					}
+					else if (output[i].find("<hkparam name=\"payload\">", 0) != string::npos)
+					{
+						fwrite << output[i] << "\n";
+						fwrite << "				</hkobject>" << "\n";
+					}
+					else
+					{
+						fwrite << output[i] << "\n";
+					}
+				}
+
+				fwrite << "			</hkparam>" << "\n";
+				fwrite << "		</hkobject>" << "\n";
+				outputfile.close();
+			}
+			else
+			{
+				cout << "ERROR: Edit hkbStateMachineEventPropertyArray Output Not Found (File: " << filename << ")" << endl;
+				Error = true;
+				return;
+			}
+		}
+		else
+		{
+			if (IsFileExist(filename))
+			{
+				if (remove(filename.c_str()) != 0)
+				{
+					perror("Error deleting file");
+					Error = true;
+				}
 			}
 		}
 	}

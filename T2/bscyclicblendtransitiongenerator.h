@@ -7,7 +7,6 @@
 #include <vector>
 #include <Windows.h>
 
-
 struct bscyclicblendtransitiongenerator
 {
 public:
@@ -35,10 +34,9 @@ private:
 	std::string generator;
 	std::vector<std::string> payload;
 	std::string variablebindingset;
-	int payloadcount;
 	bool IsNegated = false;
 };
 
-extern void BSCyclicBlendTransitionGeneratorExport(std::string originalfile, std::string editedfile, std::string id);
+extern void BSCyclicBlendTransitionGeneratorExport(std::string id);
 
 #endif

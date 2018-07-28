@@ -28,6 +28,6 @@ private:
 	bool IsNegated = false;
 };
 
-extern void hkbBehaviorReferenceGeneratorExport(std::string originalfile, std::string editedfile, std::string id);
+extern void hkbBehaviorReferenceGeneratorExport(std::string id);
 
 #endif

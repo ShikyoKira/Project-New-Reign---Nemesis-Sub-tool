@@ -32,6 +32,6 @@ private:
 	bool IsNegated = false;
 };
 
-extern void hkbKeyframeBonesModifierExport(std::string originalfile, std::string editedfile, std::string id);
+extern void hkbKeyframeBonesModifierExport(std::string id);
 
 #endif

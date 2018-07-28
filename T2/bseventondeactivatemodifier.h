@@ -32,6 +32,6 @@ private:
 	bool IsNegated = false;
 };
 
-extern void BSEventOnDeactivateModifierExport(std::string originalfile, std::string editedfile, std::string id);
+extern void BSEventOnDeactivateModifierExport(std::string id);
 
 #endif

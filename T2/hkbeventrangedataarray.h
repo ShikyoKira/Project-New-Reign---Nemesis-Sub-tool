@@ -26,10 +26,9 @@ private:
 	std::string address;
 	std::string tempaddress;
 	std::vector<std::string> payload;
-	int payloadcount;
 	bool IsNegated = false;
 };
 
-extern void hkbEventRangeDataArrayExport(std::string originalfile, std::string editedfile, std::string id);
+extern void hkbEventRangeDataArrayExport(std::string id);
 
 #endif

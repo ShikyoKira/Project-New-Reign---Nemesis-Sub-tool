@@ -32,6 +32,6 @@ private:
 	bool IsNegated = false;
 };
 
-extern void hkbEvaluateExpressionModifierExport(std::string originalfile, std::string editedfile, std::string id);
+extern void hkbEvaluateExpressionModifierExport(std::string id);
 
 #endif

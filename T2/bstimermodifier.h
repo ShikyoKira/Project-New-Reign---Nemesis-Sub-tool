@@ -32,6 +32,6 @@ private:
 	bool IsNegated = false;
 };
 
-extern void BSTimerModifierExport(std::string originalfile, std::string editedfile, std::string id);
+extern void BSTimerModifierExport(std::string id);
 
 #endif

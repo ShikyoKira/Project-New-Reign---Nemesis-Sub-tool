@@ -28,6 +28,6 @@ private:
 	bool IsNegated = false;
 };
 
-extern void BSGetTimeStepModifierExport(std::string originalfile, std::string editedfile, std::string id);
+extern void BSGetTimeStepModifierExport(std::string id);
 
 #endif
