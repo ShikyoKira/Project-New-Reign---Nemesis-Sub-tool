@@ -434,7 +434,7 @@ void BSBoneSwitchGeneratorBoneDataExport(string id)
 		Error = true;
 	}
 
-	NemesisReaderFormat(storeline2);
+	NemesisReaderFormat(storeline2, true);
 
 	// stage 3 output if it is edited
 	string filename = "mod/" + modcode + "/" + shortFileName + "/" + id + ".txt";

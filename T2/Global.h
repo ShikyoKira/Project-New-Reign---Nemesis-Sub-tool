@@ -5,6 +5,7 @@
 #include <vector>
 #include <fstream>
 #include <iostream>
+#include <memory>
 #include <windows.h>
 #include <unordered_map>
 #include <set>
@@ -15,8 +16,15 @@
 #include "Global-Type.h"
 #include "functionwriter.h"
 
+struct AnimDataProject;
+struct AnimSetDataProject;
+
 extern bool Error;
 extern bool Debug;
+extern nodelist FunctionLineNew;
+extern nodelist FunctionLineTemp;
+extern nodelist FunctionLineOriginal;
+extern nodelist FunctionLineEdited;
 extern std::set<int> idcount;
 extern std::vector<std::string> originalfileline;
 extern std::vector<std::string> editedfileline;
@@ -36,17 +44,19 @@ extern std::unordered_map<std::string, std::string> characterID;
 extern std::unordered_map<std::string, std::string> addressID;
 extern std::unordered_map<std::string, std::string> exchangeID;
 extern std::unordered_map<std::string, std::string> addressChange;
-extern std::unordered_map<std::string, std::vector<std::string>> FunctionLineNew;
-extern std::unordered_map<std::string, std::vector<std::string>> FunctionLineTemp;
-extern std::unordered_map<std::string, std::vector<std::string>> FunctionLineOriginal;
-extern std::unordered_map<std::string, std::vector<std::string>> FunctionLineEdited;
 extern std::unordered_map<std::string, std::vector<std::string>> referencingIDs;
+extern std::vector<std::shared_ptr<AnimDataProject>> AnimDataOriginal;			// AnimData data
+extern std::vector<std::shared_ptr<AnimDataProject>> AnimDataEdited;			// Edited AnimData data
+extern std::vector<std::shared_ptr<AnimSetDataProject>> AnimSetDataOriginal;		// AnimSetData data
+extern std::vector<std::shared_ptr<AnimSetDataProject>> AnimSetDataEdited;			// Edited AnimSetData data
 extern std::string modcode;
 extern std::string targetfilename;
 extern std::string targetfilenameedited;
 extern std::string shortFileName;
 extern std::string shortFileNameEdited;
 extern int functioncount;
+extern unsigned int eventCount;
+extern unsigned int varCount;
 
 extern inline int sameWordCount(std::string line, std::string word);
 extern inline bool IsFileExist(const std::string& name); // check if file exist

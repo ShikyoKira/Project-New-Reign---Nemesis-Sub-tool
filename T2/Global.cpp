@@ -7,6 +7,10 @@ typedef unordered_map<string, string> mapstring;
 bool Error = false;
 bool Debug = false;
 set<int> idcount;
+nodelist FunctionLineNew;		// function new data
+nodelist FunctionLineTemp;		// function temp data
+nodelist FunctionLineOriginal;	// function original data
+nodelist FunctionLineEdited;	// function edited data
 unordered_map<string, int> regioncount;
 unordered_map<string, int> elements;
 unordered_map<string, bool> IsForeign;
@@ -24,17 +28,19 @@ unordered_map<string, string> characterID;
 unordered_map<string, string> addressID;
 unordered_map<string, string> exchangeID;
 unordered_map<string, string> addressChange;				// temp address change check
-unordered_map<string, vector<string>> FunctionLineNew;		// function new data
-unordered_map<string, vector<string>> FunctionLineTemp;		// function temp data
-unordered_map<string, vector<string>> FunctionLineOriginal; // function original data
-unordered_map<string, vector<string>> FunctionLineEdited;	// function edited data
 unordered_map<string, vector<string>> referencingIDs;		// which function use this ID
+vector<shared_ptr<AnimDataProject>> AnimDataOriginal;
+vector<shared_ptr<AnimDataProject>> AnimDataEdited;
+vector<shared_ptr<AnimSetDataProject>> AnimSetDataOriginal;
+vector<shared_ptr<AnimSetDataProject>> AnimSetDataEdited;
 string modcode = "null";
 string targetfilename;
 string targetfilenameedited;
 string shortFileName;
 string shortFileNameEdited;
 int functioncount = 0;
+unsigned int eventCount;
+unsigned int varCount;
 
 bool IsOldRegion(string id, string address, bool special = false);
 bool IsOldFunctionExt(string filename, string id, string address, bool condition = false);
@@ -358,12 +364,18 @@ string CrossReferencing(string id, string address, int functionlayer, bool compa
 				return id;
 			}
 
+			if (id == "#90184")
+			{
+				string parentID = parent[id];
+				id = id;
+			}
+
 			if (oriID != id)
 			{
 				exchangeID[id] = oriID;
 				ReferenceReplacement(id, oriID);
 			}
-			
+
 			return oriID;
 		}
 		else

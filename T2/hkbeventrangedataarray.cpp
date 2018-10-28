@@ -500,19 +500,7 @@ void hkbEventRangeDataArrayExport(string id)
 		}
 	}
 
-	for (unsigned int j = 0; j < output.size(); j++)
-	{
-		if ((output[j].find("<hkparam name=\"id\">", 0) != string::npos) && (output[j].find("<hkparam name=\"id\">-1</hkparam>", 0) == string::npos))
-		{
-			usize eventpos = output[j].find("id\">") + 4;
-			string eventid = output[j].substr(eventpos, output[j].find("</hkparam>"));
-
-			if (eventID[eventid].length() != 0)
-			{
-				output[j].replace(eventpos, output[j].find("</hkparam>") - eventpos, "$eventID[" + eventID[eventid] + "]$");
-			}
-		}
-	}
+	NemesisReaderFormat(output, true);
 
 	// stage 3 output if it is edited
 	string filename = "mod/" + modcode + "/" + shortFileName + "/" + id + ".txt";

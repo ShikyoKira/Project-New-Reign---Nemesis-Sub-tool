@@ -6,8 +6,10 @@
 #include <vector>
 #include <algorithm>
 #include <stdlib.h>
+#include <atomic>
 #include <boost\date_time\posix_time\posix_time.hpp>
 #include <boost\filesystem.hpp>
+#include <boost\thread.hpp>
 #include "Global.h"
 #include "hkbbehaviorgraph.h"
 #include "hkrootlevelcontainer.h"
@@ -96,9 +98,15 @@
 #include "bsoffsetanimationgenerator.h"
 #include "hkbposematchinggenerator.h"
 #include "hkbstringcondition.h"
-#include "AnimData\animationdata.h"
+#include "src\FillFunction.h"
+#include "src\atomiclock.h"
+#include "AnimData\animdatacore.h"
+#include "AnimSetData\animsetdatacore.h"
 
 using namespace std;
+
+bool isBehavior = false;
+bool isAnimData = false;
 
 string GetClass(string id, bool compare); // get class
 
@@ -143,8 +151,7 @@ void GoToData(T &ptr, string inputfile, string tempadd, string preaddress, int f
 void Clearing(string file, bool edited); // clear and store file in vector
 void ClearIgnore(string file1, string file2); // clear serialized ignore
 void ClassIdentifier(string inputfile, string classname, string id, string preaddress, int functionlayer, bool compare); // idenfity class and record function
-void EditClassIdentifier(string originalfile, string editedfile, string classname, string id); // export edited file
-void AddBehavior(string filename, vecstr& storeline, bool edited);
+void EditClassIdentifier(string classname, string id); // export edited file
 void Initialize(string originalfile); // initialize reading original file procedure
 void InitializeComparing(string editedfile); // initialize comparing procedure
 void GetEdits(); // getting edits from editedfile
@@ -584,179 +591,6 @@ void GoToMultiPayload(T &ptr, string inputfile, string tempadd, string preaddres
 	}
 }
 
-void AddBehavior(string filename, vecstr& storeline, bool edited)
-{
-	string line;
-	string namesearch = "SERIALIZE_IGNORED";
-	string tempID;
-	bool record = false;
-	bool eventOpen = false;
-	bool attriOption = false;
-	bool varOpen = false;
-	bool charOpen = false;
-	int counter = 0;
-
-	for (unsigned int j = 0; j < storeline.size(); ++j)
-	{
-		if (Error)
-		{
-			return;
-		}
-
-		line = storeline[j];
-
-		if (edited)
-		{
-			if (line.find("#", 0) != string::npos)
-			{
-				if (line.find("&#", 0) == string::npos && line.find(";", line.find("&#")) == string::npos)
-				{
-					usize tempint = 0;
-					usize size = count(line.begin(), line.end(), '#');
-
-					for (unsigned int i = 0; i < size; i++)
-					{
-						usize position = line.find("#", tempint);
-						tempint = line.find("#", position + 1);
-						string tempID;
-
-						if (tempint == -1)
-						{
-							string templine;
-
-							if (line.find("signature", 0) != string::npos)
-							{
-								templine = line.substr(0, line.find("class"));
-							}
-							else if (line.find("toplevelobject", 0) != string::npos)
-							{
-								templine = line.substr(line.find("toplevelobject"), line.find(">"));
-							}
-							else
-							{
-								templine = line.substr(position, tempint - position - 1);
-							}
-
-							tempID = "#" + boost::regex_replace(string(templine), boost::regex("[^0-9]*([0-9]+).*"), string("\\1"));
-						}
-						else
-						{
-							tempID = line.substr(position, tempint - position - 1);
-						}
-
-						int tempLength = tempID.length();
-
-						if (tempLength > 6)
-						{
-							cout << "ERROR: File contains invalid data(File: " << filename << ")" << endl;
-							Error = true;
-							return;
-						}
-
-						string strID = tempID.substr(1, tempLength - 1);
-						int intID = stoi(strID);
-
-						if (intID < 10000)
-						{
-							usize position2 = line.find(tempID);
-							line.replace(position2, tempLength, "#9" + strID);
-						}
-					}
-				}
-			}
-
-			if (line.find("<hkparam name=\"eventNames\" numelements=\"") != string::npos && line.find("<hkparam name=\"eventNames\" numelements=\"0\">") == string::npos)
-			{
-				eventOpen = true;
-			}
-			else if (line.find("<hkparam name=\"attributeNames\" numelements=\"") != string::npos && line.find("<hkparam name=\"attributeNames\" numelements=\"0\">") == string::npos)
-			{
-				attriOption = true;
-			}
-			else if (line.find("<hkparam name=\"variableNames\" numelements=\"") != string::npos && line.find("<hkparam name=\"variableNames\" numelements=\"0\">") == string::npos)
-			{
-				varOpen = true;
-			}
-			else if (line.find("<hkparam name=\"characterPropertyNames\" numelements=\"") != string::npos && line.find("<hkparam name=\"characterPropertyNames\" numelements=\"0\">") == string::npos)
-			{
-				charOpen = true;
-			}
-			else if (line.find("</hkparam>") != string::npos)
-			{
-				if (eventOpen)
-				{
-					eventOpen = false;
-				}
-				else if (attriOption)
-				{
-					attriOption = false;
-				}
-				else if (varOpen)
-				{
-					varOpen = false;
-				}
-				else if (charOpen)
-				{
-					charOpen = false;
-				}
-
-				counter = 0;
-			}
-
-			if (line.find("<hkcstring>") != string::npos && line.find("</hkcstring>") != string::npos)
-			{
-				if (eventOpen)
-				{
-					usize pos = line.find("<hkcstring>") + 11;
-					string templine = line.substr(pos, line.find("</hkcstring>") - pos);
-					eventID[to_string(counter++)] = templine;
-				}
-				else if (attriOption)
-				{
-					usize pos = line.find("<hkcstring>") + 11;
-					string templine = line.substr(pos, line.find("</hkcstring>") - pos);
-					attributeID[to_string(counter++)] = templine;
-				}
-				else if (varOpen)
-				{
-					usize pos = line.find("<hkcstring>") + 11;
-					string templine = line.substr(pos, line.find("</hkcstring>") - pos);
-					variableID[to_string(counter++)] = templine;
-				}
-				else if (charOpen)
-				{
-					usize pos = line.find("<hkcstring>") + 11;
-					string templine = line.substr(pos, line.find("</hkcstring>") - pos);
-					characterID[to_string(counter++)] = templine;
-				}
-			}
-		}
-
-		if ((line.find("<hkobject name=\"", 0) != string::npos) && (record == false))
-		{
-			tempID = line.substr(line.find("name") + 6, line.find("class") - line.find("name") - 8);
-			record = true;
-		}
-
-		if (line.length() == 0)
-		{
-			record = false;
-		}
-		
-		if ((record == true) && (line.find(namesearch, 0) == string::npos))
-		{
-			if (!edited)
-			{
-				FunctionLineOriginal[tempID].push_back(line);
-			}
-			else
-			{
-				FunctionLineEdited[tempID].push_back(line);
-			}
-		}
-	}
-}
-
 void Clearing(string filename, bool edited)
 {
 	boost::posix_time::ptime mtime1 = boost::posix_time::microsec_clock::local_time();
@@ -775,7 +609,27 @@ void Clearing(string filename, bool edited)
 		{
 			if (storeline[1].find(".txt") == storeline[1].length() - 4)
 			{
+				if (storeline[1].find("\\") != string::npos)
+				{
+					AddAnimSetData(filename, storeline, edited);
 
+					if (Error)
+					{
+						cout << "Filename : " << filename << endl;
+						return;
+					}
+				}
+				else
+				{
+					AddAnimData(filename, storeline, edited);
+					isAnimData = true;
+
+					if (Error)
+					{
+						cout << "Filename : " << filename << endl;
+						return;
+					}
+				}
 			}
 			else
 			{
@@ -787,7 +641,6 @@ void Clearing(string filename, bool edited)
 		else
 		{
 			int i = 0;
-			bool isBehavior = false;
 
 			while (i < 4)
 			{
@@ -836,16 +689,16 @@ void ClearIgnore(string file1, string file2)
 
 	t1.join();
 
-	if (FunctionLineOriginal.size() < 5)
+	if (FunctionLineOriginal.size() == 0 && AnimDataOriginal.size() == 0 && AnimSetDataOriginal.size() == 0)
 	{
-		cout << "ERROR: Fail to read file (" + file1 + ")" << endl;
+		cout << "ERROR: Fail to read file (File: " + file1 + ")" << endl;
 		Error = true;
 		return;
 	}
 
-	if (FunctionLineEdited.size() < 5)
+	if (FunctionLineEdited.size() == 0 && AnimDataEdited.size() == 0 && AnimSetDataEdited.size() == 0)
 	{
-		cout << "ERROR: Fail to read file (" + file1 + ")" << endl;
+		cout << "ERROR: Fail to read file (File: " + file2 + ")" << endl;
 		Error = true;
 		return;
 	}
@@ -2486,6 +2339,47 @@ void EditClassIdentifier(string classname, string id)
 	}
 }
 
+void NewClassFunction(string id)
+{
+	vector<string> storeline = FunctionLineNew[id];
+
+	NemesisReaderFormat(storeline, true);
+
+	string modID2;
+	while (atomLock.test_and_set(std::memory_order_acquire));
+
+	if (!newID[id].empty())
+	{
+		modID2 = newID[id];
+	}
+	else
+	{
+		modID2 = "#" + modcode + "$" + to_string(functioncount++);
+		newID[id] = modID2;
+	}
+
+	atomLock.clear(std::memory_order_release);
+	ofstream output("mod/" + modcode + "/" + shortFileName + "/" + modID2 + ".txt"); // changing newID to modCode ID
+
+	if (output.is_open())
+	{
+		FunctionWriter fwrite(&output);
+
+		for (unsigned int i = 0; i < storeline.size(); i++)
+		{
+			fwrite << storeline[i] << "\n";
+		}
+
+		output.close();
+	}
+	else
+	{
+		cout << "ERROR: Fail to paste edited file (ID: " << id << ", ModCode: " << modcode << ")" << endl;
+		Error = true;
+		return;
+	}
+}
+
 void Initialize(string originalfilename)
 {
 	string line;
@@ -2609,131 +2503,51 @@ void GetEdits()
 		}
 	}
 
-	for (unordered_map<string, bool>::iterator it = IsExist.begin(); it != IsExist.end(); it++)
+	for (unordered_map<string, bool>::iterator it = IsExist.begin(); it != IsExist.end();)
 	{
-		if (it->second == true)
+		unsigned int threadcount = 0;
+		boost::thread_group multithreads;
+
+		while (threadcount < std::thread::hardware_concurrency() && it != IsExist.end())
 		{
-			string id = it->first;
-
-			if (!FunctionLineTemp[id].empty() && !FunctionLineNew[id].empty())
+			if (it->second)
 			{
-				EditClassIdentifier(GetClass(id, false), id);
-			}
-			else if (FunctionLineTemp[id].empty() && !FunctionLineNew[id].empty())
-			{
-				vector<string> storeline = FunctionLineNew[id];
+				string id = it->first;
 
-				for (unsigned int j = 0; j < storeline.size(); j++) // changing newID to modCode ID
+				try
 				{
-					if (storeline[j].find("#", 0) != string::npos)
+					if (!FunctionLineTemp[id].empty() && !FunctionLineNew[id].empty())
 					{
-						usize tempint = 0;
-						int position = 0;
-						usize size = count(storeline[j].begin(), storeline[j].end(), '#');
-
-						for (unsigned int i = 0; i < size; i++)
-						{
-							position = storeline[j].find("#", tempint);
-							tempint = storeline[j].find("#", position + 1);
-							string tempID;
-
-							if (tempint == -1)
-							{
-								string templine;
-
-								if (storeline[j].find("signature", 0) != string::npos)
-								{
-									templine = storeline[j].substr(0, storeline[j].find("class"));
-								}
-								else if (storeline[j].find("toplevelobject", 0) != string::npos)
-								{
-									templine = storeline[j].substr(storeline[j].find("toplevelobject"), storeline[j].find(">"));
-								}
-								else
-								{
-									templine = storeline[j].substr(position, tempint - position - 1);
-								}
-
-								tempID = "#" + boost::regex_replace(string(templine), boost::regex("[^0-9]*([0-9]+).*"), string("\\1"));
-							}
-							else
-							{
-								tempID = storeline[j].substr(position, tempint - position - 1);
-							}
-
-							int tempLength = tempID.length();
-							string strID = tempID.substr(1, tempLength - 1);
-							int intID = stoi(strID);
-
-							if (intID > 10000)
-							{
-								int position2 = storeline[j].find(tempID);
-
-								string modID;
-
-								if (!newID[tempID].empty())
-								{
-									modID = newID[tempID];
-								}
-								else
-								{
-									modID = "#" + modcode + "$" + to_string(functioncount);
-									newID[tempID] = modID;
-									functioncount++;
-								}
-
-								storeline[j].replace(position2, tempLength, modID);
-							}
-						}
+						multithreads.create_thread(boost::bind(EditClassIdentifier, GetClass(id, false), id));
+					}
+					else if (FunctionLineTemp[id].empty() && !FunctionLineNew[id].empty())
+					{
+						multithreads.create_thread(boost::bind(NewClassFunction, id));
+					}
+					else
+					{
+						cout << "ERROR: Missing File (ID: " << id << ")" << endl;
+						Error = true;
+						return;
 					}
 				}
-
-				string modID2;
-
-				if (!newID[id].empty())
+				catch (const std::exception& ex)
 				{
-					modID2 = newID[id];
-				}
-				else
-				{
-					modID2 = "#" + modcode + "$" + to_string(functioncount);
-					newID[id] = modID2;
-					functioncount++;
+					cout << "EXCEPTION: " << ex.what() << endl;
 				}
 
-				ofstream output("mod/" + modcode + "/" + shortFileName + "/" + modID2 + ".txt"); // changing newID to modCode ID
-
-				if (output.is_open())
+				if (Error)
 				{
-					FunctionWriter fwrite(&output);
-
-					for (unsigned int i = 0; i < storeline.size(); i++)
-					{
-						fwrite << storeline[i] << "\n";
-					}
-
-					output.close();
-				}
-				else
-				{
-					cout << "ERROR: Fail to paste edited file (ID: " << id << ", ModCode: " << modcode << ")" << endl;
-					Error = true;
 					return;
 				}
 
-			}
-			else
-			{
-				cout << "ERROR: Missing File (ID: " << id << ")" << endl;
-				Error = true;
-				return;
+				++threadcount;
 			}
 
-			if (Error)
-			{
-				return;
-			}
+			++it;
 		}
+
+		multithreads.join_all();
 	}
 
 	if ((Debug) && (!Error))
@@ -2785,44 +2599,21 @@ void DebugMode()
 
 boost::posix_time::ptime time1;
 
-#include <boost\filesystem.hpp>
-
-size_t wordFind(string line, string word, bool isLast = false)
+void start(bool skip)
 {
-	boost::algorithm::to_lower(line);
-	boost::algorithm::to_lower(word);
+	string directory = "mod\\";
 
-	if (isLast)
+	if (!skip)
 	{
-		size_t pos = 0;
-		int ref = sameWordCount(line, word);
+		targetfilename = "output.txt";
+		shortFileName = targetfilename.substr(0, targetfilename.find_last_of("."));
+		targetfilenameedited = "output2.txt";
+		shortFileNameEdited = targetfilenameedited.substr(0, targetfilenameedited.find_last_of("."));
 
-		if (ref != 0)
-		{
-			for (int i = 0; i < ref; ++i)
-			{
-				pos = line.find(word, pos + 1);
-			}
-
-			return pos;
-		}
-
-		return string::npos;
 	}
 
-	return line.find(word);
-}
+	thread t([=]() {ClearIgnore(targetfilename, targetfilenameedited); return 1; });
 
-void start()
-{
-	targetfilename = "output.txt";
-	shortFileName = targetfilename.substr(0, targetfilename.find_last_of("."));
-	targetfilenameedited = "output2.txt";
-	shortFileNameEdited = targetfilenameedited.substr(0, targetfilenameedited.find_last_of("."));
-	string directory = "mod/";
-	
-	thread t([=](){ClearIgnore(targetfilename, targetfilenameedited); return 1; });
-	
 	if (Error)
 	{
 		cout << "ERROR: Fail to complete processing files" << endl;
@@ -2830,18 +2621,19 @@ void start()
 		return;
 	}
 
-	ModCode();
-
-	if (modcode == "-1")
+	if (!skip)
 	{
-		Error = true;
-		t.join();
-		exit(0);
+		ModCode();
+
+		if (modcode == "-1")
+		{
+			Error = true;
+			t.join();
+			exit(0);
+		}
+
+		DebugMode();
 	}
-
-	DebugMode();
-
-	time1 = boost::posix_time::microsec_clock::local_time();
 
 	if (Error)
 	{
@@ -2851,44 +2643,7 @@ void start()
 	}
 
 	t.join();
-
-	if ((CreateDirectoryA(directory.c_str(), NULL) || ERROR_ALREADY_EXISTS == GetLastError()))
-	{
-		if (CreateDirectoryA((directory + modcode).c_str(), NULL) || ERROR_ALREADY_EXISTS == GetLastError())
-		{
-			if (CreateDirectoryA((directory + modcode + "/" + shortFileName).c_str(), NULL) || ERROR_ALREADY_EXISTS == GetLastError())
-			{
-				Initialize(targetfilename);
-				
-				if (Error)
-				{
-					cout << "ERROR: Fail to complete processing files" << endl;
-					return;
-				}
-				
-				InitializeComparing(targetfilenameedited);
-			}
-			else
-			{
-				cout << "ERROR: Fail to create folder for target file (folder: " << shortFileName << ")" << endl;
-				Error = true;
-				return;
-			}
-		}
-		else
-		{
-			cout << "ERROR: Fail to create directory for target modcode (ModCode: " << modcode << ")" << endl;
-			Error = true;
-			return;
-		}
-	}
-	else
-	{
-		cout << "ERROR: Fail to create mod folder for Nemesis (Folder: " << directory << ")" << endl;
-		Error = true;
-		return;
-	}
-	
+	time1 = boost::posix_time::microsec_clock::local_time();
 
 	if (Error)
 	{
@@ -2896,7 +2651,84 @@ void start()
 		return;
 	}
 
-	GetEdits();
+	if ((CreateDirectoryA(directory.c_str(), NULL) || ERROR_ALREADY_EXISTS == GetLastError()))
+	{
+		if (CreateDirectoryA((directory + modcode).c_str(), NULL) || ERROR_ALREADY_EXISTS == GetLastError())
+		{
+			if (isBehavior)
+			{
+				if (CreateDirectoryA((directory + modcode + "\\" + shortFileName).c_str(), NULL) || ERROR_ALREADY_EXISTS == GetLastError())
+				{
+					Initialize(targetfilename);
+
+					if (!Error)
+					{
+						InitializeComparing(targetfilenameedited);
+					}
+				}
+				else
+				{
+					cout << "ERROR: Fail to create folder for target file (folder: " << shortFileName << ")" << endl;
+					cout << GetLastError() << endl;
+					Error = true;
+					return;
+				}
+			}
+			else if (isAnimData)
+			{
+				if (CreateDirectoryA((directory + modcode + "\\animationdatasinglefile").c_str(), NULL) || ERROR_ALREADY_EXISTS == GetLastError())
+				{
+					animDataProcess();
+				}
+				else
+				{
+					cout << "ERROR: Fail to create folder for target file (folder: " << shortFileName << ")" << endl;
+					cout << GetLastError() << endl;
+					Error = true;
+					return;
+				}
+			}
+			else
+			{
+				if (CreateDirectoryA((directory + modcode + "\\animationsetdatasinglefile").c_str(), NULL) || ERROR_ALREADY_EXISTS == GetLastError())
+				{
+					animSetDataProcess();
+				}
+				else
+				{
+					cout << "ERROR: Fail to create folder for target file (folder: " << shortFileName << ")" << endl;
+					cout << GetLastError() << endl;
+					Error = true;
+					return;
+				}
+			}
+		}
+		else
+		{
+			cout << "ERROR: Fail to create directory for target modcode (ModCode: " << modcode << ")" << endl;
+			cout << GetLastError() << endl;
+			Error = true;
+			return;
+		}
+	}
+	else
+	{
+		cout << "ERROR: Fail to create mod folder for Nemesis (Folder: " << directory << ")" << endl;
+		cout << GetLastError() << endl;
+		Error = true;
+		return;
+	}
+	
+	if (Error)
+	{
+		cout << "ERROR: Fail to complete processing files" << endl;
+		return;
+	}
+
+	if (isBehavior)
+	{
+		GetEdits();
+	}
 	
 	if (!Error)
 	{
@@ -2964,17 +2796,37 @@ void test()
 	
 	modcode = "test";
 	shortFileName = "test";
-	GetFunctionLines("file.txt", FunctionLineTemp["#0077"]);
-	GetFunctionLines("file2.txt", FunctionLineNew["#0077"]);
-	hkbVariableValueSetExport("#0077");
+	GetFunctionLines("file.txt", FunctionLineTemp["#0341"]);
+	GetFunctionLines("file2.txt", FunctionLineNew["#0341"]);
+	hkbStateMachineTransitionInfoArrayExport("#0341");
 }
 
-int main()
+int main(int argc, char* argv[])
 {
+
 	// test();
 
-	start();
-	
+	if (argc == 4)
+	{
+		modcode = argv[1];
+
+		if (((modcode.length() < 4) && (modcode != "-1")) || (modcode.length() > 6) || (modcode.find("\\", 0) != string::npos) || (modcode.find("/", 0) != string::npos) || (modcode.find(":", 0) != string::npos) || (modcode.find("*", 0) != string::npos) || (modcode.find("?", 0) != string::npos) || (modcode.find("\"", 0) != string::npos) || (modcode.find("<", 0) != string::npos) || (modcode.find(">", 0) != string::npos) || (modcode.find("|", 0) != string::npos) || (modcode == "vanilla"))
+		{
+			return 1;
+		}
+
+		targetfilename = argv[2];
+		shortFileName = boost::filesystem::path(targetfilename).stem().string();
+		targetfilenameedited = argv[3];
+		shortFileNameEdited = boost::filesystem::path(targetfilenameedited).stem().string();
+		Debug = false;
+		start(true);
+	}
+	else
+	{
+		start(false);
+	}
+
 	if (!Error)
 	{
 		boost::posix_time::ptime time2 = boost::posix_time::microsec_clock::local_time();
@@ -2984,9 +2836,12 @@ int main()
 
 		cout << "Total processing time: " << duration / 1000 << " seconds" << endl;
 	}
-	
-	cout << '\a';
-	system("pause");
+
+	if (argc != 4)
+	{
+		cout << '\a';
+		system("pause");
+	}
 
 	return 0;
 }

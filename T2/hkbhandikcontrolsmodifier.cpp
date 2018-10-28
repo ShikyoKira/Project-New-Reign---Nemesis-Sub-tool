@@ -648,7 +648,7 @@ void hkbHandIkControlsModifierExport(string id)
 		open = false;
 	}
 
-	NemesisReaderFormat(output);
+	NemesisReaderFormat(output, true);
 
 	// stage 3 output if it is edited
 	int part = 0;

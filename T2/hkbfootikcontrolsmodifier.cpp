@@ -1083,7 +1083,7 @@ void footIKInfoProcess(string line, footik& footIK)
 bool matchLegsScoring(vector<leg>& ori, vector<leg>& edit, string id)
 {
 	int counter = 0;
-	map<int, map<int, int>> scorelist;
+	map<int, map<int, double>> scorelist;
 	map<int, bool> taken;
 	vector<leg> newOri;
 	vector<leg> newEdit;
@@ -1128,6 +1128,14 @@ bool matchLegsScoring(vector<leg>& ori, vector<leg>& edit, string id)
 			if (i == j)
 			{
 				++scorelist[i][j];
+			}
+			else
+			{
+				int oriindex = i + 1;
+				int newindex = j + 1;
+				double difference = max(oriindex, newindex) - min(oriindex, newindex);
+				difference = (ori.size() - difference) / ori.size();
+				scorelist[i][j] += difference;
 			}
 		}
 	}

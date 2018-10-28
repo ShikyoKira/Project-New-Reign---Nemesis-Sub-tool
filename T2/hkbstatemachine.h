@@ -6,10 +6,14 @@
 #include <fstream>
 #include <vector>
 #include <Windows.h>
+#include <memory>
 
 struct hkbstatemachine
 {
 public:
+	std::shared_ptr<hkbstatemachine> previousSM;
+	bool previousSMExist = false;
+
 	hkbstatemachine(std::string filepath, std::string id, std::string preaddress, int functionlayer, bool compare);
 
 	void nonCompare(std::string filepath, std::string id);
@@ -31,7 +35,10 @@ public:
 	std::string GetAddress();
 	bool IsNegate();
 
+	std::string GetRealID();
+
 private:
+	std::string realID;
 	std::string address;
 	std::string tempaddress;
 	std::string name;

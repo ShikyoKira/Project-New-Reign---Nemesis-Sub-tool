@@ -1,6 +1,7 @@
 #include "hkbstatemachinetransitioninfoarray.h"
 #include "Global.h"
 #include "highestscore.h"
+#include "src\stateid.h"
 
 using namespace std;
 
@@ -28,6 +29,7 @@ struct transitioninfo
 	string flags = "0";
 };
 
+string GetClass(string id, bool compare); // get class
 void transitionInfoProcess(string line, vector<shared_ptr<transitioninfo>>& Transition, shared_ptr<transitioninfo>& curTransition, bool& trigger);
 void inputTransition(std::vector<string>& input, shared_ptr<transitioninfo> transition);
 bool matchScoring(vector<shared_ptr<transitioninfo>>& ori, vector<shared_ptr<transitioninfo>>& edit, string id);
@@ -199,21 +201,52 @@ void hkbstatemachinetransitioninfoarray::Compare(string filepath, string id)
 		curTransition = nullptr;
 		vector<shared_ptr<transitioninfo>> oriTransition;
 
-		if (!FunctionLineTemp[tempid].empty())
 		{
-			bool trigger = false;
-			usize size = FunctionLineTemp[tempid].size();
+			string parentID = parent[id];
 
-			for (usize i = 1; i < size; i++)
+			while (parentID.length() > 0 && GetClass(parentID, true) != "hkbStateMachine")
 			{
-				line = FunctionLineTemp[tempid][i];
-				transitionInfoProcess(line, oriTransition, curTransition, trigger);
+				parentID = parent[parentID];
 			}
-		}
-		else
-		{
-			cout << "ERROR: hkbStateMachineTransitionInfoArray Inputfile (File: " << filepath << ", ID: " << id << ")" << endl;
-			Error = true;
+
+			if (isStateIDExist[parentID])
+			{
+				if (!FunctionLineTemp[tempid].empty())
+				{
+					bool trigger = false;
+					usize size = FunctionLineTemp[tempid].size();
+
+					for (usize i = 1; i < size; i++)
+					{
+						line = FunctionLineTemp[tempid][i];
+
+						if (stateChange && line.find("<hkparam name=\"toStateId\">", 0) != string::npos)
+						{
+							string stateID = line.substr(31, line.find("</hkparam>", 31) - 31);
+
+							if (stateID.find("stateID[") == string::npos && StateID[parentID].IsNewState(static_cast<unsigned int>(stoi(stateID))))
+							{
+								size_t oldStateIDSize = stateID.length();
+								stateID = "$stateID[" + parentID + "][" + StateID[parentID].GetBaseStr() + "][" + modcode + "][" + StateID[parentID].GetStateID(stateID) + "]$";
+								line.replace(31, oldStateIDSize, stateID);
+							}
+						}
+
+						transitionInfoProcess(line, oriTransition, curTransition, trigger);
+					}
+				}
+				else
+				{
+					cout << "ERROR: hkbStateMachineTransitionInfoArray Inputfile (File: " << filepath << ", ID: " << id << ")" << endl;
+					Error = true;
+				}
+			}
+			else
+			{
+				cout << "ERROR: hkbStateMachineTransitionInfoArray BUG FOUND! Missing StateID (node ID: " << parentID << ")" << endl;
+				Error = true;
+				return;
+			}
 		}
 
 		if (curTransition)
@@ -303,51 +336,131 @@ void hkbstatemachinetransitioninfoarray::Compare(string filepath, string id)
 	}
 	else
 	{
-		if (!FunctionLineEdited[id].empty())
+		string parentID = parent[id];
+
+		while (parentID.length() > 0 && GetClass(parentID, true) != "hkbStateMachine")
 		{
-			usize size = FunctionLineEdited[id].size();
-			newline.push_back(FunctionLineEdited[id][0]);
+			parentID = parent[parentID];
+		}
 
-			for (usize i = 1; i < size; i++)
+		if (!IsForeign[parentID])
+		{
+			if (isStateIDExist[parentID])
 			{
-				line = FunctionLineEdited[id][i];
-
-				if (line.find("#", 0) != string::npos)
+				if (!FunctionLineEdited[id].empty())
 				{
-					size_t tempInt = line.find("#");
-					string reference = line.substr(tempInt, line.find("</hkparam>") - tempInt);
+					usize size = FunctionLineEdited[id].size();
+					newline.push_back(FunctionLineEdited[id][0]);
+					vector<string>* functionlines = &FunctionLineEdited[id];
 
-					if (!exchangeID[reference].empty())
+					for (usize i = 1; i < size; i++)
 					{
-						int tempint = line.find(reference);
-						reference = exchangeID[reference];
-						line.replace(tempint, line.find("</hkparam>") - tempint, reference);
-					}
+						string& line = (*functionlines)[i];
 
-					if (line.find("name=\"transition\">", 0) != string::npos)
-					{
-						transition.push_back(reference);
-					}
-					else
-					{
-						condition.push_back(reference);
-					}
+						if (line.find("#", 0) != string::npos)
+						{
+							size_t tempInt = line.find("#");
+							string reference = line.substr(tempInt, line.find("</hkparam>") - tempInt);
 
-					if (!IsReferenceExist[reference])
-					{
-						parent[reference] = id;
-						referencingIDs[reference].push_back(id);
-						IsReferenceExist[reference] = true;
+							if (!exchangeID[reference].empty())
+							{
+								int tempint = line.find(reference);
+								reference = exchangeID[reference];
+								line.replace(tempint, line.find("</hkparam>") - tempint, reference);
+							}
+
+							if (line.find("name=\"transition\">", 0) != string::npos)
+							{
+								transition.push_back(reference);
+							}
+							else
+							{
+								condition.push_back(reference);
+							}
+
+							if (!IsReferenceExist[reference])
+							{
+								parent[reference] = id;
+								referencingIDs[reference].push_back(id);
+								IsReferenceExist[reference] = true;
+							}
+						}
+						else if (stateChange && line.find("<hkparam name=\"toStateId\">", 0) != string::npos)
+						{
+							string stateID = line.substr(31, line.find("</hkparam>", 31) - 31);
+
+							if (stateID.find("stateID[") == string::npos && StateID[parentID].IsNewState(static_cast<unsigned int>(stoi(stateID))))
+							{
+								size_t oldStateIDSize = stateID.length();
+								stateID = "$stateID[" + parentID + "][" + StateID[parentID].GetBaseStr() + "][" + modcode + "][" + StateID[parentID].GetStateID(stateID) + "]$";
+								line.replace(31, oldStateIDSize, stateID);
+							}
+						}
+
+						newline.push_back(line);
 					}
 				}
-
-				newline.push_back(line);
+				else
+				{
+					cout << "ERROR: hkbStateMachineTransitionInfoArray Inputfile (File: " << filepath << ", ID: " << id << ")" << endl;
+					Error = true;
+				}
+			}
+			else
+			{
+				cout << "ERROR: hkbStateMachineTransitionInfoArray BUG FOUND! Missing StateID (node ID: " << parent[id] << ")" << endl;
+				Error = true;
+				return;
 			}
 		}
 		else
 		{
-			cout << "ERROR: hkbStateMachineTransitionInfoArray Inputfile (File: " << filepath << ", ID: " << id << ")" << endl;
-			Error = true;
+			if (!FunctionLineEdited[id].empty())
+			{
+				usize size = FunctionLineEdited[id].size();
+				newline.push_back(FunctionLineEdited[id][0]);
+
+				for (usize i = 1; i < size; i++)
+				{
+					line = FunctionLineEdited[id][i];
+
+					if (line.find("#", 0) != string::npos)
+					{
+						size_t tempInt = line.find("#");
+						string reference = line.substr(tempInt, line.find("</hkparam>") - tempInt);
+
+						if (!exchangeID[reference].empty())
+						{
+							int tempint = line.find(reference);
+							reference = exchangeID[reference];
+							line.replace(tempint, line.find("</hkparam>") - tempint, reference);
+						}
+
+						if (line.find("name=\"transition\">", 0) != string::npos)
+						{
+							transition.push_back(reference);
+						}
+						else
+						{
+							condition.push_back(reference);
+						}
+
+						if (!IsReferenceExist[reference])
+						{
+							parent[reference] = id;
+							referencingIDs[reference].push_back(id);
+							IsReferenceExist[reference] = true;
+						}
+					}
+
+					newline.push_back(line);
+				}
+			}
+			else
+			{
+				cout << "ERROR: hkbStateMachineTransitionInfoArray Inputfile (File: " << filepath << ", ID: " << id << ")" << endl;
+				Error = true;
+			}
 		}
 
 		IsForeign[id] = true;
@@ -381,12 +494,11 @@ void hkbstatemachinetransitioninfoarray::Dummy(string id)
 		{
 			line = FunctionLineNew[id][i];
 
-			if ((line.find("#", 0) != string::npos) && (line.find("signature", 0) == string::npos))
+			if (line.find("#", 0) != string::npos && line.find("signature", 0) == string::npos && line.find("$stateID[", 0) == string::npos)
 			{
-				int tempInt = line.find("#");
-				string reference = line.substr(tempInt, line.find("</hkparam>") - tempInt);
+				string reference = boost::regex_replace(string(line), boost::regex(".*<hkparam name=\"(transition|condition)\">(#[0-9]+)</hkparam>.*"), string("\\2"));
 
-				if (reference != "null")
+				if (reference != line)
 				{
 					if (!exchangeID[reference].empty())
 					{
@@ -397,7 +509,7 @@ void hkbstatemachinetransitioninfoarray::Dummy(string id)
 					{
 						transition.push_back(reference);
 					}
-					else
+					else if (line.find("name=\"condition\">", 0) != string::npos)
 					{
 						condition.push_back(reference);
 					}
@@ -1032,77 +1144,7 @@ void hkbStateMachineTransitionInfoArrayExport(string id)
 	
 	output.push_back("			</hkparam>");
 	output.push_back("		</hkobject>");
-
-	for (unsigned int j = 0; j < output.size(); j++) // changing newID to modCode ID
-	{
-		if (output[j].find("#", 0) != string::npos)
-		{
-			usize tempint = 0;
-			usize position = 0;
-			usize size = count(output[j].begin(), output[j].end(), '#');
-
-			for (unsigned int i = 0; i < size; i++)
-			{
-				position = output[j].find("#", tempint);
-				tempint = output[j].find("#", position + 1);
-				string tempID;
-
-				if (tempint == -1)
-				{
-					string templine;
-
-					if (output[j].find("signature", 0) != string::npos)
-					{
-						templine = output[j].substr(0, output[j].find("class"));
-					}
-					else
-					{
-						templine = output[j].substr(position, tempint - position - 1);
-					}
-
-					tempID = "#" + boost::regex_replace(string(templine), boost::regex("[^0-9]*([0-9]+).*"), string("\\1"));
-				}
-				else
-				{
-					tempID = output[j].substr(position, tempint - position - 1);
-				}
-
-				int tempLength = tempID.length();
-				string strID = tempID.substr(1, tempLength - 1);
-				int intID = stoi(strID);
-
-				if (intID > 10000)
-				{
-					int position2 = output[j].find(tempID);
-					string modID;
-
-					if (!newID[tempID].empty())
-					{
-						modID = newID[tempID];
-					}
-					else
-					{
-						modID = "#" + modcode + "$" + to_string(functioncount);
-						newID[tempID] = modID;
-						functioncount++;
-					}
-
-					output[j].replace(position2, tempLength, modID);
-				}
-			}
-			
-			if (((output[j].find("<hkparam name=\"enterEventId\">", 0) != string::npos) || (output[j].find("<hkparam name=\"exitEventId\">", 0) != string::npos) || (output[j].find("<hkparam name=\"eventId\">", 0) != string::npos)) && (output[j].find("<hkparam name=\"enterEventId\">-1</hkparam>", 0) == string::npos) && (output[j].find("<hkparam name=\"exitEventId\">-1</hkparam>", 0) == string::npos) && (output[j].find("<hkparam name=\"eventId\">-1</hkparam>", 0) == string::npos))
-			{
-				usize eventpos = output[j].find("Id\">") + 4;
-				string eventid = output[j].substr(eventpos, output[j].find("</hkparam>"));
-
-				if (eventID[eventid].length() != 0)
-				{
-					output[j].replace(eventpos, output[j].find("</hkparam>") - eventpos, "$eventID[" + eventID[eventid] + "]$");
-				}
-			}
-		}
-	}
+	NemesisReaderFormat(output, true);
 
 	// stage 3 output if it is edited
 	string filename = "mod/" + modcode + "/" + shortFileName + "/" + id + ".txt";
@@ -1306,7 +1348,7 @@ bool matchScoring(vector<shared_ptr<transitioninfo>>& ori, vector<shared_ptr<tra
 	}
 
 	int counter = 0;
-	map<int, map<int, int>> scorelist;
+	map<int, map<int, double>> scorelist;
 	map<int, bool> taken;
 	vector<shared_ptr<transitioninfo>> newOri;
 	vector<shared_ptr<transitioninfo>> newEdit;
@@ -1396,6 +1438,19 @@ bool matchScoring(vector<shared_ptr<transitioninfo>>& ori, vector<shared_ptr<tra
 			if (ori[i]->flags == edit[j]->flags)
 			{
 				scorelist[i][j] += 2;
+			}
+
+			if (i == j)
+			{
+				++scorelist[i][j];
+			}
+			else
+			{
+				int oriindex = i + 1;
+				int newindex = j + 1;
+				double difference = max(oriindex, newindex) - min(oriindex, newindex);
+				difference = (ori.size() - difference) / ori.size();
+				scorelist[i][j] += difference;
 			}
 		}
 	}
@@ -1646,76 +1701,7 @@ namespace keepsake
 			}
 		}
 
-		for (unsigned int j = 0; j < output.size(); j++) // changing newID to modCode ID
-		{
-			if (output[j].find("#", 0) != string::npos)
-			{
-				usize tempint = 0;
-				usize position = 0;
-				usize size = count(output[j].begin(), output[j].end(), '#');
-
-				for (unsigned int i = 0; i < size; i++)
-				{
-					position = output[j].find("#", tempint);
-					tempint = output[j].find("#", position + 1);
-					string tempID;
-
-					if (tempint == -1)
-					{
-						string templine;
-
-						if (output[j].find("signature", 0) != string::npos)
-						{
-							templine = output[j].substr(0, output[j].find("class"));
-						}
-						else
-						{
-							templine = output[j].substr(position, tempint - position - 1);
-						}
-
-						tempID = "#" + boost::regex_replace(string(templine), boost::regex("[^0-9]*([0-9]+).*"), string("\\1"));
-					}
-					else
-					{
-						tempID = output[j].substr(position, tempint - position - 1);
-					}
-
-					int tempLength = tempID.length();
-					string strID = tempID.substr(1, tempLength - 1);
-					int intID = stoi(strID);
-
-					if (intID > 10000)
-					{
-						int position2 = output[j].find(tempID);
-						string modID;
-
-						if (!newID[tempID].empty())
-						{
-							modID = newID[tempID];
-						}
-						else
-						{
-							modID = "#" + modcode + "$" + to_string(functioncount);
-							newID[tempID] = modID;
-							functioncount++;
-						}
-
-						output[j].replace(position2, tempLength, modID);
-					}
-				}
-
-				if (((output[j].find("<hkparam name=\"enterEventId\">", 0) != string::npos) || (output[j].find("<hkparam name=\"exitEventId\">", 0) != string::npos) || (output[j].find("<hkparam name=\"eventId\">", 0) != string::npos)) && (storeline2[j].find("<hkparam name=\"enterEventId\">-1</hkparam>", 0) == string::npos) && (storeline2[j].find("<hkparam name=\"exitEventId\">-1</hkparam>", 0) == string::npos) && (storeline2[j].find("<hkparam name=\"eventId\">-1</hkparam>", 0) == string::npos))
-				{
-					usize eventpos = output[j].find("Id\">") + 4;
-					string eventid = output[j].substr(eventpos, output[j].find("</hkparam>"));
-
-					if (eventID[eventid].length() != 0)
-					{
-						output[j].replace(eventpos, output[j].find("</hkparam>") - eventpos, "$eventID[" + eventID[eventid] + "]$");
-					}
-				}
-			}
-		}
+		NemesisReaderFormat(output, true);
 
 		// stage 3 output if it is edited
 		string filename = "mod/" + modcode + "/" + shortFileName + "/" + id + ".txt";

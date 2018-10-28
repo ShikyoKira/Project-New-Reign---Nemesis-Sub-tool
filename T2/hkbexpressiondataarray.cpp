@@ -404,9 +404,9 @@ void hkbExpressionDataArrayExport(string id)
 			usize eventpos = output[j].find("assignmentEventIndex\">") + 22;
 			string eventid = output[j].substr(eventpos, output[j].find("</hkparam>") - eventpos);
 
-			if (eventID[eventid].length() != 0)
+			if (eventid != line && eventID[eventid].length() != 0 && stoi(eventid) > int(eventCount))
 			{
-				output[j].replace(eventpos, output[j].find("</hkparam>") - eventpos, "$eventID[" + eventID[eventid] + "]$");
+				output[j].replace(eventpos, eventid.length(), "$eventID[" + eventID[eventid] + "]$");
 			}
 			else
 			{
@@ -418,11 +418,11 @@ void hkbExpressionDataArrayExport(string id)
 		else if ((output[j].find("<hkparam name=\"assignmentVariableIndex\">", 0) != string::npos) && (output[j].find("-1", 0) == string::npos))
 		{
 			usize varpos = output[j].find("assignmentVariableIndex\">") + 25;
-			string varID = output[j].substr(varpos, output[j].find("</hkparam>") - varpos);
+			string varid = output[j].substr(varpos, output[j].find("</hkparam>") - varpos);
 
-			if (variableID[varID].length() != 0)
+			if (varid != line && variableID[varid].length() != 0 && stoi(varid) > int(varCount))
 			{
-				output[j].replace(varpos, output[j].find("</hkparam>") - varpos, "$variableID[" + variableID[varID] + "]$");
+				output[j].replace(varpos, varid.length(), "$variableID[" + variableID[varid] + "]$");
 			}
 			else
 			{

@@ -1,7 +1,13 @@
 #include "hkbstatemachinestateinfo.h"
 #include "Global.h"
+#include "src\stateid.h"
+#include "hkbstatemachine.h"
 
 using namespace std;
+
+string GetClass(string id, bool compare); // get class
+void statIDCheck(string id, string stateID, vector<string>& newline);
+void stateIDTransitionReplacement(string id, string oldStateID, string stateID, string lastStateID = "", bool toNested = false, bool fromNested = false);
 
 hkbstatemachinestateinfo::hkbstatemachinestateinfo(string filepath, string id, string preaddress, int functionlayer, bool compare)
 {
@@ -115,12 +121,30 @@ void hkbstatemachinestateinfo::nonCompare(string filepath, string id)
 				generator = line.substr(29, line.find("</hkparam>") - 29);
 				referencingIDs[generator].push_back(id);
 			}
+			else if (stateChange && line.find("stateId", 0) != string::npos)
+			{
+				unsigned int currentState = static_cast<unsigned int>(stoi(line.substr(27, line.find("</hkparam>", 27) - 27)));
+
+				if (isStateIDExist[parent[id]])
+				{
+					StateID[parent[id]].InstallBase(id, currentState);
+				}
+				else
+				{
+					cout << "ERROR: hkbStateMachineStateInfo BUG FOUND! Missing StateID (node ID: " << parent[id] << ", state ID: " << to_string(currentState) << ")" << endl;
+					Error = true;
+					return;
+				}
+
+				break;
+			}
 		}
 	}
 	else
 	{
 		cout << "ERROR: hkbStateMachineStateInfo Inputfile(File: " << filepath << ", ID: " << id << ")" << endl;
 		Error = true;
+		return;
 	}
 
 	FunctionLineTemp[id] = FunctionLineOriginal[id];
@@ -142,6 +166,7 @@ void hkbstatemachinestateinfo::Compare(string filepath, string id)
 	// stage 1
 	vector<string> newline;
 	string line;
+	string stateID;
 
 	if (!FunctionLineEdited[id].empty())
 	{
@@ -233,6 +258,10 @@ void hkbstatemachinestateinfo::Compare(string filepath, string id)
 				parent[generator] = id;
 				referencingIDs[generator].push_back(id);
 			}
+			else if (stateChange && line.find("stateId", 0) != string::npos)
+			{
+				stateID = line.substr(27, line.find("</hkparam>", 27) - 27);
+			}
 
 			newline.push_back(line);
 		}
@@ -315,6 +344,11 @@ void hkbstatemachinestateinfo::Compare(string filepath, string id)
 	}
 	else
 	{
+		if (stateChange)
+		{
+			statIDCheck(id, stateID, newline);
+		}
+
 		IsForeign[id] = true;
 		FunctionLineNew[id] = newline;
 		address = tempaddress;
@@ -409,7 +443,36 @@ void hkbstatemachinestateinfo::Dummy(string id)
 				}
 
 				parent[generator] = id;
-				break;
+			}
+			else if (stateChange && line.find("stateId", 0) != string::npos)
+			{
+				string stateID = line.substr(27, line.find("</hkparam>", 27) - 27);
+
+				if (!IsForeign[parent[id]] && stateID.find("stateID[") == string::npos)
+				{
+					string parentID = parent[id];
+
+					if (!exchangeID[parentID].empty())
+					{
+						parentID = exchangeID[parentID];
+					}
+
+					if (isStateIDExist[parentID])
+					{
+						if (StateID[parentID].IsNewState(static_cast<unsigned int>(stoi(stateID))))
+						{
+							size_t oldStateIDSize = stateID.length();
+							stateID = "$stateID[" + parentID + "][" + StateID[parentID].GetBaseStr() + "][" + modcode + "][" + StateID[parentID].GetStateID(stateID) + "]$";
+							FunctionLineNew[id][i].replace(27, oldStateIDSize, stateID);
+						}
+					}
+					else
+					{
+						cout << "ERROR: Dummy hkbStateMachineStateInfo BUG FOUND! Missing StateID (parent ID: " << parentID << ", node ID: " << id << ", state ID: " << stateID << ")" << endl;
+						Error = true;
+						return;
+					}
+				}
 			}
 		}
 	}
@@ -578,7 +641,7 @@ void hkbStateMachineStateInfoExport(string id)
 		Error = true;
 	}
 
-	NemesisReaderFormat(storeline2);
+	NemesisReaderFormat(storeline2, true);
 
 	// stage 3 output if it is edited
 	string filename = "mod/" + modcode + "/" + shortFileName + "/" + id + ".txt";
@@ -612,6 +675,200 @@ void hkbStateMachineStateInfoExport(string id)
 			{
 				perror("Error deleting file");
 				Error = true;
+			}
+		}
+	}
+}
+
+void statIDCheck(string id, string stateID, vector<string>& newline)
+{
+	string parentID = parent[id];
+
+	if (!IsForeign[parentID])
+	{
+		if (isStateIDExist[parentID])
+		{
+			if (StateID[parentID].IsNewState(static_cast<unsigned int>(stoi(stateID))))
+			{
+				string oldStateID = stateID;
+				stateID = "$stateID[" + parentID + "][" + StateID[parentID].GetBaseStr() + "][" + modcode + "][" + StateID[parentID].GetStateID(stateID) + "]$";
+				newline[8].replace(27, oldStateID.length(), stateID);
+
+				if (isSMIDExist[parentID])
+				{
+					shared_ptr<hkbstatemachine> lastSM = StateMachineID[parentID];
+
+					if (!lastSM->IsWildcardNull())
+					{
+						string wildcard = lastSM->GetWildcard();
+
+						if (!exchangeID[wildcard].empty())
+						{
+							wildcard = exchangeID[wildcard];
+						}
+
+						stateIDTransitionReplacement(wildcard, oldStateID, stateID);
+					}
+
+					int children = lastSM->GetChildren();
+
+					for (int i = 0; i < children; ++i)
+					{
+						string generator = lastSM->NextGenerator(i);
+						string transition;
+
+						if (!exchangeID[generator].empty())
+						{
+							generator = exchangeID[generator];
+						}
+
+						if (IsExist[generator])
+						{
+							transition = boost::regex_replace(string(FunctionLineNew[generator][5]), boost::regex(".*<hkparam name=\"transitions\">(.*)</hkparam>.*"), string("\\1"));
+						}
+						else
+						{
+							transition = boost::regex_replace(string(FunctionLineEdited[generator][5]), boost::regex(".*<hkparam name=\"transitions\">(.*)</hkparam>.*"), string("\\1"));
+						}
+
+						if (transition != "null")
+						{
+							stateIDTransitionReplacement(transition, oldStateID, stateID);
+						}
+					}
+
+					if (lastSM->previousSMExist)
+					{
+						parentID = parent[parentID];
+
+						while (parentID.length() > 0 && GetClass(parentID, true) != "hkbStateMachineStateInfo")
+						{
+							parentID = parent[parentID];
+						}
+
+						string transition = boost::regex_replace(string(FunctionLineNew[parentID][5]), boost::regex(".*<hkparam name=\"transitions\">(.*)</hkparam>.*"), string("\\1"));
+						string lastStateID = boost::regex_replace(string(FunctionLineNew[parentID][8]), boost::regex(".*<hkparam name=\"stateId\">([0-9]+)</hkparam>.*"), string("\\1"));
+						lastSM = lastSM->previousSM;
+
+						if (transition != "null")
+						{
+							stateIDTransitionReplacement(transition, oldStateID, stateID, lastStateID, false, true);
+						}
+
+						// get last last SM wildcard 
+						if (!lastSM->IsWildcardNull())
+						{
+							string wildcard = lastSM->GetWildcard();
+
+							if (!exchangeID[wildcard].empty())
+							{
+								wildcard = exchangeID[wildcard];
+							}
+
+							stateIDTransitionReplacement(wildcard, oldStateID, stateID, lastStateID, true);
+						}
+
+						children = lastSM->GetChildren();
+
+						for (int i = 0; i < children; ++i)
+						{
+							string generator = lastSM->NextGenerator(i);
+							string transition;
+
+							if (!exchangeID[generator].empty())
+							{
+								generator = exchangeID[generator];
+							}
+
+							if (IsExist[generator])
+							{
+								transition = boost::regex_replace(string(FunctionLineNew[generator][5]), boost::regex(".*<hkparam name=\"transitions\">(.*)</hkparam>.*"), string("\\1"));
+							}
+							else
+							{
+								transition = boost::regex_replace(string(FunctionLineEdited[generator][5]), boost::regex(".*<hkparam name=\"transitions\">(.*)</hkparam>.*"), string("\\1"));
+							}
+
+							if (transition != "null")
+							{
+								stateIDTransitionReplacement(transition, oldStateID, stateID, lastStateID, true);
+							}
+						}
+					}
+				}
+			}
+		}
+		else
+		{
+			cout << "ERROR: hkbStateMachineStateInfo BUG FOUND! Missing StateID (node ID: " << parentID << ", state ID: " << stateID << ")" << endl;
+			Error = true;
+			return;
+		}
+	}
+}
+
+void stateIDTransitionReplacement(string id, string oldStateID, string stateID, string lastStateID, bool toNested, bool fromNested)
+{
+	vector<string>* functionlines;
+
+	if (IsExist[id])
+	{
+		functionlines = &FunctionLineNew[id];
+	}
+	else
+	{
+		functionlines = &FunctionLineEdited[id];
+	}
+
+	if (toNested)
+	{
+		for (unsigned int i = 0; i < functionlines->size(); ++i)
+		{
+			string& line = (*functionlines)[i];
+
+			if (line.find("<hkparam name=\"toNestedStateId\">") != string::npos)
+			{
+				if (lastStateID == boost::regex_replace(string((*functionlines)[i - 2]), boost::regex(".*<hkparam name=\"toStateId\">([0-9]+)</hkparam>.*"), string("\\1")))
+				{
+					if ((*functionlines)[i + 2].find("FLAG_TO_NESTED_STATE_ID_IS_VALID") != string::npos || oldStateID != "0")
+					{
+						if (oldStateID == boost::regex_replace(string(line), boost::regex(".*<hkparam name=\"toNestedStateId\">([0-9]+)</hkparam>.*"), string("\\1")))
+						{
+							line.replace(37, oldStateID.length(), stateID);
+						}
+					}
+				}
+			}
+		}
+	}
+	else if (fromNested)
+	{
+		for (unsigned int i = 0; i < functionlines->size(); ++i)
+		{
+			string& line = (*functionlines)[i];
+
+			if (line.find("<hkparam name=\"fromNestedStateId\">") != string::npos)
+			{
+				if ((*functionlines)[i + 2].find("FLAG_FROM_NESTED_STATE_ID_IS_VALID") != string::npos || oldStateID != "0")
+				{
+					if (oldStateID == boost::regex_replace(string(line), boost::regex(".*<hkparam name=\"fromNestedStateId\">([0-9]+)</hkparam>.*"), string("\\1")))
+					{
+						line.replace(39, oldStateID.length(), stateID);
+					}
+				}
+			}
+		}
+	}
+	else
+	{
+		for (auto& line : *functionlines)
+		{
+			if (line.find("<hkparam name=\"toStateId\">") != string::npos)
+			{
+				if (oldStateID == boost::regex_replace(string(line), boost::regex(".*<hkparam name=\"toStateId\">([0-9]+)</hkparam>.*"), string("\\1")))
+				{
+					line.replace(31, oldStateID.length(), stateID);
+				}
 			}
 		}
 	}

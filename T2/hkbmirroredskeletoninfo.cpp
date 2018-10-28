@@ -339,7 +339,6 @@ void hkbMirroredSkeletonInfoExport(string id)
 
 	// stage 3 output if it is edited
 	string filename = "mod/" + modcode + "/" + shortFileName + "/" + id + ".txt";
-	FolderCreate("mod/" + modcode + "/" + shortFileName + "/");
 
 	if (IsEdited)
 	{

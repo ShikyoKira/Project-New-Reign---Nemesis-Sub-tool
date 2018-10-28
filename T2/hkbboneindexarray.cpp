@@ -429,7 +429,7 @@ void hkbBoneIndexArrayExport(string id)
 		open = false;
 	}
 
-	NemesisReaderFormat(output);
+	NemesisReaderFormat(output, true);
 
 	// stage 3 output if it is edited
 	string filename = "mod/" + modcode + "/" + shortFileName + "/" + id + ".txt";

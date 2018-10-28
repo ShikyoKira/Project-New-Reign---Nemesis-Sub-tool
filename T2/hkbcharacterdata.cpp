@@ -969,6 +969,8 @@ void hkbCharacterDataExport(string id)
 		output.push_back(storeline2[i]);
 	}
 
+	NemesisReaderFormat(output, true);
+
 	// stage 3 output if it is edited
 	string filename = "mod/" + modcode + "/" + shortFileName + "/" + id + ".txt";
 

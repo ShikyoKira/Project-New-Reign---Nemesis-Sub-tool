@@ -486,6 +486,7 @@ void hkbStateMachineEventPropertyArrayExport(string id)
 
 	output.push_back("			</hkparam>");
 	output.push_back("		</hkobject>");
+	NemesisReaderFormat(output, true);
 
 	// stage 3 output if it is edited
 	string filename = "mod/" + modcode + "/" + shortFileName + "/" + id + ".txt";
@@ -807,6 +808,8 @@ namespace keepsake
 			}
 		}
 
+		NemesisReaderFormat(output, true);
+
 		// stage 3 output if it is edited
 		string filename = "mod/" + modcode + "/" + shortFileName + "/" + id + ".txt";
 
@@ -820,20 +823,7 @@ namespace keepsake
 
 				for (unsigned int i = 0; i < output.size(); i++)
 				{
-					if (output[i].find("<hkparam name=\"id\">", 0) != string::npos && output[i].find("<hkparam name=\"id\">-1</hkparam>", 0) == string::npos)
-					{
-						fwrite << "				<hkobject>" << "\n";
-						usize eventpos = output[i].find("id\">") + 4;
-						string eventid = output[i].substr(eventpos, output[i].find("</hkparam>"));
-
-						if (eventID[eventid].length() != 0)
-						{
-							output[i].replace(eventpos, output[i].find("</hkparam>") - eventpos, "$eventID[" + eventID[eventid] + "]$");
-						}
-
-						fwrite << output[i] << "\n";
-					}
-					else if (output[i].find("<hkparam name=\"payload\">", 0) != string::npos)
+					if (output[i].find("<hkparam name=\"payload\">", 0) != string::npos)
 					{
 						fwrite << output[i] << "\n";
 						fwrite << "				</hkobject>" << "\n";

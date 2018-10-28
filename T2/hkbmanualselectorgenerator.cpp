@@ -651,8 +651,6 @@ void hkbManualSelectorGeneratorExport(string id)
 	bool IsEdited = false;
 	bool IsOpenOut = false;
 	int curline = 0;
-	int openpoint;
-	int closepoint;
 
 	for (unsigned int i = 0; i < storeline2.size(); i++)
 	{
@@ -715,6 +713,15 @@ void hkbManualSelectorGeneratorExport(string id)
 		{
 			if (storeline2[i].find("<hkparam name=\"selectedGeneratorIndex\">", 0) != string::npos)
 			{
+				if (open)
+				{
+					output.push_back("<!-- ORIGINAL -->");
+					output.insert(output.end(), oriline.begin(), oriline.end());
+					output.push_back("<!-- CLOSE -->");
+					oriline.clear();
+					open = false;
+				}
+
 				output.push_back("			</hkparam>");
 
 				if (storeline1[curline] == storeline2[i])
@@ -746,8 +753,14 @@ void hkbManualSelectorGeneratorExport(string id)
 					++i;
 				}
 
+				if(oriline.size() > 0)
+				{
+					output.push_back("<!-- ORIGINAL -->");
+					output.insert(output.end(), oriline.begin(), oriline.end());
+					oriline.clear();
+				}
+
 				output.push_back("<!-- CLOSE -->");
-				oriline.clear();
 				open = false;
 				--i;
 			}
@@ -763,7 +776,7 @@ void hkbManualSelectorGeneratorExport(string id)
 		open = false;
 	}
 
-	NemesisReaderFormat(output);
+	NemesisReaderFormat(output, true);
 
 	// stage 3 output if it is edited
 	string filename = "mod/" + modcode + "/" + shortFileName + "/" + id + ".txt";

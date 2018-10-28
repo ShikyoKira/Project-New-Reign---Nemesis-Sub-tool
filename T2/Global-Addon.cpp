@@ -1,5 +1,6 @@
 #include "Global-Addon.h"
 #include "Global.h"
+#include "src\atomiclock.h"
 
 using namespace std;
 
@@ -146,7 +147,7 @@ void ReferenceReplacementExt(string wrongReference, string rightReference)
 		{
 			each.second = rightReference;
 		}
-		else if (each.first == wrongReference)
+		else if (each.first == wrongReference && each.second.length() > 0)
 		{
 			tempparents[wrongReference] = each.second;
 		}
@@ -165,38 +166,38 @@ void NemesisReaderFormat(vector<string>& output, bool hasID)
 {
 	if (hasID)
 	{
-		for (unsigned int i = 0; i < output.size(); ++i) // changing newID to modCode ID
+		for (auto& line : output)
 		{
-			if (output[i].find("#", 0) != string::npos)
+			if (line.find("#", 0) != string::npos)
 			{
 				usize tempint = 0;
 				usize position = 0;
-				usize size = count(output[i].begin(), output[i].end(), '#');
+				usize size = count(line.begin(), line.end(), '#');
 
 				for (unsigned int j = 0; j < size; ++j)
 				{
-					position = output[i].find("#", tempint);
-					tempint = output[i].find("#", position + 1);
+					position = line.find("#", tempint);
+					tempint = line.find("#", position + 1);
 					string tempID;
 
 					if (tempint == -1)
 					{
 						string templine;
 
-						if (output[i].find("signature", 0) != string::npos)
+						if (line.find("signature", 0) != string::npos)
 						{
-							templine = output[i].substr(0, output[i].find("class"));
+							templine = line.substr(0, line.find("class"));
 						}
 						else
 						{
-							templine = output[i].substr(position);
+							templine = line.substr(position, tempint - position - 1);
 						}
 
 						tempID = "#" + boost::regex_replace(string(templine), boost::regex("[^0-9]*([0-9]+).*"), string("\\1"));
 					}
 					else
 					{
-						tempID = output[i].substr(position, tempint - position - 1);
+						tempID = line.substr(position, tempint - position - 1);
 					}
 
 					int tempLength = tempID.length();
@@ -205,8 +206,9 @@ void NemesisReaderFormat(vector<string>& output, bool hasID)
 
 					if (intID > 10000)
 					{
-						int position2 = output[i].find(tempID);
 						string modID;
+						int position2 = line.find(tempID);
+						while (atomLock.test_and_set(std::memory_order_acquire));
 
 						if (!newID[tempID].empty())
 						{
@@ -218,80 +220,88 @@ void NemesisReaderFormat(vector<string>& output, bool hasID)
 							newID[tempID] = modID;
 						}
 
-						output[i].replace(position2, tempLength, modID);
+						atomLock.clear(std::memory_order_release);
+						line.replace(position2, tempLength, modID);
+					}
+				}
+			}
+			
+			if ((line.find("<hkparam name=\"id\">", 0) != string::npos) && (line.find("<hkparam name=\"id\">-1</hkparam>", 0) == string::npos))
+			{
+				usize eventpos = line.find("id\">") + 4;
+				string eventid = boost::regex_replace(string(line), boost::regex("[\t]*<hkparam name=\"id\">([0-9]+)</hkparam>"), string("\\1"));
+
+				if (eventid != line && eventID[eventid].length() != 0 && stoi(eventid) > int(eventCount))
+				{
+					line.replace(eventpos, eventid.length(), "$eventID[" + eventID[eventid] + "]$");
+				}
+			}
+
+			{
+				string lowerline = boost::to_lower_copy(line);
+
+				if ((lowerline.find("eventid\">", 0) != string::npos) && (lowerline.find("eventid\">-1</hkparam>", 0) == string::npos))
+				{
+					usize eventpos = lowerline.find("id\">") + 4;
+					string eventid = boost::regex_replace(string(lowerline), boost::regex(".*ventid\">([0-9]+)</hkparam>"), string("\\1"));
+
+					if (eventid != lowerline && eventID[eventid].length() != 0 && stoi(eventid) > int(eventCount))
+					{
+						line.replace(eventpos, eventid.length(), "$eventID[" + eventID[eventid] + "]$");
 					}
 				}
 			}
 
-			if ((output[i].find("<hkparam name=\"id\">", 0) != string::npos) && (output[i].find("<hkparam name=\"id\">-1</hkparam>", 0) == string::npos))
+			if (line.find("<hkparam name=\"variableIndex\">", 0) != string::npos)
 			{
-				usize eventpos = output[i].find("id\">") + 4;
-				string eventid = output[i].substr(eventpos, output[i].find("</hkparam>"));
+				usize varpos = line.find("<hkparam name=\"variableIndex\">") + 30;
+				string varid = boost::regex_replace(string(line), boost::regex("[\t]*<hkparam name=\"variableIndex\">([0-9]+)</hkparam>"), string("\\1"));
 
-				if (eventID[eventid].length() != 0)
+				if (varid != line && variableID[varid].length() != 0 && stoi(varid) > int(varCount))
 				{
-					output[i].replace(eventpos, output[i].find("</hkparam>") - eventpos, "$eventID[" + eventID[eventid] + "]$");
+					line.replace(varpos, varid.length(), "$variableID[" + variableID[varid] + "]$");
 				}
 			}
 		}
 	}
 	else
 	{
-		for (unsigned int i = 0; i < output.size(); ++i) // changing newID to modCode ID
+		for (auto& line : output)
 		{
-			if (output[i].find("#", 0) != string::npos)
+			if ((line.find("<hkparam name=\"id\">", 0) != string::npos) && (line.find("<hkparam name=\"id\">-1</hkparam>", 0) == string::npos))
 			{
-				usize tempint = 0;
-				usize position = 0;
-				usize size = count(output[i].begin(), output[i].end(), '#');
+				usize eventpos = line.find("id\">") + 4;
+				string eventid = boost::regex_replace(string(line), boost::regex("[\t]*<hkparam name=\"id\">([0-9]+)</hkparam>"), string("\\1"));
 
-				for (unsigned int j = 0; j < size; ++j)
+				if (eventid != line && eventID[eventid].length() != 0 && stoi(eventid) > int(eventCount))
 				{
-					position = output[i].find("#", tempint);
-					tempint = output[i].find("#", position + 1);
-					string tempID;
+					line.replace(eventpos, eventid.length(), "$eventID[" + eventID[eventid] + "]$");
+				}
+			}
 
-					if (tempint == -1)
+			{
+				string lowerline = boost::to_lower_copy(line);
+
+				if ((lowerline.find("eventid\">", 0) != string::npos) && (lowerline.find("eventid\">-1</hkparam>", 0) == string::npos))
+				{
+					usize eventpos = lowerline.find("id\">") + 4;
+					string eventid = boost::regex_replace(string(lowerline), boost::regex(".*ventid\">([0-9]+)</hkparam>"), string("\\1"));
+
+					if (eventid != lowerline && eventID[eventid].length() != 0 && stoi(eventid) > int(eventCount))
 					{
-						string templine;
-
-						if (output[i].find("signature", 0) != string::npos)
-						{
-							templine = output[i].substr(0, output[i].find("class"));
-						}
-						else
-						{
-							templine = output[i].substr(position);
-						}
-
-						tempID = "#" + boost::regex_replace(string(templine), boost::regex("[^0-9]*([0-9]+).*"), string("\\1"));
+						line.replace(eventpos, eventid.length(), "$eventID[" + eventID[eventid] + "]$");
 					}
-					else
-					{
-						tempID = output[i].substr(position, tempint - position - 1);
-					}
+				}
+			}
 
-					int tempLength = tempID.length();
-					string strID = tempID.substr(1, tempLength - 1);
-					int intID = stoi(strID);
+			if (line.find("<hkparam name=\"variableIndex\">", 0) != string::npos)
+			{
+				usize varpos = line.find("<hkparam name=\"variableIndex\">") + 30;
+				string varid = boost::regex_replace(string(line), boost::regex("[\t]*<hkparam name=\"variableIndex\">([0-9]+)</hkparam>"), string("\\1"));
 
-					if (intID > 10000)
-					{
-						int position2 = output[i].find(tempID);
-						string modID;
-
-						if (!newID[tempID].empty())
-						{
-							modID = newID[tempID];
-						}
-						else
-						{
-							modID = "#" + modcode + "$" + to_string(functioncount++);
-							newID[tempID] = modID;
-						}
-
-						output[i].replace(position2, tempLength, modID);
-					}
+				if (varid != line && variableID[varid].length() != 0 && stoi(varid) > int(varCount))
+				{
+					line.replace(varpos, varid.length(), "$variableID[" + variableID[varid] + "]$");
 				}
 			}
 		}

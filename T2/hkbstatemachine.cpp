@@ -1,9 +1,11 @@
 #include "hkbstatemachine.h"
 #include "Global.h"
 #include "generatorlines.h"
+#include "src\stateid.h"
 
 using namespace std;
 
+string GetClass(string id, bool compare); // get class
 bool matchScoring(vector<string>& ori, vector<string>& edit, string id);
 
 hkbstatemachine::hkbstatemachine(string filepath, string id, string preaddress, int functionlayer, bool compare)
@@ -24,6 +26,13 @@ hkbstatemachine::hkbstatemachine(string filepath, string id, string preaddress, 
 	}
 	else if (!Error)
 	{
+		bool statusChanged = false;
+
+		if (IsForeign[id])
+		{
+			statusChanged = true;
+		}
+
 		string dummyID = CrossReferencing(id, address, functionlayer, compare);
 
 		if (compare)
@@ -40,6 +49,54 @@ hkbstatemachine::hkbstatemachine(string filepath, string id, string preaddress, 
 				{
 					address = preaddress;
 				}
+			}
+			else if (stateChange && statusChanged)
+			{
+				string temp = preaddress + "r" + to_string(functionlayer) + ">region";
+				string lastSMAdd = boost::regex_replace(string(temp), boost::regex("(^.*[(]r[0-9]+[)]=>[^>]+>)[^>]+.*"), string("\\1"));
+
+				if (lastSMAdd != temp)
+				{
+					string parentID = parent[addressID[lastSMAdd]];
+
+					if (parentID.length() == 0)
+					{
+						cout << "ERROR: hkbStateMachine missing parent ID (ID: " << id << ")" << endl;
+						Error = true;
+						return;
+					}
+
+					if (isSMIDExist[parentID])
+					{
+						previousSM = StateMachineID[parentID];
+						previousSMExist = true;
+					}
+				}
+				else
+				{
+					string parentID = parent[id];
+
+					while (parentID.length() > 0 && GetClass(parentID, true) != "hkbStateMachine")
+					{
+						if (IsForeign[parentID])
+						{
+							cout << "ERROR: hkbStateMachine foreign parent ID (ID: " << parentID << ")" << endl;
+							Error = true;
+							return;
+						}
+
+						parentID = parent[parentID];
+					}
+
+					if (isSMIDExist[parentID])
+					{
+						previousSM = StateMachineID[parentID];
+						previousSMExist = true;
+					}
+				}
+
+				StateMachineID[dummyID] = make_shared<hkbstatemachine>(*this);
+				isSMIDExist[dummyID] = true;
 			}
 		}
 		else
@@ -58,7 +115,7 @@ void hkbstatemachine::nonCompare(string filepath, string id)
 {
 	if (Debug)
 	{
-		cout << "--------------------------------------------------------------" << endl << "hkbStateMachine(ID: " << id << ") has been initialized!" << endl;
+		cout << "--------------------------------------------------------------" << endl << "hkbStateMachine (ID: " << id << ") has been initialized!" << endl;
 	}
 
 	unordered_map<string, bool> IsReferenceExist;
@@ -126,6 +183,11 @@ void hkbstatemachine::nonCompare(string filepath, string id)
 					generator.reserve(children);
 					elements[id + "T"] = children;
 					pauseline = true;
+
+					if (children > 0)
+					{
+						isStateIDExist[id] = true;
+					}
 				}
 
 				else if (line.find("<hkparam name=\"wildcardTransitions\">", 0) != string::npos)
@@ -154,7 +216,6 @@ void hkbstatemachine::nonCompare(string filepath, string id)
 
 	FunctionLineTemp[id] = FunctionLineOriginal[id];
 	RecordID(id, address); // record address for compare purpose and idcount without updating referenceID
-
 	address = name + "(r" + to_string(regioncount[name]) + ")=>";
 	regioncount[name]++;
 	region[id] = address;
@@ -426,12 +487,39 @@ void hkbstatemachine::Compare(string filepath, string id)
 
 		FunctionLineNew[tempid] = newstoreline;
 
+		if (stateChange)
+		{
+			string lastSMAdd = boost::regex_replace(string(address), boost::regex("(^.*[(]r[0-9]+[)]=>[^>]+>)[^>]+.*"), string("\\1"));
+
+			if (lastSMAdd != address)
+			{
+				string parentID = parent[addressID[lastSMAdd]];
+
+				if (parentID.length() == 0)
+				{
+					cout << "ERROR: hkbStateMachine missing parent ID (ID: " << id << ")" << endl;
+					Error = true;
+					return;
+				}
+
+				if (isSMIDExist[parentID])
+				{
+					previousSM = StateMachineID[parentID];
+					previousSMExist = true;
+				}
+			}
+
+			StateMachineID[tempid] = make_shared<hkbstatemachine>(*this);
+			isSMIDExist[tempid] = true;
+		}
+
+		address = region[tempid];
+
 		if ((Debug) && (!Error))
 		{
 			cout << "Comparing hkbStateMachine(newID: " << id << ") with hkbStateMachine(oldID: " << tempid << ") is complete!" << endl;
 		}
 
-		address = region[tempid];
 	}
 	else
 	{
@@ -640,6 +728,11 @@ string hkbstatemachine::GetAddress()
 bool hkbstatemachine::IsNegate()
 {
 	return IsNegated;
+}
+
+string hkbstatemachine::GetRealID()
+{
+	return realID;
 }
 
 void hkbStateMachineExport(string id)

@@ -153,6 +153,7 @@ vector<orderPair> highestScore(map<int, map<int, double>> scorelist, size_t orig
 			taken[score->second.original] = true;
 			taken2[score->second.edited] = true;
 			isNew[score->second.edited] = false;
+			isDeleted[score->second.original] = false;
 		}
 		else if (!taken2[score->second.edited])
 		{
@@ -185,7 +186,7 @@ vector<orderPair> highestScore(map<int, map<int, double>> scorelist, size_t orig
 
 	if (added.size() != size - originalSize)
 	{
-		cout << "ERROR: Highest Score bug detected";
+		cout << "ERROR: Highest Score bug detected" << endl;
 		Error = true;
 		return editOrder;
 	}

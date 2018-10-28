@@ -455,27 +455,18 @@ void hkbEventDrivenModifierExport(string id)
 
 			if (((storeline2[j].find("<hkparam name=\"activateEventId\">", 0) != string::npos) || (storeline2[j].find("<hkparam name=\"deactivateEventId\">", 0) != string::npos)) && (storeline2[j].find("<hkparam name=\"activateEventId\">-1</hkparam>", 0) == string::npos) && (storeline2[j].find("<hkparam name=\"deactivateEventId\">-1</hkparam>", 0) == string::npos))
 			{
-				usize eventpos = storeline2[j].find("$eventID[");
+				usize eventpos = storeline2[j].find("Id\">") + 4;
+				string eventid = storeline2[j].substr(eventpos, storeline2[j].find("</hkparam>", eventpos) - eventpos);
 
-				if (eventpos != string::npos)
+				if (eventid != line && eventID[eventid].length() != 0 && stoi(eventid) > int(eventCount))
 				{
-					eventpos += 9;
-					string eventid = storeline2[j].substr(eventpos, storeline2[j].find("]$", eventpos) - eventpos + 2);
-
-					if (!eventID[eventid].empty())
-					{
-						storeline2[j].replace(eventpos, storeline2[j].find("]$") - eventpos + 2, eventID[eventid]);
-					}
-					else
-					{
-						cout << "ERROR: Invalid event id. Please ensure that event id is valid (ID: " << id << ")" << endl;
-						Error = true;
-						return;
-					}
+					storeline2[j].replace(eventpos, eventid.length(), "$eventID[" + eventID[eventid] + "]$");
 				}
 			}
 		}
 	}
+
+	NemesisReaderFormat(storeline2, true);
 
 	// stage 3 output if it is edited
 	string filename = "mod/" + modcode + "/" + shortFileName + "/" + id + ".txt";

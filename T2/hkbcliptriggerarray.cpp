@@ -360,9 +360,9 @@ void hkbClipTriggerArrayExport(string id)
 	vector<string> output;
 	bool IsEdited = false;
 
-	output.push_back(FunctionLineNew[id][0]);
+	output.push_back(FunctionLineTemp[id][0]);
 
-	if ((FunctionLineTemp[id][1].find(FunctionLineNew[id][1], 0) == string::npos) || (FunctionLineTemp[id][1].length() != FunctionLineNew[id][1].length()))
+	if (FunctionLineTemp[id][1] != FunctionLineNew[id][1])
 	{
 		output.push_back("<!-- MOD_CODE ~" + modcode + "~ OPEN -->");
 		output.push_back(FunctionLineNew[id][1]);
@@ -573,20 +573,7 @@ void hkbClipTriggerArrayExport(string id)
 	
 	output.push_back("			</hkparam>");
 	output.push_back("		</hkobject>");
-
-	for (unsigned int j = 0; j < output.size(); j++)
-	{
-		if ((output[j].find("<hkparam name=\"id\">", 0) != string::npos) && (output[j].find("<hkparam name=\"id\">-1</hkparam>", 0) == string::npos))
-		{
-			usize eventpos = output[j].find("id\">") + 4;
-			string eventid = output[j].substr(eventpos, output[j].find("</hkparam>"));
-
-			if (eventID[eventid].length() != 0)
-			{
-				output[j].replace(eventpos, output[j].find("</hkparam>") - eventpos, "$eventID[" + eventID[eventid] + "]$");
-			}
-		}
-	}
+	NemesisReaderFormat(output);
 
 	// stage 3 output if it is edited
 	string filename = "mod/" + modcode + "/" + shortFileName + "/" + id + ".txt";
@@ -1024,19 +1011,7 @@ namespace keepsake
 			}
 		}
 
-		for (unsigned int j = 0; j < output.size(); j++)
-		{
-			if ((output[j].find("<hkparam name=\"id\">", 0) != string::npos) && (output[j].find("<hkparam name=\"id\">-1</hkparam>", 0) == string::npos))
-			{
-				usize eventpos = output[j].find("id\">") + 4;
-				string eventid = output[j].substr(eventpos, output[j].find("</hkparam>"));
-
-				if (eventID[eventid].length() != 0)
-				{
-					output[j].replace(eventpos, output[j].find("</hkparam>") - eventpos, "$eventID[" + eventID[eventid] + "]$");
-				}
-			}
-		}
+		NemesisReaderFormat(storeline2);
 
 		// stage 3 output if it is edited
 		string filename = "mod/" + modcode + "/" + shortFileName + "/" + id + ".txt";

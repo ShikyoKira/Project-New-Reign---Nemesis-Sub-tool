@@ -597,7 +597,7 @@ void hkbBlenderGeneratorExport(string id)
 		open = false;
 	}
 
-	NemesisReaderFormat(output);
+	NemesisReaderFormat(output, true);
 
 	// stage 2 output if it is edited
 	string filename = "mod/" + modcode + "/" + shortFileName + "/" + id + ".txt";

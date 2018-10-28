@@ -438,6 +438,8 @@ void hkbFootIkDriverInfoExport(string id)
 		open = false;
 	}
 
+	NemesisReaderFormat(output);
+
 	// stage 3 output if it is edited
 	string filename = "mod/" + modcode + "/" + shortFileName + "/" + id + ".txt";
 

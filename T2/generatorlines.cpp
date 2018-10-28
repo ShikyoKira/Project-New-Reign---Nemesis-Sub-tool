@@ -147,7 +147,7 @@ bool generatorLines(vector<string>& storeline1, vector<string>& storeline2, stri
 
 				if (counter == 16)
 				{
-					counter == 0;
+					counter = 0;
 				}
 			}
 		}
@@ -156,10 +156,12 @@ bool generatorLines(vector<string>& storeline1, vector<string>& storeline2, stri
 	generator2.insert(generator2.end(), extra.begin(), extra.end());
 	storeline1.insert(storeline1.end(), generator1.begin(), generator1.end());
 	storeline2.insert(storeline2.end(), generator2.begin(), generator2.end());
+	vector<string> orilines = FunctionLineTemp[id];
+	vector<string> editedlines = FunctionLineNew[id];
 
-	for (unsigned int i = contline; i < FunctionLineTemp[id].size(); ++i)
+	for (unsigned int i = contline; i < orilines.size(); ++i)
 	{
-		line = FunctionLineTemp[id][i];
+		line = orilines[i];
 
 		if ((line.find("<hkobject>", 0) == string::npos) && (line.find("</hkobject>", 0) == string::npos) && (line.find("</hkparam>", 0) == string::npos || line.find("</hkparam>", 0) > 10))
 		{
@@ -167,9 +169,9 @@ bool generatorLines(vector<string>& storeline1, vector<string>& storeline2, stri
 		}
 	}
 
-	for (unsigned int i = contline2; i < FunctionLineNew[id].size(); ++i)
+	for (unsigned int i = contline2; i < editedlines.size(); ++i)
 	{
-		line = FunctionLineNew[id][i];
+		line = editedlines[i];
 
 		if ((line.find("<hkobject>", 0) == string::npos) && (line.find("</hkobject>", 0) == string::npos) && (line.find("</hkparam>", 0) == string::npos || line.find("</hkparam>", 0) > 10))
 		{

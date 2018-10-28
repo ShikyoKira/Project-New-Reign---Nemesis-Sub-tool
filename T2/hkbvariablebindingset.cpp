@@ -465,31 +465,7 @@ void hkbVariableBindingSetExport(string id)
 	}
 
 	output.push_back("		</hkobject>");
-
-	for (auto& curline : output)
-	{
-		if (curline.find("<hkparam name=\"variableIndex\">", 0) != string::npos)
-		{
-			usize eventpos = curline.find("$variableID[");
-
-			if (eventpos != string::npos)
-			{
-				eventpos += 12;
-				string eventid = curline.substr(eventpos, curline.find("]$", eventpos) - eventpos + 2);
-
-				if (!eventID[eventid].empty())
-				{
-					curline.replace(eventpos, curline.find("]$") - eventpos + 2, eventID[eventid]);
-				}
-				else
-				{
-					cout << "ERROR: Invalid event id. Please ensure that event id is valid (ID: " << id << ")" << endl;
-					Error = true;
-					return;
-				}
-			}
-		}
-	}
+	NemesisReaderFormat(output);
 
 	// stage 3 output if it is edited
 	string filename = "mod/" + modcode + "/" + shortFileName + "/" + id + ".txt";
@@ -873,6 +849,8 @@ namespace keepsake
 			open = false;
 		}
 
+		NemesisReaderFormat(output);
+
 		// stage 3 output if it is edited
 		string filename = "mod/" + modcode + "/" + shortFileName + "/" + id + ".txt";
 
@@ -898,18 +876,6 @@ namespace keepsake
 					}
 					else if (output[i].find("<hkparam name=\"indexOfBindingToEnable\">", 0) != string::npos)
 					{
-						fwrite << output[i] << "\n";
-					}
-					else if (output[i].find("<hkparam name=\"variableIndex\">", 0) != string::npos && output[i].find("<hkparam name=\"variableIndex\">-1</hkparam>", 0) != string::npos)
-					{
-						usize varpos = output[i].find("variableIndex") + 15;
-						string varID = output[i].substr(varpos, output[i].find("</hkparam>"));
-
-						if (eventID[varID].length() != 0)
-						{
-							output[i].replace(varpos, output[i].find("</hkparam>") - varpos, "$variableID[" + variableID[varID] + "]$");
-						}
-
 						fwrite << output[i] << "\n";
 					}
 					else
