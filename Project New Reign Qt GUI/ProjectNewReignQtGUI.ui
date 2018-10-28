@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>ProjectNewReignQtGUIClass</class>
+ <widget class="QWidget" name="ProjectNewReignQtGUIClass">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>661</width>
+    <height>320</height>
+   </rect>
+  </property>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>661</width>
+    <height>320</height>
+   </size>
+  </property>
+  <property name="maximumSize">
+   <size>
+    <width>661</width>
+    <height>320</height>
+   </size>
+  </property>
+  <property name="acceptDrops">
+   <bool>true</bool>
+  </property>
+  <property name="windowTitle">
+   <string>ProjectNewReignQtGUI</string>
+  </property>
+  <widget class="OriginalDropBox" name="DropBox1">
+   <property name="enabled">
+    <bool>true</bool>
+   </property>
+   <property name="geometry">
+    <rect>
+     <x>20</x>
+     <y>20</y>
+     <width>301</width>
+     <height>281</height>
+    </rect>
+   </property>
+   <property name="acceptDrops">
+    <bool>true</bool>
+   </property>
+  </widget>
+  <widget class="EditDropBox" name="DropBox2">
+   <property name="enabled">
+    <bool>true</bool>
+   </property>
+   <property name="geometry">
+    <rect>
+     <x>340</x>
+     <y>20</y>
+     <width>301</width>
+     <height>281</height>
+    </rect>
+   </property>
+   <property name="acceptDrops">
+    <bool>true</bool>
+   </property>
+  </widget>
+ </widget>
+ <layoutdefault spacing="6" margin="11"/>
+ <customwidgets>
+  <customwidget>
+   <class>OriginalDropBox</class>
+   <extends>QGraphicsView</extends>
+   <header>OriginalDropBox.h</header>
+  </customwidget>
+  <customwidget>
+   <class>EditDropBox</class>
+   <extends>QGraphicsView</extends>
+   <header>EditDropBox.h</header>
+  </customwidget>
+ </customwidgets>
+ <resources>
+  <include location="ProjectNewReignQtGUI.qrc"/>
+ </resources>
+ <connections/>
+</ui>
