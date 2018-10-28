@@ -48,6 +48,8 @@ namespace AnimDataFormat
 
 struct AnimDataPack
 {
+	bool proxy = true;
+
 	// anim data
 	std::string name;
 	std::string uniquecode;
@@ -59,6 +61,8 @@ struct AnimDataPack
 
 struct InfoDataPack
 {
+	bool proxy = true;
+
 	std::string uniquecode;
 	std::string duration;
 	vecstr motiondata;
@@ -67,6 +71,10 @@ struct InfoDataPack
 
 struct AnimDataProject
 {
+	bool proxy = true;
+
+	std::string name;
+	std::string filename;
 	std::string unknown1;
 	vecstr behaviorlist;
 	std::string unknown2;
@@ -75,13 +83,11 @@ struct AnimDataProject
 	std::vector<InfoDataPack> infodatalist;
 
 	AnimDataProject() {}
-	AnimDataProject(vecstr animdatafile, std::string filename, std::string filepath, std::string modcode = "nemesis");
+	AnimDataProject(vecstr animdatafile, std::string projectname, std::string projectfile);
 	int GetAnimTotalLine();
 	int GetInfoTotalLine();
 };
 
-void BehaviorListProcess(AnimDataProject& storeline, int& startline, vecstr& animdatafile, std::string project, std::string modcode);
-void AnimDataProcess(std::vector<AnimDataPack>& storeline, int& startline, vecstr& animdatafile, std::string project, std::string modcode);
-void InfoDataProcess(std::vector<InfoDataPack>& storeline, int& startline, vecstr& animdatafile, std::string project, std::string modcode);
+void animDataInitialize(std::string filepath, vecstr& storeline, std::vector<std::shared_ptr<AnimDataProject>>& ADProject);
 
 #endif

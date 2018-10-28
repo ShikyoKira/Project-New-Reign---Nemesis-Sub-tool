@@ -2,24 +2,31 @@
 
 using namespace std;
 
-AnimDataProject::AnimDataProject(vecstr animdatafile, string project, string filepath, string modcode)
+void BehaviorListProcess(AnimDataProject& storeline, int& startline, vecstr& animdatafile, std::string project);
+void AnimDataProcess(std::vector<AnimDataPack>& storeline, int& startline, vecstr& animdatafile, std::string project);
+void InfoDataProcess(std::vector<InfoDataPack>& storeline, int& startline, vecstr& animdatafile, std::string project);
+
+AnimDataProject::AnimDataProject(vecstr animdatafile, string project, string projectfile)
 {
+	name = project;
+	filename = projectfile.replace(projectfile.find_last_of(".txt") - 3, 4, "");
+	proxy = false;
 	int startline = 0;
-	BehaviorListProcess(*this, startline, animdatafile, project, modcode);
+	BehaviorListProcess(*this, startline, animdatafile, project);
 
 	if (startline >= int(animdatafile.size()))
 	{
 		return;
 	}
 
-	AnimDataProcess(animdatalist, startline, animdatafile, project, modcode);
+	AnimDataProcess(animdatalist, startline, animdatafile, project);
 
 	if (startline >= int(animdatafile.size()))
 	{
 		return;
 	}
 
-	InfoDataProcess(infodatalist, startline, animdatafile, project, modcode);
+	InfoDataProcess(infodatalist, startline, animdatafile, project);
 }
 
 int AnimDataProject::GetAnimTotalLine()
@@ -46,7 +53,7 @@ int AnimDataProject::GetInfoTotalLine()
 	return counter;
 }
 
-void BehaviorListProcess(AnimDataProject& storeline, int& startline, vecstr& animdatafile, string project, string modcode)
+void BehaviorListProcess(AnimDataProject& storeline, int& startline, vecstr& animdatafile, string project)
 {
 	if (!isOnlyNumber(animdatafile[startline]))
 	{
@@ -92,7 +99,7 @@ void BehaviorListProcess(AnimDataProject& storeline, int& startline, vecstr& ani
 	}
 }
 
-void AnimDataProcess(vector<AnimDataPack>& storeline, int& startline, vecstr& animdatafile, string project, string modcode)
+void AnimDataProcess(vector<AnimDataPack>& storeline, int& startline, vecstr& animdatafile, string project)
 {
 	for (int i = startline; i < int(animdatafile.size()); ++i)
 	{
@@ -114,6 +121,7 @@ void AnimDataProcess(vector<AnimDataPack>& storeline, int& startline, vecstr& an
 
 		string uniquecode = animdatafile[i++];
 		AnimDataPack curAP;
+		curAP.proxy = false;
 		curAP.name = name;
 		curAP.uniquecode = uniquecode;
 
@@ -180,7 +188,7 @@ void AnimDataProcess(vector<AnimDataPack>& storeline, int& startline, vecstr& an
 	}
 }
 
-void InfoDataProcess(vector<InfoDataPack>& storeline, int& startline, vecstr& animdatafile, string project, string modcode)
+void InfoDataProcess(vector<InfoDataPack>& storeline, int& startline, vecstr& animdatafile, string project)
 {
 	unordered_map<string, bool> isExist;
 
@@ -196,6 +204,7 @@ void InfoDataProcess(vector<InfoDataPack>& storeline, int& startline, vecstr& an
 		InfoDataPack curIP;
 		string uniquecode = animdatafile[i++];
 		curIP.uniquecode = uniquecode;
+		curIP.proxy = false;
 
 		if (isExist[uniquecode])
 		{
@@ -252,7 +261,7 @@ void InfoDataProcess(vector<InfoDataPack>& storeline, int& startline, vecstr& an
 	}
 }
 
-void animDataInitialize(string filepath, vecstr& projectList, vector<AnimDataProject>& ADProject)
+void animDataInitialize(string filepath, vecstr& catalyst, vector<shared_ptr<AnimDataProject>>& ADProject)
 {
 #define NOT_FOUND string::npos
 
@@ -265,404 +274,215 @@ void animDataInitialize(string filepath, vecstr& projectList, vector<AnimDataPro
 	unordered_map<string, unordered_map<string, vecstr>> catalystMap;	// project, header, list of lines
 	unordered_map<string, vecstr> animDataHeader;						// project, list of headers
 	unordered_map<string, vecstr> animDataInfo;							// project, list of info headers
+	
+	vecstr projectList;
+	vecstr newline;
 
+	// check for error
+	if (Error)
 	{
-		// read behavior file
-		vecstr catalyst;
-		GetFunctionLines(filepath, catalyst);
-		vecstr newline;
+		return;
+	}
 
-		// check for error
+	int projectcounter = 0;
+	bool isInfo = false;
+	int num = 0;
+	projectList.reserve(500);
+
+	for (unsigned int i = 1; i < catalyst.size(); ++i)
+	{
+		if (catalyst[i].find(".txt") == NOT_FOUND)
+		{
+			num = i;
+			break;
+		}
+
+		projectList.push_back(catalyst[i]);
+	}
+
+	projectList.shrink_to_fit();
+	project = projectList[0] + "~" + to_string(++projectNameCount[projectList[0]]);
+	header = "$header$";
+	animDataHeader[project].push_back(header);
+	newline.reserve(20);
+	newline.clear();
+
+	// add picked behavior and remove not picked behavior 
+	// separation of all items for easier access and better compatibility
+	for (unsigned int l = num; l < catalyst.size(); ++l)
+	{
+		string line = catalyst[l];
+
+		if (l + 3 < catalyst.size() && l > 2)
+		{
+			if (catalyst[l - 1] == "")
+			{
+				bool out = false;
+
+				if (isOnlyNumber(line))
+				{
+					if (isOnlyNumber(catalyst[l + 1]))
+					{
+						if (isOnlyNumber(catalyst[l + 2]))
+						{
+							if (catalyst[l + 2] == "0" || (l + 3 < catalyst.size() && catalyst[l + 3].find("\\") != NOT_FOUND))
+							{
+								newline.shrink_to_fit();
+								catalystMap[project][header] = newline;
+								string newproject = projectList[++projectcounter];
+								header = "$header$";
+								project = newproject + "~" + to_string(++projectNameCount[newproject]);
+								animDataHeader[project].push_back(header);
+								newline.reserve(20);
+								newline.clear();
+								isInfo = false;
+								out = true;
+							}
+						}
+					}
+				}
+
+				if (!out)
+				{
+					if (!isInfo)
+					{
+						if (hasAlpha(line))
+						{
+							if (isOnlyNumber(catalyst[l + 1]))
+							{
+								newline.shrink_to_fit();
+								catalystMap[project][header] = newline;
+								newline.reserve(20);
+								newline.clear();
+								header = line + "~" + catalyst[l + 1];
+								animDataHeader[project].push_back(header);
+							}
+						}
+						else if (isOnlyNumber(line))
+						{
+							isInfo = true;
+							newline.shrink_to_fit();
+							catalystMap[project][header] = newline;;
+							newline.reserve(20);
+							newline.clear();
+							header = catalyst[++l];
+							line = catalyst[l];
+							animDataInfo[project].push_back(header);
+						}
+					}
+					else if (isOnlyNumber(line))
+					{
+						newline.shrink_to_fit();
+						catalystMap[project][header] = newline;
+						newline.reserve(20);
+						newline.clear();
+						header = line;
+						animDataInfo[project].push_back(header);
+					}
+				}
+			}
+			else if (header == "$header$")
+			{
+				if (hasAlpha(line) && line.find("\\") == NOT_FOUND && l + 1 < catalyst.size())
+				{
+					if (isOnlyNumber(catalyst[l + 1]))	// if it is unique code
+					{
+						newline.shrink_to_fit();
+						catalystMap[project][header] = newline;
+						newline.reserve(20);
+						newline.clear();
+						header = line + "~" + catalyst[l + 1];
+						animDataHeader[project].push_back(header);
+					}
+				}
+				else if (isOnlyNumber(catalyst[l - 1]) && catalyst[l - 1] == "0" && isOnlyNumber(line) && l + 3 < catalyst.size())
+				{
+					if (isOnlyNumber(catalyst[l + 1]))
+					{
+						if (isOnlyNumber(catalyst[l + 2]))
+						{
+							if (catalyst[l + 2] == "0" || catalyst[l + 3].find("\\") != NOT_FOUND)
+							{
+								newline.shrink_to_fit();
+								catalystMap[project][header] = newline;
+								string newproject = projectList[++projectcounter];
+								project = newproject + "~" + to_string(++projectNameCount[newproject]);
+								animDataHeader[project].push_back(header);
+								newline.reserve(20);
+								newline.clear();
+								isInfo = false;
+							}
+						}
+					}
+				}
+			}
+		}
+
 		if (Error)
 		{
 			return;
 		}
 
-		int projectcounter = 0;
-		bool isInfo = false;
-		int num = 0;
-		projectList.reserve(500);
+		newline.push_back(line);
+	}
 
-		for (unsigned int i = 1; i < catalyst.size(); ++i)
+	if (newline.size() != 0)
+	{
+		if (newline.back().length() == 0)
 		{
-			if (catalyst[i].find(".txt") == NOT_FOUND)
-			{
-				num = i;
-				break;
-			}
-
-			projectList.push_back(catalyst[i]);
+			newline.pop_back();
 		}
 
-		projectList.shrink_to_fit();
-		project = projectList[0] + " " + to_string(++projectNameCount[projectList[0]]);
-		header = "$header$";
-		animDataHeader[project].push_back(header);
-		newline.reserve(20);
+		newline.shrink_to_fit();
+		catalystMap[project][header] = newline;
 		newline.clear();
+	}
 
-		// add picked behavior and remove not picked behavior 
-		// separation of all items for easier access and better compatibility
-		for (unsigned int l = num; l < catalyst.size(); ++l)
+	try
+	{
+		for (unsigned int i = 0; i < projectList.size(); ++i)
 		{
-			string line = catalyst[l];
-
-			if (l + 3 < catalyst.size() && l > 2)
+			if (projectNameCount[projectList[i]] > 1)
 			{
-				if (catalyst[l - 1] == "")
-				{
-					bool out = false;
-
-					if (isOnlyNumber(line))
-					{
-						int next = 1;
-
-						if (l + next < catalyst.size() && catalyst[l + next].find("<!--") != NOT_FOUND)
-						{
-							++next;
-						}
-
-						if (l + next < catalyst.size() && isOnlyNumber(catalyst[l + next]))
-						{
-							++next;
-
-							if (l + next < catalyst.size() && catalyst[l + next].find("<!--") != NOT_FOUND)
-							{
-								++next;
-							}
-
-							if (l + next < catalyst.size() && isOnlyNumber(catalyst[l + next]))
-							{
-								int nextnext = next + 1;
-
-								if (l + next < catalyst.size() && catalyst[l + next].find("<!--") != NOT_FOUND)
-								{
-									++nextnext;
-								}
-
-								if (catalyst[l + next] == "0" || (l + nextnext < catalyst.size() && catalyst[l + nextnext].find("\\") != NOT_FOUND))
-								{
-									newline.shrink_to_fit();
-									catalystMap[project][header] = newline;
-									string newproject = projectList[++projectcounter];
-									header = "$header$";
-									project = newproject + " " + to_string(++projectNameCount[newproject]);
-									animDataHeader[project].push_back(header);
-									newline.reserve(20);
-									newline.clear();
-									isInfo = false;
-									out = true;
-								}
-							}
-						}
-					}
-
-					if (!out)
-					{
-						if (!isInfo)
-						{
-							if (hasAlpha(line))
-							{
-								if (isOnlyNumber(catalyst[l + 1]))
-								{
-									newline.shrink_to_fit();
-									catalystMap[project][header] = newline;
-									newline.reserve(20);
-									newline.clear();
-									header = line + " " + catalyst[l + 1];
-									animDataHeader[project].push_back(header);
-								}
-							}
-							else if (isOnlyNumber(line))
-							{
-								isInfo = true;
-								newline.shrink_to_fit();
-								catalystMap[project][header] = newline;;
-								newline.reserve(20);
-								newline.clear();
-								header = catalyst[++l];
-								line = catalyst[l];
-								animDataInfo[project].push_back(header);
-							}
-						}
-						else if (isOnlyNumber(line))
-						{
-							newline.shrink_to_fit();
-							catalystMap[project][header] = newline;
-							newline.reserve(20);
-							newline.clear();
-							header = line;
-							animDataInfo[project].push_back(header);
-						}
-					}
-				}
-				else if (header == "$header$")
-				{
-					if (hasAlpha(line) && line.find("\\") == NOT_FOUND && l + 1 < catalyst.size())
-					{
-						if (isOnlyNumber(catalyst[l + 1]))	// if it is unique code
-						{
-							newline.shrink_to_fit();
-							catalystMap[project][header] = newline;
-							newline.reserve(20);
-							newline.clear();
-							header = line + " " + catalyst[l + 1];
-							animDataHeader[project].push_back(header);
-						}
-					}
-					else if (isOnlyNumber(catalyst[l - 1]) && catalyst[l - 1] == "0" && isOnlyNumber(line))
-					{
-						int next = 1;
-
-						if (l + next < catalyst.size() && isOnlyNumber(catalyst[l + next]))
-						{
-							++next;
-
-							if (l + next < catalyst.size() && catalyst[l + next].find("<!--") != NOT_FOUND)
-							{
-								++next;
-							}
-
-							if (l + next < catalyst.size() && isOnlyNumber(catalyst[l + next]))
-							{
-								int nextnext = next + 1;
-
-								if (l + next < catalyst.size() && catalyst[l + next].find("<!--") != NOT_FOUND)
-								{
-									++nextnext;
-								}
-
-								if (catalyst[l + next] == "0" || (l + nextnext < catalyst.size() && catalyst[l + nextnext].find("\\") != NOT_FOUND))
-								{
-									newline.shrink_to_fit();
-									catalystMap[project][header] = newline;
-									string newproject = projectList[++projectcounter];
-									project = newproject + " " + to_string(++projectNameCount[newproject]);
-									animDataHeader[project].push_back(header);
-									newline.reserve(20);
-									newline.clear();
-									isInfo = false;
-								}
-							}
-						}
-					}
-				}
+				project = projectList[i] + "~" + to_string(++nextProject[projectList[i]]);
+			}
+			else
+			{
+				project = projectList[i] + "~1";
 			}
 
-			newline.push_back(line);
-		}
+			vecstr combined;
 
-		if (newline.size() != 0)
-		{
-			if (newline.back().length() == 0)
+			for (unsigned int j = 0; j < animDataHeader[project].size(); ++j)
 			{
-				newline.pop_back();
+				header = animDataHeader[project][j];
+				combined.insert(combined.end(), catalystMap[project][header].begin(), catalystMap[project][header].end());
 			}
 
-			newline.shrink_to_fit();
-			catalystMap[project][header] = newline;
-			newline.clear();
-		}
-
-		try
-		{
-			for (unsigned int i = 0; i < projectList.size(); ++i)
+			for (unsigned int j = 0; j < animDataInfo[project].size(); ++j)
 			{
-				if (projectNameCount[project] > 1)
-				{
-					project = projectList[i] + to_string(++nextProject[project]);
-				}
-				else
-				{
-					project = projectList[i] + " 1";
-				}
-
-				vecstr combined;
-
-				for (unsigned int j = 0; j < animDataHeader[project].size(); ++j)
-				{
-					header = animDataHeader[project][j];
-					combined.insert(combined.end(), catalystMap[project][header].begin(), catalystMap[project][header].end());
-				}
-
-				for (unsigned int j = 0; j < animDataInfo[project].size(); ++j)
-				{
-					header = animDataInfo[project][j];
-					combined.insert(combined.end(), catalystMap[project][header].begin(), catalystMap[project][header].end());
-				}
-
-				if (combined.size() == 0)
-				{
-					cout << "Empty project detected. Could be a bug. Report to Nemesis' author if you are sure" << endl << "Project: " << project << endl;
-					Error = true;
-					return;
-				}
-
-				AnimDataProject newProject(combined, projectList[i], filepath);
-				ADProject.push_back(newProject);
+				header = animDataInfo[project][j];
+				combined.insert(combined.end(), catalystMap[project][header].begin(), catalystMap[project][header].end());
 			}
-		}
-		catch (int)
-		{
-			return;
+
+			if (combined.size() == 0)
+			{
+				cout << "Empty project detected. Could be a bug. Report to Nemesis' author if you are sure" << endl << "Project: " << project << endl;
+				Error = true;
+				return;
+			}
+
+			AnimDataProject newProject(combined, projectList[i], project);
+			ADProject.push_back(make_shared<AnimDataProject>(newProject));
+
+			if (Error)
+			{
+				return;
+			}
 		}
 	}
-}
-
-void animDataProcess(string directory, string originalfile, string editedfile)
-{
-	vector<string> originalproject;
-	vector<string> editedproject;
-	vector<AnimDataProject> originaldata;
-	vector<AnimDataProject> editeddata;
-
-	animDataInitialize(originalfile, originalproject, originaldata);
-	animDataInitialize(editedfile, editedproject, editeddata);
-
-	int projectcount = 0;
-
-	for (unsigned int i = 0; i < editedproject.size(); ++i)
+	catch (int)
 	{
-		if (projectcount < int(originalproject.size()) && originalproject[projectcount] == editedproject[i])
-		{
-			vector<int> changes;
-
-			if (originaldata[projectcount].unknown1 != editeddata[i].unknown1)
-			{
-				changes.push_back(0);
-			}
-
-			int behaviorcounter = 0;
-
-			for (unsigned int j = 0; j < editeddata[i].behaviorlist.size(); ++j)
-			{
-				if (originaldata[projectcount].behaviorlist[behaviorcounter] != editeddata[i].behaviorlist[j])
-				{
-					changes.push_back(1);
-					break;
-				}
-
-				++behaviorcounter;
-			}
-
-			if (originaldata[projectcount].unknown2 != editeddata[i].unknown2)
-			{
-				changes.push_back(2);
-			}
-
-			++projectcount;
-		}
-		else
-		{
-			if ((CreateDirectory((directory + editedproject[i]).c_str(), NULL) || ERROR_ALREADY_EXISTS == GetLastError()))
-			{
-				{
-					ofstream output(directory + editedproject[i] + "/" + "$header$.txt");
-
-					if (output.is_open())
-					{
-						FunctionWriter fwriter(&output);
-
-						fwriter << to_string(editeddata[i].GetAnimTotalLine()) << "\n";
-						fwriter << editeddata[i].unknown1 << "\n";
-						fwriter << to_string(editeddata[i].behaviorlist.size()) << "\n";
-
-						for (unsigned int j = 0; j < editeddata[i].behaviorlist.size(); ++j)
-						{
-							fwriter << editeddata[i].behaviorlist[j] << "\n";
-						}
-
-						fwriter << editeddata[i].unknown2 << "\n";
-						output.close();
-					}
-					else
-					{
-						cout << "ERROR: Failed to output animationdata header file(Project: " << editedproject[i] << ", Header: $header$)" << endl;
-						Error = true;
-						return;
-					}
-				}
-
-				if (editeddata[i].unknown2 != "0")
-				{
-					unordered_map<string, string> namecode;
-
-					for (unsigned int j = 0; j < editeddata[i].animdatalist.size(); ++j)
-					{
-						string name = editeddata[i].animdatalist[j].name;
-						namecode[editeddata[i].animdatalist[j].uniquecode] = name;
-						ofstream output(directory + editedproject[i] + "/$" + name + "$.txt");
-
-						if (output.is_open())
-						{
-							FunctionWriter fwriter(&output);
-
-							fwriter << name << "\n";
-							fwriter << editeddata[i].animdatalist[j].uniquecode << "\n";
-							fwriter << editeddata[i].animdatalist[j].unknown1 << "\n";
-							fwriter << editeddata[i].animdatalist[j].unknown2 << "\n";
-							fwriter << editeddata[i].animdatalist[j].unknown3 << "\n";
-							fwriter << to_string(editeddata[i].animdatalist[j].eventname.size()) << "\n";
-
-							for (unsigned int k = 0; k < editeddata[i].animdatalist[j].eventname.size(); ++k)
-							{
-								fwriter << editeddata[i].animdatalist[j].eventname[k] << "\n";
-							}
-
-							fwriter << "\n";
-							output.close();
-						}
-						else
-						{
-							cout << "ERROR: Failed to output animationdata header file(Project: " << editedproject[i] << ", Header: " << name << ")" << endl;
-							Error = true;
-							return;
-						}
-					}
-
-					for (unsigned int j = 0; j < editeddata[i].infodatalist.size(); ++j)
-					{
-						string name = namecode[editeddata[i].infodatalist[j].uniquecode];
-
-						if (name.length() == 0)
-						{
-							cout << "ERROR: Non-registered uniquecode detected. It will ";
-						}
-
-						ofstream output(directory + editedproject[i] + "/$" + name + "$UC.txt");
-
-						if (output.is_open())
-						{
-							FunctionWriter fwriter(&output);
-
-							fwriter << editeddata[i].infodatalist[j].uniquecode << "\n";
-							fwriter << editeddata[i].infodatalist[j].duration << "\n";
-							fwriter << to_string(editeddata[i].infodatalist[j].motiondata.size()) << "\n";
-
-							for (unsigned int k = 0; k < editeddata[i].infodatalist[j].motiondata.size(); ++k)
-							{
-								fwriter << editeddata[i].infodatalist[j].motiondata[k] << "\n";
-							}
-
-							fwriter << to_string(editeddata[i].infodatalist[j].rotationdata.size()) << "\n";
-
-							for (unsigned int k = 0; k < editeddata[i].infodatalist[j].rotationdata.size(); ++k)
-							{
-								fwriter << editeddata[i].infodatalist[j].rotationdata[k] << "\n";
-							}
-
-							fwriter << "\n";
-							output.close();
-						}
-						else
-						{
-							cout << "ERROR: Failed to output animationdata header file(Project: " << editedproject[i] << ", Unique Code: " << editeddata[i].infodatalist[j].uniquecode << ")" << endl;
-							Error = true;
-							return;
-						}
-					}
-				}
-			}
-		}
+		return;
 	}
 }
