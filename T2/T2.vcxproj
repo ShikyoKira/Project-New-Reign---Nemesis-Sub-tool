@@ -103,6 +103,11 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="AnimData\animationdata.cpp" />
+    <ClCompile Include="AnimData\animdatamatch.cpp" />
+    <ClCompile Include="AnimData\animdatacore.cpp" />
+    <ClCompile Include="AnimSetData\animationsetdata.cpp" />
+    <ClCompile Include="AnimSetData\animsetdatacore.cpp" />
+    <ClCompile Include="AnimSetData\animsetdatamatch.cpp" />
     <ClCompile Include="blendingOldFunction.cpp" />
     <ClCompile Include="boolstring.cpp" />
     <ClCompile Include="bsboneswitchgenerator.cpp" />
@@ -197,9 +202,19 @@
     <ClCompile Include="hkbbehaviorgraph.cpp" />
     <ClCompile Include="hkbstatemachine.cpp" />
     <ClCompile Include="Global.cpp" />
+    <ClCompile Include="readdirectory.cpp" />
+    <ClCompile Include="src\atomiclock.cpp" />
+    <ClCompile Include="src\FillFunction.cpp" />
+    <ClCompile Include="src\stateid.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AnimData\animationdata.h" />
+    <ClInclude Include="AnimData\animdatamatch.h" />
+    <ClInclude Include="AnimData\animdatacore.h" />
+    <ClInclude Include="AnimSetData\alphanum.hpp" />
+    <ClInclude Include="AnimSetData\animationsetdata.h" />
+    <ClInclude Include="AnimSetData\animsetdatacore.h" />
+    <ClInclude Include="AnimSetData\animsetdatamatch.h" />
     <ClInclude Include="blendingOldFunction.h" />
     <ClInclude Include="boolstring.h" />
     <ClInclude Include="bsboneswitchgenerator.h" />
@@ -294,6 +309,10 @@
     <ClInclude Include="hkbstatemachine.h" />
     <ClInclude Include="hkbbehaviorgraph.h" />
     <ClInclude Include="hkbvariablevalueset.h" />
+    <ClInclude Include="readdirectory.hpp" />
+    <ClInclude Include="src\atomiclock.h" />
+    <ClInclude Include="src\FillFunction.h" />
+    <ClInclude Include="src\stateid.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -31,6 +31,12 @@
     <Filter Include="Header Files\utilities">
       <UniqueIdentifier>{a5fea8b7-9502-47f2-946d-6d8779006b3a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\animsetdata">
+      <UniqueIdentifier>{d70ddb1f-c4a5-45c2-86d2-fc27dad1ec34}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\animsetdata">
+      <UniqueIdentifier>{bd1bb599-3c2e-49cf-9ff1-536a96f05e63}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -318,6 +324,33 @@
     <ClCompile Include="blendingOldFunction.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\FillFunction.cpp">
+      <Filter>Source Files\utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="AnimData\animdatamatch.cpp">
+      <Filter>Source Files\animdata</Filter>
+    </ClCompile>
+    <ClCompile Include="AnimData\animdatacore.cpp">
+      <Filter>Source Files\animdata</Filter>
+    </ClCompile>
+    <ClCompile Include="AnimSetData\animationsetdata.cpp">
+      <Filter>Source Files\animsetdata</Filter>
+    </ClCompile>
+    <ClCompile Include="AnimSetData\animsetdatacore.cpp">
+      <Filter>Source Files\animsetdata</Filter>
+    </ClCompile>
+    <ClCompile Include="AnimSetData\animsetdatamatch.cpp">
+      <Filter>Source Files\animsetdata</Filter>
+    </ClCompile>
+    <ClCompile Include="readdirectory.cpp">
+      <Filter>Source Files\utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="src\atomiclock.cpp">
+      <Filter>Source Files\utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="src\stateid.cpp">
+      <Filter>Source Files\utilities</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="bsboneswitchgenerator.h">
@@ -604,6 +637,36 @@
     </ClInclude>
     <ClInclude Include="blendingOldFunction.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\FillFunction.h">
+      <Filter>Header Files\utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="AnimData\animdatamatch.h">
+      <Filter>Header Files\animdata</Filter>
+    </ClInclude>
+    <ClInclude Include="AnimData\animdatacore.h">
+      <Filter>Header Files\animdata</Filter>
+    </ClInclude>
+    <ClInclude Include="AnimSetData\animationsetdata.h">
+      <Filter>Header Files\animsetdata</Filter>
+    </ClInclude>
+    <ClInclude Include="AnimSetData\alphanum.hpp">
+      <Filter>Header Files\animsetdata</Filter>
+    </ClInclude>
+    <ClInclude Include="AnimSetData\animsetdatacore.h">
+      <Filter>Header Files\animsetdata</Filter>
+    </ClInclude>
+    <ClInclude Include="AnimSetData\animsetdatamatch.h">
+      <Filter>Header Files\animsetdata</Filter>
+    </ClInclude>
+    <ClInclude Include="readdirectory.hpp">
+      <Filter>Header Files\utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="src\atomiclock.h">
+      <Filter>Header Files\utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="src\stateid.h">
+      <Filter>Header Files\utilities</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
