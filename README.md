@@ -6,13 +6,17 @@ Sub patching tool
 - Creating UI
 - Targetting correct directory ✓
 
-What is this tool?
+&nbsp;
+
+# What is this tool?
 - This tool is used to extract the modification done to a hkx behavior file and convert it to Nemesis readable format in 1 simple click.
 
+&nbsp;
 
-How long will it take?
+# How long will it take?
 - Roughly 1 sec to 5mins depending on the amount of changes and size of the behavior
 
+&nbsp;
 
 How to use this tool?
 
