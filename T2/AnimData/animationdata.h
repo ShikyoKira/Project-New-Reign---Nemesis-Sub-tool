@@ -7,8 +7,6 @@
 #include <iostream>
 #include "Global.h"
 
-typedef std::vector<std::string> vecstr;
-
 struct AnimDataFunct
 {
 	bool isNew = false;

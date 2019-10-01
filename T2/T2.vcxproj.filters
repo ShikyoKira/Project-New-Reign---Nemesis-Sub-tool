@@ -37,277 +37,73 @@
     <Filter Include="Source Files\animsetdata">
       <UniqueIdentifier>{bd1bb599-3c2e-49cf-9ff1-536a96f05e63}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\hkbclasses\generator">
+      <UniqueIdentifier>{7c25e0bf-da26-4671-925c-07b7a7466722}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\hkbclasses\modifier">
+      <UniqueIdentifier>{80884fd8-eccb-4d1d-80b4-0eaca6b6085c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\hkbclasses\generator\bone">
+      <UniqueIdentifier>{5ca876e4-3f6c-4cf5-8af6-773e1372843b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\hkbclasses\generator">
+      <UniqueIdentifier>{17ed1a4b-7886-4bbd-b266-b374e9b13774}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\hkbclasses\generator\bone">
+      <UniqueIdentifier>{7daa9425-fb18-462f-8bf6-f2c5895fe8cc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\hkbclasses\bone">
+      <UniqueIdentifier>{7149f2af-026e-4c24-899e-f329beb0d6b6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\hkbclasses\modifier">
+      <UniqueIdentifier>{9b63215d-75b1-4f70-8d0e-4929eca9b946}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\hkbclasses\bone">
+      <UniqueIdentifier>{01f3345c-4f04-4221-8a3b-d65000f333d2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\hkbclasses\generator\blender">
+      <UniqueIdentifier>{fb93188e-49fe-4146-a8df-085cbbaaec73}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\hkbclasses\generator\blender">
+      <UniqueIdentifier>{071206f4-c80c-4adc-b309-3ae367f51334}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\hkbclasses\generator\clip">
+      <UniqueIdentifier>{adde3347-0fd1-4641-a8a8-a6b3d6d37b7e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\hkbclasses\generator\clip">
+      <UniqueIdentifier>{e2514824-50c9-46e8-86dc-657d9b2f5b22}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\hkbclasses\generator\statemachine">
+      <UniqueIdentifier>{2b801dfd-6378-47bb-83f6-fa4541c25cf5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\hkbclasses\generator\statemachine">
+      <UniqueIdentifier>{cd639c03-789a-457b-aacd-a1427ffcae16}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\hkbclasses\condition">
+      <UniqueIdentifier>{13e3092b-1393-4347-8ffb-a470143196f2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\hkbclasses\condition">
+      <UniqueIdentifier>{08dc4bb4-cbae-4042-af66-9a3ad293c29e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\hkbclasses\transition">
+      <UniqueIdentifier>{1e86da89-c1a4-458c-9488-2f59aef98476}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\hkbclasses\transition">
+      <UniqueIdentifier>{d853ddae-0d80-4623-a668-e5dfb8af2c9a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\hkbclasses\modifier\base">
+      <UniqueIdentifier>{f3d22f90-7e5a-4a6c-8c32-71d4ff2d10dc}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="bsboneswitchgenerator.cpp">
-      <Filter>Source Files\hkbclasses</Filter>
-    </ClCompile>
-    <ClCompile Include="bsboneswitchgeneratorbonedata.cpp">
-      <Filter>Source Files\hkbclasses</Filter>
-    </ClCompile>
-    <ClCompile Include="bsistatetagginggenerator.cpp">
-      <Filter>Source Files\hkbclasses</Filter>
-    </ClCompile>
-    <ClCompile Include="hkbbehaviorgraph.cpp">
-      <Filter>Source Files\hkbclasses</Filter>
-    </ClCompile>
-    <ClCompile Include="hkbbehaviorgraphdata.cpp">
-      <Filter>Source Files\hkbclasses</Filter>
-    </ClCompile>
-    <ClCompile Include="hkbbehaviorgraphstringdata.cpp">
-      <Filter>Source Files\hkbclasses</Filter>
-    </ClCompile>
-    <ClCompile Include="hkbblendergenerator.cpp">
-      <Filter>Source Files\hkbclasses</Filter>
-    </ClCompile>
-    <ClCompile Include="hkbblendergeneratorchild.cpp">
-      <Filter>Source Files\hkbclasses</Filter>
-    </ClCompile>
-    <ClCompile Include="hkbblendingtransitioneffect.cpp">
-      <Filter>Source Files\hkbclasses</Filter>
-    </ClCompile>
-    <ClCompile Include="hkbboneweightarray.cpp">
-      <Filter>Source Files\hkbclasses</Filter>
-    </ClCompile>
-    <ClCompile Include="hkbexpressioncondition.cpp">
-      <Filter>Source Files\hkbclasses</Filter>
-    </ClCompile>
-    <ClCompile Include="hkbmanualselectorgenerator.cpp">
-      <Filter>Source Files\hkbclasses</Filter>
-    </ClCompile>
-    <ClCompile Include="hkbstatemachine.cpp">
-      <Filter>Source Files\hkbclasses</Filter>
-    </ClCompile>
-    <ClCompile Include="hkbstatemachineeventpropertyarray.cpp">
-      <Filter>Source Files\hkbclasses</Filter>
-    </ClCompile>
-    <ClCompile Include="hkbstatemachinestateinfo.cpp">
-      <Filter>Source Files\hkbclasses</Filter>
-    </ClCompile>
-    <ClCompile Include="hkbstringeventpayload.cpp">
-      <Filter>Source Files\hkbclasses</Filter>
-    </ClCompile>
-    <ClCompile Include="hkbvariablebindingset.cpp">
-      <Filter>Source Files\hkbclasses</Filter>
-    </ClCompile>
-    <ClCompile Include="hkbvariablevalueset.cpp">
-      <Filter>Source Files\hkbclasses</Filter>
-    </ClCompile>
-    <ClCompile Include="bscyclicblendtransitiongenerator.cpp">
-      <Filter>Source Files\hkbclasses</Filter>
-    </ClCompile>
-    <ClCompile Include="hkbstatemachinetransitioninfoarray.cpp">
-      <Filter>Source Files\hkbclasses</Filter>
-    </ClCompile>
-    <ClCompile Include="hkbclipgenerator.cpp">
-      <Filter>Source Files\hkbclasses</Filter>
-    </ClCompile>
-    <ClCompile Include="hkbcliptriggerarray.cpp">
-      <Filter>Source Files\hkbclasses</Filter>
-    </ClCompile>
-    <ClCompile Include="hkbmodifiergenerator.cpp">
-      <Filter>Source Files\hkbclasses</Filter>
-    </ClCompile>
-    <ClCompile Include="hkbmodifierlist.cpp">
-      <Filter>Source Files\hkbclasses</Filter>
-    </ClCompile>
-    <ClCompile Include="hkrootlevelcontainer.cpp">
-      <Filter>Source Files\hkbclasses</Filter>
     </ClCompile>
     <ClCompile Include="Global.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Global-Addon.cpp">
       <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="hkbtwistmodifier.cpp">
-      <Filter>Source Files\hkbclasses</Filter>
-    </ClCompile>
-    <ClCompile Include="hkbeventdrivenmodifier.cpp">
-      <Filter>Source Files\hkbclasses</Filter>
-    </ClCompile>
-    <ClCompile Include="bsisactivemodifier.cpp">
-      <Filter>Source Files\hkbclasses</Filter>
-    </ClCompile>
-    <ClCompile Include="bslimbikmodifier.cpp">
-      <Filter>Source Files\hkbclasses</Filter>
-    </ClCompile>
-    <ClCompile Include="bsinterpvaluemodifier.cpp">
-      <Filter>Source Files\hkbclasses</Filter>
-    </ClCompile>
-    <ClCompile Include="bsgettimestepmodifier.cpp">
-      <Filter>Source Files\hkbclasses</Filter>
-    </ClCompile>
-    <ClCompile Include="hkbfootikcontrolsmodifier.cpp">
-      <Filter>Source Files\hkbclasses</Filter>
-    </ClCompile>
-    <ClCompile Include="hkbgethandleonbonemodifier.cpp">
-      <Filter>Source Files\hkbclasses</Filter>
-    </ClCompile>
-    <ClCompile Include="hkbtransformvectormodifier.cpp">
-      <Filter>Source Files\hkbclasses</Filter>
-    </ClCompile>
-    <ClCompile Include="hkbproxymodifier.cpp">
-      <Filter>Source Files\hkbclasses</Filter>
-    </ClCompile>
-    <ClCompile Include="hkblookatmodifier.cpp">
-      <Filter>Source Files\hkbclasses</Filter>
-    </ClCompile>
-    <ClCompile Include="hkbmirrormodifier.cpp">
-      <Filter>Source Files\hkbclasses</Filter>
-    </ClCompile>
-    <ClCompile Include="hkbgetworldfrommodelmodifier.cpp">
-      <Filter>Source Files\hkbclasses</Filter>
-    </ClCompile>
-    <ClCompile Include="hkbsensehandlemodifier.cpp">
-      <Filter>Source Files\hkbclasses</Filter>
-    </ClCompile>
-    <ClCompile Include="hkbevaluateexpressionmodifier.cpp">
-      <Filter>Source Files\hkbclasses</Filter>
-    </ClCompile>
-    <ClCompile Include="hkbexpressiondataarray.cpp">
-      <Filter>Source Files\hkbclasses</Filter>
-    </ClCompile>
-    <ClCompile Include="hkbevaluatehandlemodifier.cpp">
-      <Filter>Source Files\hkbclasses</Filter>
-    </ClCompile>
-    <ClCompile Include="hkbattachmentmodifier.cpp">
-      <Filter>Source Files\hkbclasses</Filter>
-    </ClCompile>
-    <ClCompile Include="hkbattributemodifier.cpp">
-      <Filter>Source Files\hkbclasses</Filter>
-    </ClCompile>
-    <ClCompile Include="hkbcombinetransformsmodifier.cpp">
-      <Filter>Source Files\hkbclasses</Filter>
-    </ClCompile>
-    <ClCompile Include="hkbeventsfromrangemodifier.cpp">
-      <Filter>Source Files\hkbclasses</Filter>
-    </ClCompile>
-    <ClCompile Include="hkbeventrangedataarray.cpp">
-      <Filter>Source Files\hkbclasses</Filter>
-    </ClCompile>
-    <ClCompile Include="hkbmovecharactermodifier.cpp">
-      <Filter>Source Files\hkbclasses</Filter>
-    </ClCompile>
-    <ClCompile Include="hkbextractragdollposemodifier.cpp">
-      <Filter>Source Files\hkbclasses</Filter>
-    </ClCompile>
-    <ClCompile Include="bsmodifyoncemodifier.cpp">
-      <Filter>Source Files\hkbclasses</Filter>
-    </ClCompile>
-    <ClCompile Include="bseventondeactivatemodifier.cpp">
-      <Filter>Source Files\hkbclasses</Filter>
-    </ClCompile>
-    <ClCompile Include="bseventeveryneventsmodifier.cpp">
-      <Filter>Source Files\hkbclasses</Filter>
-    </ClCompile>
-    <ClCompile Include="bsragdollcontactlistenermodifier.cpp">
-      <Filter>Source Files\hkbclasses</Filter>
-    </ClCompile>
-    <ClCompile Include="hkbpoweredragdollcontrolmodifier.cpp">
-      <Filter>Source Files\hkbclasses</Filter>
-    </ClCompile>
-    <ClCompile Include="bseventonfalsetotruemodifier.cpp">
-      <Filter>Source Files\hkbclasses</Filter>
-    </ClCompile>
-    <ClCompile Include="bsdirectatmodifier.cpp">
-      <Filter>Source Files\hkbclasses</Filter>
-    </ClCompile>
-    <ClCompile Include="bsdisttriggermodifier.cpp">
-      <Filter>Source Files\hkbclasses</Filter>
-    </ClCompile>
-    <ClCompile Include="bsdecomposevectormodifier.cpp">
-      <Filter>Source Files\hkbclasses</Filter>
-    </ClCompile>
-    <ClCompile Include="bscomputeaddboneanimmodifier.cpp">
-      <Filter>Source Files\hkbclasses</Filter>
-    </ClCompile>
-    <ClCompile Include="bstweenermodifier.cpp">
-      <Filter>Source Files\hkbclasses</Filter>
-    </ClCompile>
-    <ClCompile Include="bsistatemanagermodifier.cpp">
-      <Filter>Source Files\hkbclasses</Filter>
-    </ClCompile>
-    <ClCompile Include="hkbtimermodifier.cpp">
-      <Filter>Source Files\hkbclasses</Filter>
-    </ClCompile>
-    <ClCompile Include="hkbrotatecharactermodifier.cpp">
-      <Filter>Source Files\hkbclasses</Filter>
-    </ClCompile>
-    <ClCompile Include="hkbdampingmodifier.cpp">
-      <Filter>Source Files\hkbclasses</Filter>
-    </ClCompile>
-    <ClCompile Include="hkbdelayedmodifier.cpp">
-      <Filter>Source Files\hkbclasses</Filter>
-    </ClCompile>
-    <ClCompile Include="hkbgetupmodifier.cpp">
-      <Filter>Source Files\hkbclasses</Filter>
-    </ClCompile>
-    <ClCompile Include="hkbkeyframebonesmodifier.cpp">
-      <Filter>Source Files\hkbclasses</Filter>
-    </ClCompile>
-    <ClCompile Include="hkbboneindexarray.cpp">
-      <Filter>Source Files\hkbclasses</Filter>
-    </ClCompile>
-    <ClCompile Include="hkbcomputedirectionmodifier.cpp">
-      <Filter>Source Files\hkbclasses</Filter>
-    </ClCompile>
-    <ClCompile Include="hkbcomputerotationtotargetmodifier.cpp">
-      <Filter>Source Files\hkbclasses</Filter>
-    </ClCompile>
-    <ClCompile Include="hkbcomputerotationfromaxisanglemodifier.cpp">
-      <Filter>Source Files\hkbclasses</Filter>
-    </ClCompile>
-    <ClCompile Include="hkbrigidbodyragdollcontrolsmodifier.cpp">
-      <Filter>Source Files\hkbclasses</Filter>
-    </ClCompile>
-    <ClCompile Include="bsspeedsamplermodifier.cpp">
-      <Filter>Source Files\hkbclasses</Filter>
-    </ClCompile>
-    <ClCompile Include="hkbdetectclosetogroundmodifier.cpp">
-      <Filter>Source Files\hkbclasses</Filter>
-    </ClCompile>
-    <ClCompile Include="bslookatmodifier.cpp">
-      <Filter>Source Files\hkbclasses</Filter>
-    </ClCompile>
-    <ClCompile Include="bstimermodifier.cpp">
-      <Filter>Source Files\hkbclasses</Filter>
-    </ClCompile>
-    <ClCompile Include="bspassbytargettriggermodifier.cpp">
-      <Filter>Source Files\hkbclasses</Filter>
-    </ClCompile>
-    <ClCompile Include="hkbhandikcontrolsmodifier.cpp">
-      <Filter>Source Files\hkbclasses</Filter>
-    </ClCompile>
-    <ClCompile Include="hkbbehaviorreferencegenerator.cpp">
-      <Filter>Source Files\hkbclasses</Filter>
-    </ClCompile>
-    <ClCompile Include="bssynchronizedclipgenerator.cpp">
-      <Filter>Source Files\hkbclasses</Filter>
-    </ClCompile>
-    <ClCompile Include="hkbmirroredskeletoninfo.cpp">
-      <Filter>Source Files\hkbclasses</Filter>
-    </ClCompile>
-    <ClCompile Include="hkbcharacterstringdata.cpp">
-      <Filter>Source Files\hkbclasses</Filter>
-    </ClCompile>
-    <ClCompile Include="hkbfootikdriverinfo.cpp">
-      <Filter>Source Files\hkbclasses</Filter>
-    </ClCompile>
-    <ClCompile Include="hkbcharacterdata.cpp">
-      <Filter>Source Files\hkbclasses</Filter>
-    </ClCompile>
-    <ClCompile Include="bsoffsetanimationgenerator.cpp">
-      <Filter>Source Files\hkbclasses</Filter>
-    </ClCompile>
-    <ClCompile Include="hkbposematchinggenerator.cpp">
-      <Filter>Source Files\hkbclasses</Filter>
-    </ClCompile>
-    <ClCompile Include="hkbstringcondition.cpp">
-      <Filter>Source Files\hkbclasses</Filter>
     </ClCompile>
     <ClCompile Include="AnimData\animationdata.cpp">
       <Filter>Source Files\animdata</Filter>
@@ -339,272 +135,365 @@
     <ClCompile Include="AnimSetData\animsetdatacore.cpp">
       <Filter>Source Files\animsetdata</Filter>
     </ClCompile>
-    <ClCompile Include="AnimSetData\animsetdatamatch.cpp">
-      <Filter>Source Files\animsetdata</Filter>
-    </ClCompile>
     <ClCompile Include="readdirectory.cpp">
       <Filter>Source Files\utilities</Filter>
     </ClCompile>
     <ClCompile Include="src\atomiclock.cpp">
       <Filter>Source Files\utilities</Filter>
     </ClCompile>
+    <ClCompile Include="src\hkx\generator\bs\bone\bsboneswitchgenerator.cpp">
+      <Filter>Source Files\hkbclasses\generator\bone</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hkx\generator\bs\bone\bsboneswitchgeneratorbonedata.cpp">
+      <Filter>Source Files\hkbclasses\generator\bone</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hkx\hkbstringeventpayload.cpp">
+      <Filter>Source Files\hkbclasses</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hkx\bone\hkbboneindexarray.cpp">
+      <Filter>Source Files\hkbclasses\bone</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hkx\bone\hkbboneweightarray.cpp">
+      <Filter>Source Files\hkbclasses\bone</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hkx\modifier\bscomputeaddboneanimmodifier.cpp">
+      <Filter>Source Files\hkbclasses\modifier</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hkx\generator\bs\bscyclicblendtransitiongenerator.cpp">
+      <Filter>Source Files\hkbclasses\generator</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hkx\modifier\bsdecomposevectormodifier.cpp">
+      <Filter>Source Files\hkbclasses\modifier</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hkx\modifier\bsdirectatmodifier.cpp">
+      <Filter>Source Files\hkbclasses\modifier</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hkx\modifier\bsdisttriggermodifier.cpp">
+      <Filter>Source Files\hkbclasses\modifier</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hkx\modifier\bseventeveryneventsmodifier.cpp">
+      <Filter>Source Files\hkbclasses\modifier</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hkx\modifier\bseventondeactivatemodifier.cpp">
+      <Filter>Source Files\hkbclasses\modifier</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hkx\modifier\bseventonfalsetotruemodifier.cpp">
+      <Filter>Source Files\hkbclasses\modifier</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hkx\modifier\bsgettimestepmodifier.cpp">
+      <Filter>Source Files\hkbclasses\modifier</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hkx\modifier\bsinterpvaluemodifier.cpp">
+      <Filter>Source Files\hkbclasses\modifier</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hkx\modifier\bsisactivemodifier.cpp">
+      <Filter>Source Files\hkbclasses\modifier</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hkx\modifier\bsistatemanagermodifier.cpp">
+      <Filter>Source Files\hkbclasses\modifier</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hkx\modifier\bslimbikmodifier.cpp">
+      <Filter>Source Files\hkbclasses\modifier</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hkx\modifier\bslookatmodifier.cpp">
+      <Filter>Source Files\hkbclasses\modifier</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hkx\modifier\bsmodifyoncemodifier.cpp">
+      <Filter>Source Files\hkbclasses\modifier</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hkx\modifier\bspassbytargettriggermodifier.cpp">
+      <Filter>Source Files\hkbclasses\modifier</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hkx\modifier\bsragdollcontactlistenermodifier.cpp">
+      <Filter>Source Files\hkbclasses\modifier</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hkx\modifier\bsspeedsamplermodifier.cpp">
+      <Filter>Source Files\hkbclasses\modifier</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hkx\modifier\bstimermodifier.cpp">
+      <Filter>Source Files\hkbclasses\modifier</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hkx\modifier\bstweenermodifier.cpp">
+      <Filter>Source Files\hkbclasses\modifier</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hkx\modifier\hkbattachmentmodifier.cpp">
+      <Filter>Source Files\hkbclasses\modifier</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hkx\modifier\hkbattributemodifier.cpp">
+      <Filter>Source Files\hkbclasses\modifier</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hkx\modifier\hkbcombinetransformsmodifier.cpp">
+      <Filter>Source Files\hkbclasses\modifier</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hkx\modifier\hkbcomputedirectionmodifier.cpp">
+      <Filter>Source Files\hkbclasses\modifier</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hkx\modifier\hkbcomputerotationfromaxisanglemodifier.cpp">
+      <Filter>Source Files\hkbclasses\modifier</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hkx\modifier\hkbcomputerotationtotargetmodifier.cpp">
+      <Filter>Source Files\hkbclasses\modifier</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hkx\modifier\hkbdampingmodifier.cpp">
+      <Filter>Source Files\hkbclasses\modifier</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hkx\modifier\hkbdelayedmodifier.cpp">
+      <Filter>Source Files\hkbclasses\modifier</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hkx\modifier\hkbdetectclosetogroundmodifier.cpp">
+      <Filter>Source Files\hkbclasses\modifier</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hkx\modifier\hkbevaluateexpressionmodifier.cpp">
+      <Filter>Source Files\hkbclasses\modifier</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hkx\modifier\hkbevaluatehandlemodifier.cpp">
+      <Filter>Source Files\hkbclasses\modifier</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hkx\modifier\hkbeventdrivenmodifier.cpp">
+      <Filter>Source Files\hkbclasses\modifier</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hkx\modifier\hkbeventsfromrangemodifier.cpp">
+      <Filter>Source Files\hkbclasses\modifier</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hkx\modifier\hkbextractragdollposemodifier.cpp">
+      <Filter>Source Files\hkbclasses\modifier</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hkx\modifier\hkbfootikcontrolsmodifier.cpp">
+      <Filter>Source Files\hkbclasses\modifier</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hkx\modifier\hkbgethandleonbonemodifier.cpp">
+      <Filter>Source Files\hkbclasses\modifier</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hkx\modifier\hkbgetupmodifier.cpp">
+      <Filter>Source Files\hkbclasses\modifier</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hkx\modifier\hkbgetworldfrommodelmodifier.cpp">
+      <Filter>Source Files\hkbclasses\modifier</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hkx\modifier\hkbhandikcontrolsmodifier.cpp">
+      <Filter>Source Files\hkbclasses\modifier</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hkx\modifier\hkbkeyframebonesmodifier.cpp">
+      <Filter>Source Files\hkbclasses\modifier</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hkx\modifier\hkblookatmodifier.cpp">
+      <Filter>Source Files\hkbclasses\modifier</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hkx\modifier\hkbmirrormodifier.cpp">
+      <Filter>Source Files\hkbclasses\modifier</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hkx\modifier\hkbmodifierlist.cpp">
+      <Filter>Source Files\hkbclasses\modifier</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hkx\modifier\hkbmovecharactermodifier.cpp">
+      <Filter>Source Files\hkbclasses\modifier</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hkx\modifier\hkbpoweredragdollcontrolmodifier.cpp">
+      <Filter>Source Files\hkbclasses\modifier</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hkx\modifier\hkbproxymodifier.cpp">
+      <Filter>Source Files\hkbclasses\modifier</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hkx\modifier\hkbrigidbodyragdollcontrolsmodifier.cpp">
+      <Filter>Source Files\hkbclasses\modifier</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hkx\modifier\hkbrotatecharactermodifier.cpp">
+      <Filter>Source Files\hkbclasses\modifier</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hkx\modifier\hkbsensehandlemodifier.cpp">
+      <Filter>Source Files\hkbclasses\modifier</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hkx\modifier\hkbtimermodifier.cpp">
+      <Filter>Source Files\hkbclasses\modifier</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hkx\modifier\hkbtransformvectormodifier.cpp">
+      <Filter>Source Files\hkbclasses\modifier</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hkx\modifier\hkbtwistmodifier.cpp">
+      <Filter>Source Files\hkbclasses\modifier</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hkx\generator\bs\bsistatetagginggenerator.cpp">
+      <Filter>Source Files\hkbclasses\generator</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hkx\generator\bs\bsoffsetanimationgenerator.cpp">
+      <Filter>Source Files\hkbclasses\generator</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hkx\generator\bs\bssynchronizedclipgenerator.cpp">
+      <Filter>Source Files\hkbclasses\generator</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hkx\generator\hkbbehaviorgraph.cpp">
+      <Filter>Source Files\hkbclasses\generator</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hkx\generator\hkbbehaviorreferencegenerator.cpp">
+      <Filter>Source Files\hkbclasses\generator</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hkx\generator\blender\hkbblendergenerator.cpp">
+      <Filter>Source Files\hkbclasses\generator\blender</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hkx\generator\blender\hkbblendergeneratorchild.cpp">
+      <Filter>Source Files\hkbclasses\generator\blender</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hkx\hkbeventinfo.cpp">
+      <Filter>Source Files\hkbclasses</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hkx\hkbvariableinfo.cpp">
+      <Filter>Source Files\hkbclasses</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hkx\generator\clip\hkbclipgenerator.cpp">
+      <Filter>Source Files\hkbclasses\generator\clip</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hkx\generator\clip\hkbcliptriggerarray.cpp">
+      <Filter>Source Files\hkbclasses\generator\clip</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hkx\generator\hkbmanualselectorgenerator.cpp">
+      <Filter>Source Files\hkbclasses\generator</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hkx\generator\hkbmodifiergenerator.cpp">
+      <Filter>Source Files\hkbclasses\generator</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hkx\generator\blender\hkbposematchinggenerator.cpp">
+      <Filter>Source Files\hkbclasses\generator\blender</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hkx\hkbbehaviorgraphdata.cpp">
+      <Filter>Source Files\hkbclasses</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hkx\hkbbehaviorgraphstringdata.cpp">
+      <Filter>Source Files\hkbclasses</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hkx\hkbcharacterdata.cpp">
+      <Filter>Source Files\hkbclasses</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hkx\hkbcharacterstringdata.cpp">
+      <Filter>Source Files\hkbclasses</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hkx\hkbeventrangedataarray.cpp">
+      <Filter>Source Files\hkbclasses</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hkx\hkbexpressiondataarray.cpp">
+      <Filter>Source Files\hkbclasses</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hkx\hkbfootikdriverinfo.cpp">
+      <Filter>Source Files\hkbclasses</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hkx\hkbmirroredskeletoninfo.cpp">
+      <Filter>Source Files\hkbclasses</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hkx\hkbvariablebindingset.cpp">
+      <Filter>Source Files\hkbclasses</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hkx\hkbvariablevalueset.cpp">
+      <Filter>Source Files\hkbclasses</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hkx\hkrootlevelcontainer.cpp">
+      <Filter>Source Files\hkbclasses</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hkx\hkbhandikdriverinfo.cpp">
+      <Filter>Source Files\hkbclasses</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hkx\generator\statemachine\hkbstatemachine.cpp">
+      <Filter>Source Files\hkbclasses\generator\statemachine</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hkx\generator\statemachine\hkbstatemachineeventpropertyarray.cpp">
+      <Filter>Source Files\hkbclasses\generator\statemachine</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hkx\generator\statemachine\hkbstatemachinestateinfo.cpp">
+      <Filter>Source Files\hkbclasses\generator\statemachine</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hkx\generator\statemachine\hkbstatemachinetransitioninfoarray.cpp">
+      <Filter>Source Files\hkbclasses\generator\statemachine</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hkx\hkbhandle.cpp">
+      <Filter>Source Files\hkbclasses</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hkx\generator\hkbgenerator.cpp">
+      <Filter>Source Files\hkbclasses\generator</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hkx\modifier\hkbmodifier.cpp">
+      <Filter>Source Files\hkbclasses\modifier</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hkx\hkbattachmentsetup.cpp">
+      <Filter>Source Files\hkbclasses</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hkx\condition\hkbexpressioncondition.cpp">
+      <Filter>Source Files\hkbclasses\condition</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hkx\condition\hkbstringcondition.cpp">
+      <Filter>Source Files\hkbclasses\condition</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hkx\condition\hkbcondition.cpp">
+      <Filter>Source Files\hkbclasses\condition</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hkx\transition\hkbblendingtransitioneffect.cpp">
+      <Filter>Source Files\hkbclasses\transition</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hkx\transition\hkbgeneratortransitioneffect.cpp">
+      <Filter>Source Files\hkbclasses\transition</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hkx\transition\hkbtransitioneffect.cpp">
+      <Filter>Source Files\hkbclasses\transition</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hkx\generator\statemachine\hkbstatelistener.cpp">
+      <Filter>Source Files\hkbclasses\generator\statemachine</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hkx\generator\statemachine\hkbstatechooser.cpp">
+      <Filter>Source Files\hkbclasses\generator\statemachine</Filter>
+    </ClCompile>
+    <ClCompile Include="AnimSetData\animsetdatamatch.cpp">
+      <Filter>Source Files\animdata</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hkx\hkbobject.cpp">
+      <Filter>Source Files\hkbclasses</Filter>
+    </ClCompile>
+    <ClCompile Include="src\utilities\coordinate.cpp">
+      <Filter>Source Files\utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="src\utilities\voidmatch.cpp">
+      <Filter>Source Files\utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="src\utilities\xmlformat.cpp">
+      <Filter>Source Files\utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="src\utilities\objectmatch.cpp">
+      <Filter>Source Files\utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="src\utilities\parammatch.cpp">
+      <Filter>Source Files\utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="src\utilities\stringmatch.cpp">
+      <Filter>Source Files\utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="src\utilities\nemesisformat.cpp">
+      <Filter>Source Files\utilities</Filter>
+    </ClCompile>
     <ClCompile Include="src\stateid.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\utilities\variableinfopack.cpp">
+      <Filter>Source Files\utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="src\utilities\eventinfopack.cpp">
+      <Filter>Source Files\utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="src\utilities\attributeinfopack.cpp">
+      <Filter>Source Files\utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hkx\blendcurve.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\utilities\stringdatalock.cpp">
+      <Filter>Source Files\utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="src\utilities\levenshteindistance.cpp">
+      <Filter>Source Files\utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hkx\modifier\hkbfootikmodifier.cpp">
+      <Filter>Source Files\hkbclasses\modifier</Filter>
+    </ClCompile>
+    <ClCompile Include="src\utilities\qstransform.cpp">
       <Filter>Source Files\utilities</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="bsboneswitchgenerator.h">
-      <Filter>Header Files\hkbclasses</Filter>
-    </ClInclude>
-    <ClInclude Include="bsboneswitchgeneratorbonedata.h">
-      <Filter>Header Files\hkbclasses</Filter>
-    </ClInclude>
-    <ClInclude Include="bscomputeaddboneanimmodifier.h">
-      <Filter>Header Files\hkbclasses</Filter>
-    </ClInclude>
-    <ClInclude Include="bscyclicblendtransitiongenerator.h">
-      <Filter>Header Files\hkbclasses</Filter>
-    </ClInclude>
-    <ClInclude Include="bsdecomposevectormodifier.h">
-      <Filter>Header Files\hkbclasses</Filter>
-    </ClInclude>
-    <ClInclude Include="bsdirectatmodifier.h">
-      <Filter>Header Files\hkbclasses</Filter>
-    </ClInclude>
-    <ClInclude Include="bsdisttriggermodifier.h">
-      <Filter>Header Files\hkbclasses</Filter>
-    </ClInclude>
-    <ClInclude Include="bseventeveryneventsmodifier.h">
-      <Filter>Header Files\hkbclasses</Filter>
-    </ClInclude>
-    <ClInclude Include="bseventondeactivatemodifier.h">
-      <Filter>Header Files\hkbclasses</Filter>
-    </ClInclude>
-    <ClInclude Include="bseventonfalsetotruemodifier.h">
-      <Filter>Header Files\hkbclasses</Filter>
-    </ClInclude>
-    <ClInclude Include="bsgettimestepmodifier.h">
-      <Filter>Header Files\hkbclasses</Filter>
-    </ClInclude>
-    <ClInclude Include="bsinterpvaluemodifier.h">
-      <Filter>Header Files\hkbclasses</Filter>
-    </ClInclude>
-    <ClInclude Include="bsisactivemodifier.h">
-      <Filter>Header Files\hkbclasses</Filter>
-    </ClInclude>
-    <ClInclude Include="bsistatemanagermodifier.h">
-      <Filter>Header Files\hkbclasses</Filter>
-    </ClInclude>
-    <ClInclude Include="bsistatetagginggenerator.h">
-      <Filter>Header Files\hkbclasses</Filter>
-    </ClInclude>
-    <ClInclude Include="bslimbikmodifier.h">
-      <Filter>Header Files\hkbclasses</Filter>
-    </ClInclude>
-    <ClInclude Include="bslookatmodifier.h">
-      <Filter>Header Files\hkbclasses</Filter>
-    </ClInclude>
-    <ClInclude Include="bsmodifyoncemodifier.h">
-      <Filter>Header Files\hkbclasses</Filter>
-    </ClInclude>
-    <ClInclude Include="bspassbytargettriggermodifier.h">
-      <Filter>Header Files\hkbclasses</Filter>
-    </ClInclude>
-    <ClInclude Include="bsragdollcontactlistenermodifier.h">
-      <Filter>Header Files\hkbclasses</Filter>
-    </ClInclude>
-    <ClInclude Include="bsspeedsamplermodifier.h">
-      <Filter>Header Files\hkbclasses</Filter>
-    </ClInclude>
-    <ClInclude Include="bssynchronizedclipgenerator.h">
-      <Filter>Header Files\hkbclasses</Filter>
-    </ClInclude>
-    <ClInclude Include="bstimermodifier.h">
-      <Filter>Header Files\hkbclasses</Filter>
-    </ClInclude>
-    <ClInclude Include="bstweenermodifier.h">
-      <Filter>Header Files\hkbclasses</Filter>
-    </ClInclude>
-    <ClInclude Include="hkbattachmentmodifier.h">
-      <Filter>Header Files\hkbclasses</Filter>
-    </ClInclude>
-    <ClInclude Include="hkbattributemodifier.h">
-      <Filter>Header Files\hkbclasses</Filter>
-    </ClInclude>
-    <ClInclude Include="hkbbehaviorgraph.h">
-      <Filter>Header Files\hkbclasses</Filter>
-    </ClInclude>
-    <ClInclude Include="hkbbehaviorgraphdata.h">
-      <Filter>Header Files\hkbclasses</Filter>
-    </ClInclude>
-    <ClInclude Include="hkbbehaviorgraphstringdata.h">
-      <Filter>Header Files\hkbclasses</Filter>
-    </ClInclude>
-    <ClInclude Include="hkbbehaviorreferencegenerator.h">
-      <Filter>Header Files\hkbclasses</Filter>
-    </ClInclude>
-    <ClInclude Include="hkbblendergenerator.h">
-      <Filter>Header Files\hkbclasses</Filter>
-    </ClInclude>
-    <ClInclude Include="hkbblendergeneratorchild.h">
-      <Filter>Header Files\hkbclasses</Filter>
-    </ClInclude>
-    <ClInclude Include="hkbblendingtransitioneffect.h">
-      <Filter>Header Files\hkbclasses</Filter>
-    </ClInclude>
-    <ClInclude Include="hkbboneindexarray.h">
-      <Filter>Header Files\hkbclasses</Filter>
-    </ClInclude>
-    <ClInclude Include="hkbboneweightarray.h">
-      <Filter>Header Files\hkbclasses</Filter>
-    </ClInclude>
-    <ClInclude Include="hkbcharacterdata.h">
-      <Filter>Header Files\hkbclasses</Filter>
-    </ClInclude>
-    <ClInclude Include="hkbcharacterstringdata.h">
-      <Filter>Header Files\hkbclasses</Filter>
-    </ClInclude>
-    <ClInclude Include="hkbclipgenerator.h">
-      <Filter>Header Files\hkbclasses</Filter>
-    </ClInclude>
-    <ClInclude Include="hkbcliptriggerarray.h">
-      <Filter>Header Files\hkbclasses</Filter>
-    </ClInclude>
-    <ClInclude Include="hkbcombinetransformsmodifier.h">
-      <Filter>Header Files\hkbclasses</Filter>
-    </ClInclude>
-    <ClInclude Include="hkbcomputedirectionmodifier.h">
-      <Filter>Header Files\hkbclasses</Filter>
-    </ClInclude>
-    <ClInclude Include="hkbcomputerotationfromaxisanglemodifier.h">
-      <Filter>Header Files\hkbclasses</Filter>
-    </ClInclude>
-    <ClInclude Include="hkbcomputerotationtotargetmodifier.h">
-      <Filter>Header Files\hkbclasses</Filter>
-    </ClInclude>
-    <ClInclude Include="hkbdampingmodifier.h">
-      <Filter>Header Files\hkbclasses</Filter>
-    </ClInclude>
-    <ClInclude Include="hkbdelayedmodifier.h">
-      <Filter>Header Files\hkbclasses</Filter>
-    </ClInclude>
-    <ClInclude Include="hkbdetectclosetogroundmodifier.h">
-      <Filter>Header Files\hkbclasses</Filter>
-    </ClInclude>
-    <ClInclude Include="hkbevaluateexpressionmodifier.h">
-      <Filter>Header Files\hkbclasses</Filter>
-    </ClInclude>
-    <ClInclude Include="hkbevaluatehandlemodifier.h">
-      <Filter>Header Files\hkbclasses</Filter>
-    </ClInclude>
-    <ClInclude Include="hkbeventdrivenmodifier.h">
-      <Filter>Header Files\hkbclasses</Filter>
-    </ClInclude>
-    <ClInclude Include="hkbeventrangedataarray.h">
-      <Filter>Header Files\hkbclasses</Filter>
-    </ClInclude>
-    <ClInclude Include="hkbeventsfromrangemodifier.h">
-      <Filter>Header Files\hkbclasses</Filter>
-    </ClInclude>
-    <ClInclude Include="hkbexpressioncondition.h">
-      <Filter>Header Files\hkbclasses</Filter>
-    </ClInclude>
-    <ClInclude Include="hkbexpressiondataarray.h">
-      <Filter>Header Files\hkbclasses</Filter>
-    </ClInclude>
-    <ClInclude Include="hkbextractragdollposemodifier.h">
-      <Filter>Header Files\hkbclasses</Filter>
-    </ClInclude>
-    <ClInclude Include="hkbfootikcontrolsmodifier.h">
-      <Filter>Header Files\hkbclasses</Filter>
-    </ClInclude>
-    <ClInclude Include="hkbfootikdriverinfo.h">
-      <Filter>Header Files\hkbclasses</Filter>
-    </ClInclude>
-    <ClInclude Include="hkbgethandleonbonemodifier.h">
-      <Filter>Header Files\hkbclasses</Filter>
-    </ClInclude>
-    <ClInclude Include="hkbgetupmodifier.h">
-      <Filter>Header Files\hkbclasses</Filter>
-    </ClInclude>
-    <ClInclude Include="hkbgetworldfrommodelmodifier.h">
-      <Filter>Header Files\hkbclasses</Filter>
-    </ClInclude>
-    <ClInclude Include="hkbhandikcontrolsmodifier.h">
-      <Filter>Header Files\hkbclasses</Filter>
-    </ClInclude>
-    <ClInclude Include="hkbkeyframebonesmodifier.h">
-      <Filter>Header Files\hkbclasses</Filter>
-    </ClInclude>
-    <ClInclude Include="hkblookatmodifier.h">
-      <Filter>Header Files\hkbclasses</Filter>
-    </ClInclude>
-    <ClInclude Include="hkbmanualselectorgenerator.h">
-      <Filter>Header Files\hkbclasses</Filter>
-    </ClInclude>
-    <ClInclude Include="hkbmirroredskeletoninfo.h">
-      <Filter>Header Files\hkbclasses</Filter>
-    </ClInclude>
-    <ClInclude Include="hkbmirrormodifier.h">
-      <Filter>Header Files\hkbclasses</Filter>
-    </ClInclude>
-    <ClInclude Include="hkbmodifiergenerator.h">
-      <Filter>Header Files\hkbclasses</Filter>
-    </ClInclude>
-    <ClInclude Include="hkbmodifierlist.h">
-      <Filter>Header Files\hkbclasses</Filter>
-    </ClInclude>
-    <ClInclude Include="hkbmovecharactermodifier.h">
-      <Filter>Header Files\hkbclasses</Filter>
-    </ClInclude>
-    <ClInclude Include="hkbpoweredragdollcontrolmodifier.h">
-      <Filter>Header Files\hkbclasses</Filter>
-    </ClInclude>
-    <ClInclude Include="hkbproxymodifier.h">
-      <Filter>Header Files\hkbclasses</Filter>
-    </ClInclude>
-    <ClInclude Include="hkbrigidbodyragdollcontrolsmodifier.h">
-      <Filter>Header Files\hkbclasses</Filter>
-    </ClInclude>
-    <ClInclude Include="hkbrotatecharactermodifier.h">
-      <Filter>Header Files\hkbclasses</Filter>
-    </ClInclude>
-    <ClInclude Include="hkbsensehandlemodifier.h">
-      <Filter>Header Files\hkbclasses</Filter>
-    </ClInclude>
-    <ClInclude Include="hkbstatemachine.h">
-      <Filter>Header Files\hkbclasses</Filter>
-    </ClInclude>
-    <ClInclude Include="hkbstatemachineeventpropertyarray.h">
-      <Filter>Header Files\hkbclasses</Filter>
-    </ClInclude>
-    <ClInclude Include="hkbstatemachinestateinfo.h">
-      <Filter>Header Files\hkbclasses</Filter>
-    </ClInclude>
-    <ClInclude Include="hkbstatemachinetransitioninfoarray.h">
-      <Filter>Header Files\hkbclasses</Filter>
-    </ClInclude>
-    <ClInclude Include="hkbstringeventpayload.h">
-      <Filter>Header Files\hkbclasses</Filter>
-    </ClInclude>
-    <ClInclude Include="hkbtimermodifier.h">
-      <Filter>Header Files\hkbclasses</Filter>
-    </ClInclude>
-    <ClInclude Include="hkbtransformvectormodifier.h">
-      <Filter>Header Files\hkbclasses</Filter>
-    </ClInclude>
-    <ClInclude Include="hkbtwistmodifier.h">
-      <Filter>Header Files\hkbclasses</Filter>
-    </ClInclude>
-    <ClInclude Include="hkbvariablebindingset.h">
-      <Filter>Header Files\hkbclasses</Filter>
-    </ClInclude>
-    <ClInclude Include="hkbvariablevalueset.h">
-      <Filter>Header Files\hkbclasses</Filter>
-    </ClInclude>
-    <ClInclude Include="hkrootlevelcontainer.h">
-      <Filter>Header Files\hkbclasses</Filter>
-    </ClInclude>
     <ClInclude Include="Global.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -613,15 +502,6 @@
     </ClInclude>
     <ClInclude Include="Global-Type.h">
       <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="bsoffsetanimationgenerator.h">
-      <Filter>Header Files\hkbclasses</Filter>
-    </ClInclude>
-    <ClInclude Include="hkbposematchinggenerator.h">
-      <Filter>Header Files\hkbclasses</Filter>
-    </ClInclude>
-    <ClInclude Include="hkbstringcondition.h">
-      <Filter>Header Files\hkbclasses</Filter>
     </ClInclude>
     <ClInclude Include="AnimData\animationdata.h">
       <Filter>Header Files\animdata</Filter>
@@ -665,7 +545,379 @@
     <ClInclude Include="src\atomiclock.h">
       <Filter>Header Files\utilities</Filter>
     </ClInclude>
+    <ClInclude Include="src\hkx\generator\hkbgenerator.h">
+      <Filter>Header Files\hkbclasses\generator</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hkx\hkbobject.h">
+      <Filter>Header Files\hkbclasses</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hkx\generator\bs\bone\bsboneswitchgenerator.h">
+      <Filter>Header Files\hkbclasses\generator\bone</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hkx\generator\bs\bone\bsboneswitchgeneratorbonedata.h">
+      <Filter>Header Files\hkbclasses\generator\bone</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hkx\bone\hkbboneindexarray.h">
+      <Filter>Header Files\hkbclasses\bone</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hkx\bone\hkbboneweightarray.h">
+      <Filter>Header Files\hkbclasses\bone</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hkx\hkbstringeventpayload.h">
+      <Filter>Header Files\hkbclasses</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hkx\modifier\bscomputeaddboneanimmodifier.h">
+      <Filter>Header Files\hkbclasses\modifier</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hkx\generator\bs\bscyclicblendtransitiongenerator.h">
+      <Filter>Header Files\hkbclasses\generator</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hkx\modifier\hkbmodifier.h">
+      <Filter>Header Files\hkbclasses\modifier</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hkx\modifier\bsdecomposevectormodifier.h">
+      <Filter>Header Files\hkbclasses\modifier</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hkx\modifier\bsdirectatmodifier.h">
+      <Filter>Header Files\hkbclasses\modifier</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hkx\modifier\bseventeveryneventsmodifier.h">
+      <Filter>Header Files\hkbclasses\modifier</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hkx\modifier\bseventondeactivatemodifier.h">
+      <Filter>Header Files\hkbclasses\modifier</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hkx\modifier\bseventonfalsetotruemodifier.h">
+      <Filter>Header Files\hkbclasses\modifier</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hkx\modifier\bsgettimestepmodifier.h">
+      <Filter>Header Files\hkbclasses\modifier</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hkx\modifier\bsinterpvaluemodifier.h">
+      <Filter>Header Files\hkbclasses\modifier</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hkx\modifier\bsisactivemodifier.h">
+      <Filter>Header Files\hkbclasses\modifier</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hkx\modifier\bsistatemanagermodifier.h">
+      <Filter>Header Files\hkbclasses\modifier</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hkx\modifier\bsdisttriggermodifier.h">
+      <Filter>Header Files\hkbclasses\modifier</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hkx\modifier\bslimbikmodifier.h">
+      <Filter>Header Files\hkbclasses\modifier</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hkx\modifier\bslookatmodifier.h">
+      <Filter>Header Files\hkbclasses\modifier</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hkx\modifier\bsmodifyoncemodifier.h">
+      <Filter>Header Files\hkbclasses\modifier</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hkx\modifier\bspassbytargettriggermodifier.h">
+      <Filter>Header Files\hkbclasses\modifier</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hkx\modifier\bsragdollcontactlistenermodifier.h">
+      <Filter>Header Files\hkbclasses\modifier</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hkx\modifier\bsspeedsamplermodifier.h">
+      <Filter>Header Files\hkbclasses\modifier</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hkx\modifier\bstimermodifier.h">
+      <Filter>Header Files\hkbclasses\modifier</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hkx\modifier\bstweenermodifier.h">
+      <Filter>Header Files\hkbclasses\modifier</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hkx\modifier\hkbattachmentmodifier.h">
+      <Filter>Header Files\hkbclasses\modifier</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hkx\modifier\hkbattributemodifier.h">
+      <Filter>Header Files\hkbclasses\modifier</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hkx\modifier\hkbcombinetransformsmodifier.h">
+      <Filter>Header Files\hkbclasses\modifier</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hkx\modifier\hkbcomputedirectionmodifier.h">
+      <Filter>Header Files\hkbclasses\modifier</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hkx\modifier\hkbcomputerotationfromaxisanglemodifier.h">
+      <Filter>Header Files\hkbclasses\modifier</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hkx\modifier\hkbcomputerotationtotargetmodifier.h">
+      <Filter>Header Files\hkbclasses\modifier</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hkx\modifier\hkbdampingmodifier.h">
+      <Filter>Header Files\hkbclasses\modifier</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hkx\modifier\hkbdelayedmodifier.h">
+      <Filter>Header Files\hkbclasses\modifier</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hkx\modifier\hkbdetectclosetogroundmodifier.h">
+      <Filter>Header Files\hkbclasses\modifier</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hkx\modifier\hkbevaluateexpressionmodifier.h">
+      <Filter>Header Files\hkbclasses\modifier</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hkx\modifier\hkbevaluatehandlemodifier.h">
+      <Filter>Header Files\hkbclasses\modifier</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hkx\modifier\hkbeventdrivenmodifier.h">
+      <Filter>Header Files\hkbclasses\modifier</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hkx\modifier\hkbeventsfromrangemodifier.h">
+      <Filter>Header Files\hkbclasses\modifier</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hkx\modifier\hkbextractragdollposemodifier.h">
+      <Filter>Header Files\hkbclasses\modifier</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hkx\modifier\hkbfootikcontrolsmodifier.h">
+      <Filter>Header Files\hkbclasses\modifier</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hkx\modifier\hkbgethandleonbonemodifier.h">
+      <Filter>Header Files\hkbclasses\modifier</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hkx\modifier\hkbgetupmodifier.h">
+      <Filter>Header Files\hkbclasses\modifier</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hkx\modifier\hkbgetworldfrommodelmodifier.h">
+      <Filter>Header Files\hkbclasses\modifier</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hkx\modifier\hkbhandikcontrolsmodifier.h">
+      <Filter>Header Files\hkbclasses\modifier</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hkx\modifier\hkbkeyframebonesmodifier.h">
+      <Filter>Header Files\hkbclasses\modifier</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hkx\modifier\hkblookatmodifier.h">
+      <Filter>Header Files\hkbclasses\modifier</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hkx\modifier\hkbmirrormodifier.h">
+      <Filter>Header Files\hkbclasses\modifier</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hkx\modifier\hkbmodifierlist.h">
+      <Filter>Header Files\hkbclasses\modifier</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hkx\modifier\hkbmovecharactermodifier.h">
+      <Filter>Header Files\hkbclasses\modifier</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hkx\modifier\hkbpoweredragdollcontrolmodifier.h">
+      <Filter>Header Files\hkbclasses\modifier</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hkx\modifier\hkbproxymodifier.h">
+      <Filter>Header Files\hkbclasses\modifier</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hkx\modifier\hkbrigidbodyragdollcontrolsmodifier.h">
+      <Filter>Header Files\hkbclasses\modifier</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hkx\modifier\hkbrotatecharactermodifier.h">
+      <Filter>Header Files\hkbclasses\modifier</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hkx\modifier\hkbsensehandlemodifier.h">
+      <Filter>Header Files\hkbclasses\modifier</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hkx\hkbattachmentsetup.h">
+      <Filter>Header Files\hkbclasses</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hkx\hkbhandle.h">
+      <Filter>Header Files\hkbclasses</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hkx\hkbeventproperty.h">
+      <Filter>Header Files\hkbclasses</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hkx\modifier\hkbtimermodifier.h">
+      <Filter>Header Files\hkbclasses\modifier</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hkx\modifier\hkbtransformvectormodifier.h">
+      <Filter>Header Files\hkbclasses\modifier</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hkx\modifier\hkbtwistmodifier.h">
+      <Filter>Header Files\hkbclasses\modifier</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hkx\generator\bs\bsistatetagginggenerator.h">
+      <Filter>Header Files\hkbclasses\generator</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hkx\generator\bs\bsoffsetanimationgenerator.h">
+      <Filter>Header Files\hkbclasses\generator</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hkx\generator\bs\bssynchronizedclipgenerator.h">
+      <Filter>Header Files\hkbclasses\generator</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hkx\generator\hkbbehaviorgraph.h">
+      <Filter>Header Files\hkbclasses\generator</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hkx\hkbvariablevalue.h">
+      <Filter>Header Files\hkbclasses</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hkx\generator\hkbbehaviorreferencegenerator.h">
+      <Filter>Header Files\hkbclasses\generator</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hkx\generator\blender\hkbblendergenerator.h">
+      <Filter>Header Files\hkbclasses\generator\blender</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hkx\generator\blender\hkbblendergeneratorchild.h">
+      <Filter>Header Files\hkbclasses\generator\blender</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hkx\hkbvariableinfo.h">
+      <Filter>Header Files\hkbclasses</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hkx\hkbeventinfo.h">
+      <Filter>Header Files\hkbclasses</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hkx\blendcurve.h">
+      <Filter>Header Files\hkbclasses</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hkx\hkbhandikdriverinfo.h">
+      <Filter>Header Files\hkbclasses</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hkx\generator\clip\hkbclipgenerator.h">
+      <Filter>Header Files\hkbclasses\generator\clip</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hkx\generator\clip\hkbcliptriggerarray.h">
+      <Filter>Header Files\hkbclasses\generator\clip</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hkx\generator\hkbmanualselectorgenerator.h">
+      <Filter>Header Files\hkbclasses\generator</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hkx\generator\hkbmodifiergenerator.h">
+      <Filter>Header Files\hkbclasses\generator</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hkx\generator\blender\hkbposematchinggenerator.h">
+      <Filter>Header Files\hkbclasses\generator\blender</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hkx\hkbbehaviorgraphdata.h">
+      <Filter>Header Files\hkbclasses</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hkx\hkbbehaviorgraphstringdata.h">
+      <Filter>Header Files\hkbclasses</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hkx\hkbcharacterdata.h">
+      <Filter>Header Files\hkbclasses</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hkx\hkbcharacterstringdata.h">
+      <Filter>Header Files\hkbclasses</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hkx\hkbeventrangedataarray.h">
+      <Filter>Header Files\hkbclasses</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hkx\hkbexpressiondataarray.h">
+      <Filter>Header Files\hkbclasses</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hkx\hkbfootikdriverinfo.h">
+      <Filter>Header Files\hkbclasses</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hkx\hkbmirroredskeletoninfo.h">
+      <Filter>Header Files\hkbclasses</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hkx\hkbvariablebindingset.h">
+      <Filter>Header Files\hkbclasses</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hkx\hkbvariablevalueset.h">
+      <Filter>Header Files\hkbclasses</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hkx\hkrootlevelcontainer.h">
+      <Filter>Header Files\hkbclasses</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hkx\generator\generators.h">
+      <Filter>Header Files\hkbclasses\generator</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hkx\hkxclass.h">
+      <Filter>Header Files\hkbclasses</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hkx\modifier\modifiers.h">
+      <Filter>Header Files\hkbclasses\modifier</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hkx\bone\bones.h">
+      <Filter>Header Files\hkbclasses\bone</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hkx\generator\statemachine\hkbstatemachine.h">
+      <Filter>Header Files\hkbclasses\generator\statemachine</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hkx\generator\statemachine\hkbstatemachineeventpropertyarray.h">
+      <Filter>Header Files\hkbclasses\generator\statemachine</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hkx\generator\statemachine\hkbstatemachinestateinfo.h">
+      <Filter>Header Files\hkbclasses\generator\statemachine</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hkx\generator\statemachine\hkbstatemachinetransitioninfoarray.h">
+      <Filter>Header Files\hkbclasses\generator\statemachine</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hkx\generator\statemachine\hkbstatechooser.h">
+      <Filter>Header Files\hkbclasses\generator\statemachine</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hkx\generator\statemachine\hkbstatelistener.h">
+      <Filter>Header Files\hkbclasses\generator\statemachine</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hkx\condition\hkbexpressioncondition.h">
+      <Filter>Header Files\hkbclasses\condition</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hkx\condition\hkbstringcondition.h">
+      <Filter>Header Files\hkbclasses\condition</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hkx\condition\hkbcondition.h">
+      <Filter>Header Files\hkbclasses\condition</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hkx\condition\condition.h">
+      <Filter>Header Files\hkbclasses\condition</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hkx\transition\hkbblendingtransitioneffect.h">
+      <Filter>Header Files\hkbclasses\transition</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hkx\transition\hkbgeneratortransitioneffect.h">
+      <Filter>Header Files\hkbclasses\transition</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hkx\transition\hkbtransitioneffect.h">
+      <Filter>Header Files\hkbclasses\transition</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hkx\transition\transition.h">
+      <Filter>Header Files\hkbclasses\transition</Filter>
+    </ClInclude>
+    <ClInclude Include="src\utilities\coordinate.h">
+      <Filter>Header Files\utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="src\utilities\voidmatch.h">
+      <Filter>Header Files\utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="src\utilities\nemesisformat.h">
+      <Filter>Header Files\utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="src\utilities\objectmatch.h">
+      <Filter>Header Files\utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="src\utilities\stringmatch.h">
+      <Filter>Header Files\utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="src\utilities\parammatch.h">
+      <Filter>Header Files\utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="src\utilities\xmlformat.h">
+      <Filter>Header Files\utilities</Filter>
+    </ClInclude>
     <ClInclude Include="src\stateid.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\utilities\eventinfopack.h">
+      <Filter>Header Files\utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="src\utilities\variableinfopack.h">
+      <Filter>Header Files\utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="src\utilities\attributeinfopack.h">
+      <Filter>Header Files\utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="src\utilities\stringdatalock.h">
+      <Filter>Header Files\utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="src\utilities\levenshteindistance.h">
+      <Filter>Header Files\utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hkx\modifier\hkbfootikmodifier.h">
+      <Filter>Header Files\hkbclasses\modifier</Filter>
+    </ClInclude>
+    <ClInclude Include="src\hkx\modifier\base\hkbfootikgains.h">
+      <Filter>Header Files\hkbclasses\modifier\base</Filter>
+    </ClInclude>
+    <ClInclude Include="src\utilities\qstransform.h">
       <Filter>Header Files\utilities</Filter>
     </ClInclude>
   </ItemGroup>

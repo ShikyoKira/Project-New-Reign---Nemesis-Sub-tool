@@ -5,8 +5,6 @@
 
 using namespace std;
 
-typedef std::vector<std::string> vecstr;
-
 void ProxyProjectSet(int counter, string folder);
 void ProjectSetProcessing(int i, string folder);
 void AnimSetDataInput(datapack& data, vecstr& output, vecstr& storeline = *new vecstr);

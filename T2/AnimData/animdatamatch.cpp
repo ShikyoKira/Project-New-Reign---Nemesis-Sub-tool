@@ -14,8 +14,6 @@ bool matchProjectScoring(vector<shared_ptr<AnimDataProject>>& ori, vector<shared
 
 	int counter = 0;
 	map<int, map<int, double>> scorelist;
-	vector<shared_ptr<AnimDataProject>> newOri;
-	vector<shared_ptr<AnimDataProject>> newEdit;
 
 	// match scoring
 	for (unsigned int i = 0; i < ori.size(); ++i)
@@ -46,6 +44,10 @@ bool matchProjectScoring(vector<shared_ptr<AnimDataProject>>& ori, vector<shared
 	}
 
 	vector<orderPair> pairing = highestScore(scorelist, ori.size(), edit.size());
+	vector<shared_ptr<AnimDataProject>> newOri;
+	vector<shared_ptr<AnimDataProject>> newEdit;
+	newOri.reserve(ori.size());
+	newEdit.reserve(edit.size());
 
 	if (Error)
 	{
@@ -288,8 +290,6 @@ bool matchProjectScoring(vector<InfoDataPack>& ori, vector<InfoDataPack>& edit, 
 bool matchProjectScoring(vecstr& ori, vecstr& edit, string filename)
 {
 	map<int, map<int, double>> scorelist;
-	vecstr newOri;
-	vecstr newEdit;
 
 	// match scoring
 	for (unsigned int i = 0; i < ori.size(); ++i)
@@ -320,6 +320,10 @@ bool matchProjectScoring(vecstr& ori, vecstr& edit, string filename)
 	}
 
 	vector<orderPair> pairing = highestScore(scorelist, ori.size(), edit.size());
+	vecstr newOri;
+	vecstr newEdit;
+	newOri.reserve(ori.size());
+	newEdit.reserve(edit.size());
 
 	if (Error)
 	{
@@ -356,8 +360,6 @@ bool matchProjectScoring(vecstr& ori, vecstr& edit, string filename)
 bool matchDetailedScoring(vecstr& ori, vecstr& edit, string filename)
 {
 	map<int, map<int, double>> scorelist;
-	vecstr newOri;
-	vecstr newEdit;
 
 	// match scoring
 	for (unsigned int i = 0; i < ori.size(); ++i)
@@ -389,6 +391,10 @@ bool matchDetailedScoring(vecstr& ori, vecstr& edit, string filename)
 	}
 
 	vector<orderPair> pairing = highestScore(scorelist, ori.size(), edit.size());
+	vecstr newOri;
+	vecstr newEdit;
+	newOri.reserve(ori.size());
+	newEdit.reserve(edit.size());
 
 	if (Error)
 	{

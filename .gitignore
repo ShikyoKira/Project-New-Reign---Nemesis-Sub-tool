@@ -243,3 +243,10 @@ ModelManifest.xml
 
 # FAKE - F# Make
 .fake/
+/T2/mod
+/T2/hkxcmd.exe
+/T2/output.hkx.hkx
+/T2/output.hkx
+/T2/output2.hkx.hkx
+/T2/output2.hkx
+/T2/output2.txt3

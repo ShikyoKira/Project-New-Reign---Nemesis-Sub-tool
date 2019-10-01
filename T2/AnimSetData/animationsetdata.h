@@ -10,8 +10,6 @@
 #include "alphanum.hpp"
 #include "Global.h"
 
-typedef std::vector<std::string> vecstr;
-
 struct attackdata
 {
 	bool proxy = true;

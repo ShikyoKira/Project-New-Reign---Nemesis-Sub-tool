@@ -1,10 +1,17 @@
+#include <boost\process.hpp>
+#include <boost\process\windows.hpp>
 #include "Global-Addon.h"
 #include "Global.h"
 #include "src\atomiclock.h"
 
 using namespace std;
 
+extern safeStringMap<string> newID;
+extern vector<usize> datapacktracker;
+extern safeStringMap<string> rootNode;
 atomic_flag locker = ATOMIC_FLAG_INIT;
+
+void dataIDChange(string& line, usize tracker);
 
 void ReferenceReplacement(string wrongReference, string rightReference, bool reserve) // replacement function for foreign principle
 {
@@ -91,7 +98,7 @@ void ReferenceReplacementExt(string wrongReference, string rightReference)
 				tempID = exchangeID[tempID];
 			}
 
-			vector<string> storeline;
+			vecstr storeline;
 			storeline.reserve(FunctionLineNew[tempID].size());
 			string line;
 
@@ -162,156 +169,117 @@ void ReferenceReplacementExt(string wrongReference, string rightReference)
 	locker.clear(memory_order_release);
 }
 
-void NemesisReaderFormat(vector<string>& output, bool hasID)
+void NemesisReaderFormat(int id, vecstr& output)
 {
-	if (hasID)
+	usize tracker = 0;
+	
+	if (id < 90000)
 	{
-		for (auto& line : output)
+		for (auto& dataid : datapacktracker)
 		{
-			if (line.find("#", 0) != string::npos)
+			if (id > int(dataid)) ++tracker;
+		}
+	}
+
+	for (auto& line : output)
+	{
+		if (line.find("#", 0) != string::npos)
+		{
+			usize tempint = 0;
+			usize position = 0;
+			usize size = count(line.begin(), line.end(), '#');
+
+			for (unsigned int j = 0; j < size; ++j)
 			{
-				usize tempint = 0;
-				usize position = 0;
-				usize size = count(line.begin(), line.end(), '#');
+				position = line.find("#", tempint);
+				tempint = line.find("#", position + 1);
+				string tempID;
 
-				for (unsigned int j = 0; j < size; ++j)
+				tempID = "#";
+
+				for (usize i = position + 1; i < line.length(); ++i)
 				{
-					position = line.find("#", tempint);
-					tempint = line.find("#", position + 1);
-					string tempID;
-
-					if (tempint == -1)
-					{
-						string templine;
-
-						if (line.find("signature", 0) != string::npos)
-						{
-							templine = line.substr(0, line.find("class"));
-						}
-						else
-						{
-							templine = line.substr(position, tempint - position - 1);
-						}
-
-						tempID = "#" + boost::regex_replace(string(templine), boost::regex("[^0-9]*([0-9]+).*"), string("\\1"));
-					}
-					else
-					{
-						tempID = line.substr(position, tempint - position - 1);
-					}
-
-					int tempLength = tempID.length();
-					string strID = tempID.substr(1, tempLength - 1);
-					int intID = stoi(strID);
-
-					if (intID > 10000)
-					{
-						string modID;
-						int position2 = line.find(tempID);
-						while (atomLock.test_and_set(std::memory_order_acquire));
-
-						if (!newID[tempID].empty())
-						{
-							modID = newID[tempID];
-						}
-						else
-						{
-							modID = "#" + modcode + "$" + to_string(functioncount++);
-							newID[tempID] = modID;
-						}
-
-						atomLock.clear(std::memory_order_release);
-						line.replace(position2, tempLength, modID);
-					}
+					if (isdigit(line[i])) tempID.push_back(line[i]);
+					else break;
 				}
-			}
-			
-			if ((line.find("<hkparam name=\"id\">", 0) != string::npos) && (line.find("<hkparam name=\"id\">-1</hkparam>", 0) == string::npos))
-			{
-				usize eventpos = line.find("id\">") + 4;
-				string eventid = boost::regex_replace(string(line), boost::regex("[\t]*<hkparam name=\"id\">([0-9]+)</hkparam>"), string("\\1"));
 
-				if (eventid != line && eventID[eventid].length() != 0 && stoi(eventid) > int(eventCount))
+				int intID = stoi(tempID.substr(1));
+
+				if (intID > 89999)
 				{
-					line.replace(eventpos, eventid.length(), "$eventID[" + eventID[eventid] + "]$");
-				}
-			}
-
-			{
-				string lowerline = boost::to_lower_copy(line);
-
-				if ((lowerline.find("eventid\">", 0) != string::npos) && (lowerline.find("eventid\">-1</hkparam>", 0) == string::npos))
-				{
-					usize eventpos = lowerline.find("id\">") + 4;
-					string eventid = boost::regex_replace(string(lowerline), boost::regex(".*ventid\">([0-9]+)</hkparam>"), string("\\1"));
-
-					if (eventid != lowerline && eventID[eventid].length() != 0 && stoi(eventid) > int(eventCount))
-					{
-						line.replace(eventpos, eventid.length(), "$eventID[" + eventID[eventid] + "]$");
-					}
-				}
-			}
-
-			if (line.find("<hkparam name=\"variableIndex\">", 0) != string::npos)
-			{
-				usize varpos = line.find("<hkparam name=\"variableIndex\">") + 30;
-				string varid = boost::regex_replace(string(line), boost::regex("[\t]*<hkparam name=\"variableIndex\">([0-9]+)</hkparam>"), string("\\1"));
-
-				if (varid != line && variableID[varid].length() != 0 && stoi(varid) > int(varCount))
-				{
-					line.replace(varpos, varid.length(), "$variableID[" + variableID[varid] + "]$");
+					int position2 = line.find(tempID);
+					string modID = NodeIDCheck(tempID);
+					line.replace(position2, tempID.length(), modID);
 				}
 			}
 		}
+
+		//dataIDChange(line, tracker);
 	}
-	else
+}
+
+void dataIDChange(string& line, usize tracker)
+{
+	if (line.find("<hkparam name=\"id\">", 0) != string::npos && line.find("<hkparam name=\"id\">-1</hkparam>", 0) == string::npos)
 	{
-		for (auto& line : output)
+		usize eventpos = line.find("id\">") + 4;
+		string eventid;
+
+		for (usize i = eventpos; i < line.length(); ++i)
 		{
-			if ((line.find("<hkparam name=\"id\">", 0) != string::npos) && (line.find("<hkparam name=\"id\">-1</hkparam>", 0) == string::npos))
-			{
-				usize eventpos = line.find("id\">") + 4;
-				string eventid = boost::regex_replace(string(line), boost::regex("[\t]*<hkparam name=\"id\">([0-9]+)</hkparam>"), string("\\1"));
+			if (isdigit(line[i])) eventid.push_back(line[i]);
+			else break;
+		}
 
-				if (eventid != line && eventID[eventid].length() != 0 && stoi(eventid) > int(eventCount))
-				{
-					line.replace(eventpos, eventid.length(), "$eventID[" + eventID[eventid] + "]$");
-				}
+		if (eventid.length() > 0 && stoi(eventid) >= int(eventCount[tracker]) && eventID[tracker][eventid].length() != 0)
+		{
+			line.replace(eventpos, eventid.length(), "$eventID[" + eventID[tracker][eventid] + "]$");
+		}
+	}
+
+	{
+		string lowerline = boost::to_lower_copy(line);
+
+		if (lowerline.find("eventid\">", 0) != string::npos && lowerline.find("eventid\">-1</hkparam>", 0) == string::npos)
+		{
+			usize eventpos = lowerline.find("eventid\">") + 9;
+			string eventid;
+
+			for (usize i = eventpos; i < line.length(); ++i)
+			{
+				if (isdigit(line[i])) eventid.push_back(line[i]);
+				else break;
 			}
 
+			if (eventid.length() > 0 && stoi(eventid) >= int(eventCount[tracker]) && eventID[tracker][eventid].length() != 0)
 			{
-				string lowerline = boost::to_lower_copy(line);
-
-				if ((lowerline.find("eventid\">", 0) != string::npos) && (lowerline.find("eventid\">-1</hkparam>", 0) == string::npos))
-				{
-					usize eventpos = lowerline.find("id\">") + 4;
-					string eventid = boost::regex_replace(string(lowerline), boost::regex(".*ventid\">([0-9]+)</hkparam>"), string("\\1"));
-
-					if (eventid != lowerline && eventID[eventid].length() != 0 && stoi(eventid) > int(eventCount))
-					{
-						line.replace(eventpos, eventid.length(), "$eventID[" + eventID[eventid] + "]$");
-					}
-				}
+				line.replace(eventpos, eventid.length(), "$eventID[" + eventID[tracker][eventid] + "]$");
 			}
+		}
+	}
 
-			if (line.find("<hkparam name=\"variableIndex\">", 0) != string::npos)
-			{
-				usize varpos = line.find("<hkparam name=\"variableIndex\">") + 30;
-				string varid = boost::regex_replace(string(line), boost::regex("[\t]*<hkparam name=\"variableIndex\">([0-9]+)</hkparam>"), string("\\1"));
+	if (line.find("<hkparam name=\"variableIndex\">", 0) != string::npos)
+	{
+		usize varpos = line.find("<hkparam name=\"variableIndex\">") + 30;
+		string varid;
 
-				if (varid != line && variableID[varid].length() != 0 && stoi(varid) > int(varCount))
-				{
-					line.replace(varpos, varid.length(), "$variableID[" + variableID[varid] + "]$");
-				}
-			}
+		for (usize i = varpos; i < line.length(); ++i)
+		{
+			if (isdigit(line[i])) varid.push_back(line[i]);
+			else break;
+		}
+
+		if (varid.length() > 0 && stoi(varid) >= int(varCount[tracker]) && variableID[tracker][varid].length() != 0)
+		{
+			line.replace(varpos, varid.length(), "$variableID[" + variableID[tracker][varid] + "]$");
 		}
 	}
 }
 
-vector<string> GetElements(string number, unordered_map<string, vector<string>>& functionlines, bool isTransition, string key)
+vecstr GetElements(string number, unordered_map<string, vecstr>& functionlines, bool isTransition, string key)
 {
-	vector<string> elements;
-	vector<string> storeline = functionlines[number];
+	vecstr elements;
+	vecstr storeline = functionlines[number];
 
 	if (isTransition)
 	{
@@ -353,7 +321,7 @@ vector<string> GetElements(string number, unordered_map<string, vector<string>>&
 				stringstream sstream(line);
 				istream_iterator<string> ssbegin(sstream);
 				istream_iterator<string> ssend;
-				vector<string> curElements(ssbegin, ssend);
+				vecstr curElements(ssbegin, ssend);
 				copy(curElements.begin(), curElements.end(), curElements.begin());
 
 				for (auto& element : curElements)
@@ -376,31 +344,162 @@ vector<string> GetElements(string number, unordered_map<string, vector<string>>&
 	return elements;
 }
 
-void GetFunctionLines(string filename, vector<string>& storeline)
+void GetFunctionLines(string filename, vecstr& storeline)
 {
 	{
-		vector<string> emptyVS;
-		storeline = emptyVS;
+		vecstr emptyVS;
+		storeline = emptyVS; 
+	}
+
+	string curfilename;
+	bool hkx = false;
+
+	if (boost::filesystem::exists("hkxcmd.exe"))
+	{
+		usize counter = 0;
+		char charline[2000];
+		bool good = false;
+		FILE* file;
+		fopen_s(&file, filename.c_str(), "r");
+
+		if (file)
+		{
+			while (fgets(charline, 2000, file))
+			{
+				if (string(charline).find("<?xml version=\"1.0\" encoding=\"ascii\"?>") != string::npos)
+				{
+					good = true;
+					break;
+				}
+
+				if (counter++ > 20)
+				{
+					break;
+				}
+			}
+
+			fclose(file);
+		}
+		else
+		{
+			cout << "ERROR: Unable to open file (File: " << filename << ")" << endl;
+			Error = true;
+			return;
+		}
+
+		boost::filesystem::path curfile(filename);
+
+		if (good || curfile.extension().string() == ".hkx")
+		{
+			if (curfile.extension().string() != ".hkx")
+			{
+				curfilename = curfile.stem().string() + ".hkx";
+				boost::filesystem::copy_file(curfile, curfilename, boost::filesystem::copy_option::overwrite_if_exists);
+			}
+			else
+			{
+				curfilename = filename;
+			}
+
+			string cmd = "hkxcmd convert -v:XML \"" + curfilename + "\" \"" + curfilename + ".hkx\"";
+
+			try
+			{
+				boost::process::pipe p;
+				boost::process::ipstream is;
+
+				if (boost::process::system(cmd, boost::process::windows::hide, boost::process::std_in < p, boost::process::std_out > is) != 0)
+				{
+					cout << "ERROR: Unable to convert file. (Command: " << cmd << ")" << endl;
+					Error = true;
+					return;
+				}
+				else
+				{
+					if (!boost::filesystem::exists(curfilename + ".hkx"))
+					{
+						cout << "ERROR: Unable to convert file. (Command: " << cmd << ")" << endl;
+						Error = true;
+						return;
+					}
+				}
+			}
+			catch (...)
+			{
+				cout << "ERROR: Unable to convert file. (Command: " << cmd << ")" << endl;
+				Error = true;
+				return;
+			}
+
+			if (curfilename != filename)
+			{
+				while (boost::filesystem::exists(curfilename))
+				{
+					try
+					{
+						boost::filesystem::remove(curfilename);
+					}
+					catch (...) {}
+				}
+			}
+
+			curfilename.append(".hkx");
+			hkx = true;
+		}
+		else
+		{
+			curfilename = filename;
+		}
+	}
+	else
+	{
+		curfilename = filename;
 	}
 
 	string line;
-	storeline.reserve(FileLineCount(filename));
+	storeline.reserve(FileLineCount(curfilename));
 	char charline[2000];
 	FILE* file;
-	fopen_s(&file, filename.c_str(), "r");
+	fopen_s(&file, curfilename.c_str(), "r");
 
 	if (file)
 	{
-		while (fgets(charline, 2000, file))
+		if (hkx)
 		{
-			line = charline;
-
-			if (line.length() > 0 && line.back() == '\n')
+			while (fgets(charline, 2000, file))
 			{
-				line.pop_back();
+				line = charline;
+
+				if (line.length() > 0 && line.back() == '\n')
+				{
+					line.pop_back();
+				}
+
+				storeline.push_back(line);
 			}
 
-			storeline.push_back(line);
+			for (auto& curline : storeline)
+			{
+				if (curline.find("toplevelobject", 0) != string::npos)
+				{
+					rootNode[filename] = boost::regex_replace(curline, boost::regex(".*toplevelobject=\"#([0-9]+)\">.*"), "\\1");
+					break;
+				}
+			}
+		}
+		else
+		{
+			while (fgets(charline, 2000, file))
+			{
+				line = charline;
+
+				if (line.length() > 0 && line.back() == '\n')
+				{
+					line.pop_back();
+				}
+
+				storeline.push_back(line);
+			}
 		}
 
 		fclose(file);
@@ -410,6 +509,34 @@ void GetFunctionLines(string filename, vector<string>& storeline)
 		cout << "ERROR: Unable to open file (File: " << filename << ")" << endl;
 		Error = true;
 	}
+
+	if (curfilename != filename)
+	{
+		try
+		{
+			boost::filesystem::remove(curfilename);
+		}
+		catch (...) {}
+	}
+}
+
+string NodeIDCheck(string ID)
+{
+	while (atomLock.test_and_set(std::memory_order_acquire));
+	string modID;
+
+	if (!newID[ID].empty())
+	{
+		modID = newID[ID];
+	}
+	else
+	{
+		modID = "#" + modcode + "$" + to_string(functioncount++);
+		newID[ID] = modID;
+	}
+
+	atomLock.clear(std::memory_order_release);
+	return modID;
 }
 
 void FolderCreate(string curBehaviorPath)

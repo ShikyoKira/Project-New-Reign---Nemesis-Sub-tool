@@ -1,25 +1,48 @@
 #include "highestscore.h"
+#include "src\hkx\hkbobject.h"
 
 using namespace std;
 
+orderPair::orderPair(int ori, int edit)
+{
+	original = ori;
+	edited = edit;
+}
+
+bool matchIDCompare(shared_ptr<hkbobject> oldNode, shared_ptr<hkbobject> newNode)
+{
+	if (oldNode != nullptr)
+	{
+		if (newNode != nullptr && oldNode->ID == newNode->ID)
+		{
+			return true;
+		}
+	}
+	else if (newNode == nullptr)
+	{
+		return true;
+	}
+
+	return false;
+}
+
 vector<orderPair> highestScore(map<int, map<int, int>> scorelist, size_t originalSize, size_t newSize)
 {
-	int counter = 0;
 	multimap<int, orderPair> sortedlist;
-	unordered_map<int, bool> taken;
-	unordered_map<int, bool> taken2;
-	unordered_map<int, bool> isNew;
-	unordered_map<int, bool> isDeleted;
-	vector<int> added;
+	vector<int> isNew;
+	vector<int> isDeleted;
+	set<int> newTaken;
+	set<int> deleteTaken;
+	set<int> taken;
+	set<int> taken2;
 	vector<orderPair> editOrder;
 	size_t size = max(originalSize, newSize);
 	
 	editOrder.reserve(size);
 
-	for (size_t i = 0; i < size; ++i)
+	for (usize i = 0; i < size; ++i)
 	{
-		orderPair dummy;
-		editOrder.push_back(dummy);
+		editOrder.push_back(orderPair());
 	}
 
 	if (min(originalSize, newSize) != 0)
@@ -28,65 +51,88 @@ vector<orderPair> highestScore(map<int, map<int, int>> scorelist, size_t origina
 		{
 			for (auto& score : scores.second)
 			{
-				orderPair dummy;
-				dummy.original = scores.first;
-				dummy.edited = score.first;
-				sortedlist.insert(make_pair(score.second, dummy));
+				sortedlist.insert(make_pair(score.second, orderPair(scores.first, score.first)));
 			}
 		}
+
+		multimap<int, orderPair>::reverse_iterator mark;
 
 		for (auto score = sortedlist.rbegin(); score != sortedlist.rend(); ++score)
 		{
-			if (!taken[score->second.original] && !taken2[score->second.edited])
+			auto i_taken = taken.find(score->second.original);
+			auto i_taken2 = taken2.find(score->second.edited);
+
+			if (i_taken == taken.end() && i_taken2 == taken2.end())
 			{
 				editOrder[score->second.original] = score->second;
-				taken[score->second.original] = true;
-				taken2[score->second.edited] = true;
-				isDeleted[score->second.original] = false;
-				isNew[score->second.edited] = false;
+				taken.insert(score->second.original);
+				taken2.insert(score->second.edited);
+				isDeleted.erase(remove(isDeleted.begin(), isDeleted.end(), score->second.original), isDeleted.end());
+				isNew.erase(remove(isNew.begin(), isNew.end(), score->second.edited), isNew.end());
 			}
-			else if (!taken[score->second.original])
+			else if (i_taken == taken.end() && deleteTaken.find(score->second.original) == deleteTaken.end())
 			{
-				isDeleted[score->second.original] = true;
+				isDeleted.push_back(score->second.original);
+				deleteTaken.insert(score->second.original);
 			}
-			else if (!taken2[score->second.edited])
+			else if (i_taken2 == taken2.end() && newTaken.find(score->second.edited) == newTaken.end())
 			{
-				isNew[score->second.edited] = true;
+				isNew.push_back(score->second.edited);
+				newTaken.insert(score->second.edited);
+			}
+			else if (taken.size() + deleteTaken.size() == originalSize && taken2.size() + isNew.size() == newSize)
+			{
+				mark = ++score;
+				break;
 			}
 		}
 
-		for (size_t i = 0; i < originalSize; ++i)
+		for (auto& each : isDeleted)
 		{
-			if (isDeleted[i])
+			editOrder[each].original = each;
+			editOrder[each].edited = -1;
+		}
+
+		if (isNew.size() != size - originalSize)
+		{
+			for (auto score = mark; score != sortedlist.rend(); ++score)
 			{
-				orderPair dummy;
-				dummy.original = i;
-				dummy.edited = -1;
-				editOrder[i] = dummy;
+				auto i_taken = taken.find(score->second.original);
+				auto i_taken2 = taken2.find(score->second.edited);
+
+				if (i_taken == taken.end() && i_taken2 == taken2.end())
+				{
+					editOrder[score->second.original] = score->second;
+					taken.insert(score->second.original);
+					taken2.insert(score->second.edited);
+					isDeleted.erase(remove(isDeleted.begin(), isDeleted.end(), score->second.original), isDeleted.end());
+					isNew.erase(remove(isNew.begin(), isNew.end(), score->second.edited), isNew.end());
+				}
+				else if (i_taken == taken.end() && deleteTaken.find(score->second.original) == deleteTaken.end())
+				{
+					isDeleted.push_back(score->second.original);
+					deleteTaken.insert(score->second.original);
+				}
+				else if (i_taken2 == taken2.end() && newTaken.find(score->second.edited) == newTaken.end())
+				{
+					isNew.push_back(score->second.edited);
+					newTaken.insert(score->second.edited);
+				}
+			}
+
+			if (isNew.size() != size - originalSize)
+			{
+				cout << "ERROR: Highest Score bug detected. Extra size: " << isNew.size() << ", New size: " << size << ", Original size: " << originalSize << endl;
+				Error = true;
+				throw 5;
 			}
 		}
 
-		for (auto& newly : isNew)
-		{
-			if (newly.second)
-			{
-				added.push_back(newly.first);
-			}
-		}
-
-		if (added.size() != size - originalSize)
-		{
-			cout << "ERROR: Highest Score bug detected" << endl;
-			Error = true;
-			return editOrder;
-		}
+		int counter = 0;
 
 		for (size_t i = originalSize; i < size; ++i)
 		{
-			orderPair dummy;
-			dummy.original = -1;
-			dummy.edited = added[counter];
-			editOrder[i] = dummy;
+			editOrder[i] = orderPair(-1, isNew[counter]);
 			++counter;
 		}
 	}
@@ -94,20 +140,14 @@ vector<orderPair> highestScore(map<int, map<int, int>> scorelist, size_t origina
 	{
 		for (size_t i = 0; i < originalSize; ++i)
 		{
-			orderPair dummy;
-			dummy.original = i;
-			dummy.edited = -1;
-			editOrder[i] = dummy;
+			editOrder[i] = orderPair(i, -1);
 		}
 	}
 	else
 	{
 		for (size_t i = 0; i < newSize; ++i)
 		{
-			orderPair dummy;
-			dummy.original = -1;
-			dummy.edited = i;
-			editOrder[i] = dummy;
+			editOrder[i] = orderPair(-1, i);
 		}
 	}
 
@@ -116,13 +156,13 @@ vector<orderPair> highestScore(map<int, map<int, int>> scorelist, size_t origina
 
 vector<orderPair> highestScore(map<int, map<int, double>> scorelist, size_t originalSize, size_t newSize)
 {
-	int counter = 0;
 	multimap<double, orderPair> sortedlist;
-	unordered_map<int, bool> taken;
-	unordered_map<int, bool> taken2;
-	unordered_map<int, bool> isNew;
-	unordered_map<int, bool> isDeleted;
-	vector<int> added;
+	vector<int> isNew;
+	vector<int> isDeleted;
+	set<int> newTaken;
+	set<int> deleteTaken;
+	set<int> taken;
+	set<int> taken2;
 	vector<orderPair> editOrder;
 	size_t size = max(originalSize, newSize);
 
@@ -130,74 +170,114 @@ vector<orderPair> highestScore(map<int, map<int, double>> scorelist, size_t orig
 
 	for (size_t i = 0; i < size; ++i)
 	{
-		orderPair dummy;
-		editOrder.push_back(dummy);
+		editOrder.push_back(orderPair());
 	}
 
-	for (auto& scores : scorelist)
+	if (min(originalSize, newSize) != 0)
 	{
-		for (auto& score : scores.second)
+		for (auto& scores : scorelist)
 		{
-			orderPair dummy;
-			dummy.original = scores.first;
-			dummy.edited = score.first;
-			sortedlist.insert(make_pair(score.second, dummy));
+			for (auto& score : scores.second)
+			{
+				sortedlist.insert(make_pair(score.second, orderPair(scores.first, score.first)));
+			}
+		}
+
+		multimap<double, orderPair>::reverse_iterator mark;
+
+		for (auto score = sortedlist.rbegin(); score != sortedlist.rend(); ++score)
+		{
+			auto i_taken = taken.find(score->second.original);
+			auto i_taken2 = taken2.find(score->second.edited);
+
+			if (i_taken == taken.end() && i_taken2 == taken2.end())
+			{
+				editOrder[score->second.original] = score->second;
+				taken.insert(score->second.original);
+				taken2.insert(score->second.edited);
+				isDeleted.erase(remove(isDeleted.begin(), isDeleted.end(), score->second.original), isDeleted.end());
+				isNew.erase(remove(isNew.begin(), isNew.end(), score->second.edited), isNew.end());
+			}
+			else if (i_taken == taken.end() && deleteTaken.find(score->second.original) == deleteTaken.end())
+			{
+				isDeleted.push_back(score->second.original);
+				deleteTaken.insert(score->second.original);
+			}
+			else if (i_taken2 == taken2.end() && newTaken.find(score->second.edited) == newTaken.end())
+			{
+				isNew.push_back(score->second.edited);
+				newTaken.insert(score->second.edited);
+			}
+			else if (taken.size() + deleteTaken.size() == originalSize && taken2.size() + isNew.size() == newSize)
+			{
+				mark = ++score;
+				break;
+			}
+		}
+
+		for (auto& each : isDeleted)
+		{
+			editOrder[each].original = each;
+			editOrder[each].edited = -1;
+		}
+
+		if (isNew.size() != size - originalSize)
+		{
+			for (auto score = mark; score != sortedlist.rend(); ++score)
+			{
+				auto i_taken = taken.find(score->second.original);
+				auto i_taken2 = taken2.find(score->second.edited);
+
+				if (i_taken == taken.end() && i_taken2 == taken2.end())
+				{
+					editOrder[score->second.original] = score->second;
+					taken.insert(score->second.original);
+					taken2.insert(score->second.edited);
+					isDeleted.erase(remove(isDeleted.begin(), isDeleted.end(), score->second.original), isDeleted.end());
+					isNew.erase(remove(isNew.begin(), isNew.end(), score->second.edited), isNew.end());
+				}
+				else if (i_taken == taken.end() && deleteTaken.find(score->second.original) == deleteTaken.end())
+				{
+					isDeleted.push_back(score->second.original);
+					deleteTaken.insert(score->second.original);
+				}
+				else if (i_taken2 == taken2.end() && newTaken.find(score->second.edited) == newTaken.end())
+				{
+					isNew.push_back(score->second.edited);
+					newTaken.insert(score->second.edited);
+				}
+			}
+
+			if (isNew.size() != size - originalSize)
+			{
+				cout << "ERROR: Highest Score bug detected. Extra size: " << isNew.size() << ", New size: " << size << ", Original size: " << originalSize << endl;
+				Error = true;
+				throw 5;
+			}
+		}
+
+		int counter = 0;
+
+		for (size_t i = originalSize; i < size; ++i)
+		{
+			editOrder[i].original = -1;
+			editOrder[i].edited = isNew[counter];
+			++counter;
 		}
 	}
-
-	for (auto score = sortedlist.rbegin(); score != sortedlist.rend(); ++score)
+	else if (newSize == 0)
 	{
-		if (!taken[score->second.original] && !taken2[score->second.edited])
+		for (size_t i = 0; i < originalSize; ++i)
 		{
-			editOrder[score->second.original] = score->second;
-			taken[score->second.original] = true;
-			taken2[score->second.edited] = true;
-			isNew[score->second.edited] = false;
-			isDeleted[score->second.original] = false;
-		}
-		else if (!taken2[score->second.edited])
-		{
-			isNew[score->second.edited] = true;
-		}
-		else if (!taken[score->second.original])
-		{
-			isDeleted[score->second.original] = true;
+			editOrder[i] = orderPair(i, -1);
 		}
 	}
-
-	for (size_t i = 0; i < originalSize; ++i)
+	else
 	{
-		if (isDeleted[i])
+		for (size_t i = 0; i < newSize; ++i)
 		{
-			orderPair dummy;
-			dummy.original = i;
-			dummy.edited = -1;
-			editOrder[i] = dummy;
+			editOrder[i] = orderPair(-1, i);
 		}
-	}
-
-	for (auto& newly : isNew)
-	{
-		if (newly.second)
-		{
-			added.push_back(newly.first);
-		}
-	}
-
-	if (added.size() != size - originalSize)
-	{
-		cout << "ERROR: Highest Score bug detected" << endl;
-		Error = true;
-		return editOrder;
-	}
-
-	for (size_t i = originalSize; i < size; ++i)
-	{
-		orderPair dummy;
-		dummy.original = -1;
-		dummy.edited = added[counter];
-		editOrder[i] = dummy;
-		++counter;
 	}
 
 	return editOrder;

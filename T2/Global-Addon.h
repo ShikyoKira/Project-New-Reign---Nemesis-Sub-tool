@@ -11,6 +11,7 @@
 #include <boost\date_time\posix_time\posix_time.hpp>
 #include <boost\thread\mutex.hpp>
 #include <boost\thread\lock_guard.hpp>
+#include "Global-Type.h"
 
 class nodelock
 {
@@ -34,10 +35,10 @@ class nodelist
 {
 private:
 	std::atomic_flag locker = ATOMIC_FLAG_INIT;
-	std::unordered_map<std::string, std::vector<std::string>> node;
+	std::unordered_map<std::string, vecstr> node;
 
 public:
-	std::vector<std::string>& operator[] (std::string id)
+	vecstr& operator[] (std::string id)
 	{
 		nodelock locker(&locker);
 		return node[id];
@@ -48,26 +49,88 @@ public:
 		return node.size();
 	}
 
-	void erase(std::unordered_map<std::string, std::vector<std::string>>::iterator iter)
+	void erase(std::unordered_map<std::string, vecstr>::iterator iter)
 	{
 		nodelock locker(&locker);
 		node.erase(iter);
 	}
 
-	std::unordered_map<std::string, std::vector<std::string>>::iterator find(std::string key)
+	std::unordered_map<std::string, vecstr>::iterator find(std::string key)
 	{
 		nodelock locker(&locker);
 		return node.find(key);
 	}
 };
 
-extern void ReferenceReplacementExt(std::string wrongReference, std::string rightReference); // replacement function for foreign principle
-extern void ReferenceReplacement(std::string wrongReference, std::string rightReference, bool reserve = false);
-extern void NemesisReaderFormat(std::vector<std::string>& output, bool hasID = false);
-extern void FolderCreate(std::string curBehaviorPath);
-extern void GetFunctionLines(std::string filename, std::vector<std::string>& storeline);
-extern std::vector<std::string> GetElements(std::string number, std::unordered_map<std::string, std::vector<std::string>>& functionlines, bool isTransition = false, std::string key = "");
-extern bool isOnlyNumber(std::string line);
-extern bool hasAlpha(std::string line);
+template<typename subclass>
+class safeStringMap : public std::map<std::string, subclass>
+{
+private:
+	std::atomic_flag locker = ATOMIC_FLAG_INIT;
+
+public:
+	subclass& operator[] (std::string key)
+	{
+		nodelock locker(&locker);
+		return try_emplace(_STD move(key)).first->second;
+	}
+
+	iterator find(const std::string& _Keyval)
+	{
+		nodelock locker(&locker);
+		return lower_bound(_Keyval);
+	}
+};
+
+template<typename subclass>
+class safeStringUMap : public std::unordered_map<std::string, subclass>
+{
+private:
+	std::atomic_flag locker = ATOMIC_FLAG_INIT;
+
+public:
+	subclass& operator[] (std::string key)
+	{
+		safeStringMap<string> test;
+		test["hehe"];
+
+		nodelock locker(&locker);
+		return try_emplace(_STD move(key)).first->second;
+	}
+
+	subclass& at(std::string key)
+	{
+		nodelock locker(&locker);
+		iterator _Where = _Mybase::lower_bound(key);
+
+		if (_Where == _Mybase::end()) std::cout << "invalid unordered_map<K, T> key" << std::endl;
+
+		return _Where->second;
+	}
+
+	iterator find(const std::string& _Keyval)
+	{
+		nodelock locker(&locker);
+		return lower_bound(_Keyval);
+	}
+
+	iterator end() _NOEXCEPT
+	{
+		nodelock locker(&locker);
+		return _List.end();
+	}
+};
+
+typedef safeStringMap<std::shared_ptr<hkbobject>> hkRefPtr;
+
+void ReferenceReplacementExt(std::string wrongReference, std::string rightReference); // replacement function for foreign principle
+void ReferenceReplacement(std::string wrongReference, std::string rightReference, bool reserve = false);
+void NemesisReaderFormat(int id, vecstr& output);
+void FolderCreate(std::string curBehaviorPath);
+void GetFunctionLines(std::string filename, vecstr& storeline);
+std::string NodeIDCheck(std::string ID);
+vecstr GetElements(std::string number, std::unordered_map<std::string, vecstr>& functionlines, bool isTransition = false, std::string key = "");
+bool isOnlyNumber(std::string line);
+bool hasAlpha(std::string line);
 
 #endif

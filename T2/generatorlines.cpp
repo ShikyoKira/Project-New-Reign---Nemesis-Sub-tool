@@ -2,12 +2,12 @@
 
 using namespace std;
 
-bool generatorMatch(vector<string>& ori, vector<string>& edit, string id, string classname);
+bool generatorMatch(vecstr& ori, vecstr& edit, string id, string classname);
 
-bool generatorLines(vector<string>& storeline1, vector<string>& storeline2, string id, string classname)
+bool generatorLines(vecstr& storeline1, vecstr& storeline2, string id, string classname)
 {
 	storeline1.reserve(FunctionLineTemp[id].size());
-	vector<string> origen;
+	vecstr origen;
 	int contline;
 	bool start = false;
 	string line;
@@ -29,7 +29,7 @@ bool generatorLines(vector<string>& storeline1, vector<string>& storeline2, stri
 				stringstream sstream(line);
 				istream_iterator<string> ssbegin(sstream);
 				istream_iterator<string> ssend;
-				vector<string> curElements(ssbegin, ssend);
+				vecstr curElements(ssbegin, ssend);
 				copy(curElements.begin(), curElements.end(), curElements.begin());
 				origen.insert(origen.end(), curElements.begin(), curElements.end());
 			}
@@ -51,7 +51,7 @@ bool generatorLines(vector<string>& storeline1, vector<string>& storeline2, stri
 	}
 
 	//stage 2 reading and identifying edits
-	vector<string> newgen;
+	vecstr newgen;
 	start = false;
 	int contline2;
 	storeline2.reserve(FunctionLineNew[id].size());
@@ -73,7 +73,7 @@ bool generatorLines(vector<string>& storeline1, vector<string>& storeline2, stri
 				stringstream sstream(line);
 				istream_iterator<string> ssbegin(sstream);
 				istream_iterator<string> ssend;
-				vector<string> curElements(ssbegin, ssend);
+				vecstr curElements(ssbegin, ssend);
 				copy(curElements.begin(), curElements.end(), curElements.begin());
 				newgen.insert(newgen.end(), curElements.begin(), curElements.end());
 			}
@@ -101,9 +101,9 @@ bool generatorLines(vector<string>& storeline1, vector<string>& storeline2, stri
 	}
 
 	int counter = 0;
-	vector<string> generator1;
-	vector<string> generator2;
-	vector<string> extra;
+	vecstr generator1;
+	vecstr generator2;
+	vecstr extra;
 
 	if (origen.size() != newgen.size())
 	{
@@ -156,8 +156,8 @@ bool generatorLines(vector<string>& storeline1, vector<string>& storeline2, stri
 	generator2.insert(generator2.end(), extra.begin(), extra.end());
 	storeline1.insert(storeline1.end(), generator1.begin(), generator1.end());
 	storeline2.insert(storeline2.end(), generator2.begin(), generator2.end());
-	vector<string> orilines = FunctionLineTemp[id];
-	vector<string> editedlines = FunctionLineNew[id];
+	vecstr orilines = FunctionLineTemp[id];
+	vecstr editedlines = FunctionLineNew[id];
 
 	for (unsigned int i = contline; i < orilines.size(); ++i)
 	{
@@ -182,7 +182,7 @@ bool generatorLines(vector<string>& storeline1, vector<string>& storeline2, stri
 	return true;
 }
 
-bool generatorMatch(vector<string>& ori, vector<string>& edit, string id, string classname)
+bool generatorMatch(vecstr& ori, vecstr& edit, string id, string classname)
 {
 	if (ori.size() == 0)
 	{
@@ -194,8 +194,6 @@ bool generatorMatch(vector<string>& ori, vector<string>& edit, string id, string
 	int counter = 0;
 	map<int, map<int, int>> scorelist;
 	map<int, bool> taken;
-	vector<string> newOri;
-	vector<string> newEdit;
 
 	// match scoring
 	for (unsigned int i = 0; i < ori.size(); ++i)
@@ -217,6 +215,10 @@ bool generatorMatch(vector<string>& ori, vector<string>& edit, string id, string
 	}
 
 	vector<orderPair> pairing = highestScore(scorelist, ori.size(), edit.size());
+	vecstr newOri;
+	vecstr newEdit;
+	newOri.reserve(ori.size());
+	newEdit.reserve(edit.size());
 
 	// assigning
 	for (auto& order : pairing)

@@ -3,6 +3,6 @@
 
 #include "highestscore.h"
 
-bool generatorLines(std::vector<std::string>& storeline1, std::vector<std::string>& storeline2, std::string id, std::string classname);
+bool generatorLines(vecstr& storeline1, vecstr& storeline2, std::string id, std::string classname);
 
 #endif

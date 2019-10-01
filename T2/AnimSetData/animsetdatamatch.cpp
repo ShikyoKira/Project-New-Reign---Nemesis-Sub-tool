@@ -15,8 +15,6 @@ bool matchProjectScoring(vector<shared_ptr<AnimSetDataProject>>& ori, vector<sha
 
 	int counter = 0;
 	map<int, map<int, double>> scorelist;
-	vector<shared_ptr<AnimSetDataProject>> newOri;
-	vector<shared_ptr<AnimSetDataProject>> newEdit;
 
 	// match scoring
 	for (unsigned int i = 0; i < ori.size(); ++i)
@@ -33,6 +31,10 @@ bool matchProjectScoring(vector<shared_ptr<AnimSetDataProject>>& ori, vector<sha
 	}
 
 	vector<orderPair> pairing = highestScore(scorelist, ori.size(), edit.size());
+	vector<shared_ptr<AnimSetDataProject>> newOri;
+	vector<shared_ptr<AnimSetDataProject>> newEdit;
+	newOri.reserve(ori.size());
+	newEdit.reserve(edit.size());
 
 	if (Error)
 	{
@@ -111,8 +113,6 @@ bool matchNameScoring(vector<equip>& ori, vector<equip>& edit, string filename)
 {
 	int counter = 0;
 	map<int, map<int, double>> scorelist;
-	vector<equip> newOri;
-	vector<equip> newEdit;
 
 	// match scoring
 	for (unsigned int i = 0; i < ori.size(); ++i)
@@ -143,6 +143,10 @@ bool matchNameScoring(vector<equip>& ori, vector<equip>& edit, string filename)
 	}
 
 	vector<orderPair> pairing = highestScore(scorelist, ori.size(), edit.size());
+	vector<equip> newOri;
+	vector<equip> newEdit;
+	newOri.reserve(ori.size());
+	newEdit.reserve(edit.size());
 
 	if (Error)
 	{
@@ -182,8 +186,6 @@ bool matchNameScoring(vector<typepack>& ori, vector<typepack>& edit, string file
 {
 	int counter = 0;
 	map<int, map<int, double>> scorelist;
-	vector<typepack> newOri;
-	vector<typepack> newEdit;
 
 	// match scoring
 	for (unsigned int i = 0; i < ori.size(); ++i)
@@ -214,6 +216,10 @@ bool matchNameScoring(vector<typepack>& ori, vector<typepack>& edit, string file
 	}
 
 	vector<orderPair> pairing = highestScore(scorelist, ori.size(), edit.size());
+	vector<typepack> newOri;
+	vector<typepack> newEdit;
+	newOri.reserve(ori.size());
+	newEdit.reserve(edit.size());
 
 	if (Error)
 	{
@@ -253,8 +259,6 @@ bool matchNameScoring(vector<animpack>& ori, vector<animpack>& edit, string file
 {
 	int counter = 0;
 	map<int, map<int, double>> scorelist;
-	vector<animpack> newOri;
-	vector<animpack> newEdit;
 
 	// match scoring
 	for (unsigned int i = 0; i < ori.size(); ++i)
@@ -285,6 +289,10 @@ bool matchNameScoring(vector<animpack>& ori, vector<animpack>& edit, string file
 	}
 
 	vector<orderPair> pairing = highestScore(scorelist, ori.size(), edit.size());
+	vector<animpack> newOri;
+	vector<animpack> newEdit;
+	newOri.reserve(ori.size());
+	newEdit.reserve(edit.size());
 
 	if (Error)
 	{
@@ -324,8 +332,6 @@ bool matchAtkScoring(vector<attackdata>& ori, vector<attackdata>& edit, string f
 {
 	int counter = 0;
 	map<int, map<int, double>> scorelist;
-	vector<attackdata> newOri;
-	vector<attackdata> newEdit;
 
 	// match scoring
 	for (unsigned int i = 0; i < ori.size(); ++i)
@@ -356,6 +362,10 @@ bool matchAtkScoring(vector<attackdata>& ori, vector<attackdata>& edit, string f
 	}
 
 	vector<orderPair> pairing = highestScore(scorelist, ori.size(), edit.size());
+	vector<attackdata> newOri;
+	vector<attackdata> newEdit;
+	newOri.reserve(ori.size());
+	newEdit.reserve(edit.size());
 
 	if (Error)
 	{
@@ -395,8 +405,6 @@ bool matchCRC32Scoring(vector<crc32>& ori, vector<crc32>& edit, string filename)
 {
 	int counter = 0;
 	map<int, map<int, double>> scorelist;
-	vector<crc32> newOri;
-	vector<crc32> newEdit;
 
 	// match scoring
 	for (unsigned int i = 0; i < ori.size(); ++i)
@@ -432,6 +440,10 @@ bool matchCRC32Scoring(vector<crc32>& ori, vector<crc32>& edit, string filename)
 	}
 
 	vector<orderPair> pairing = highestScore(scorelist, ori.size(), edit.size());
+	vector<crc32> newOri;
+	vector<crc32> newEdit;
+	newOri.reserve(ori.size());
+	newEdit.reserve(edit.size());
 
 	if (Error)
 	{
