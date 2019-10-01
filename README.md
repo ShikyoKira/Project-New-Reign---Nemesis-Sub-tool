@@ -9,12 +9,12 @@ Sub patching tool
 &nbsp;
 
 # What is this tool?
-- This tool is used to extract the modification done to a hkx behavior file and convert it to Nemesis readable format in 1 simple click.
+This tool is used to extract the modification done to a hkx behavior file and convert it to Nemesis readable format in 1 simple click.
 
 &nbsp;
 
 # How long will it take?
-- Roughly 1 sec to 5mins depending on the amount of changes and size of the behavior
+Roughly 1 sec to 5mins depending on the amount of changes and size of the behavior
 
 &nbsp;
 
