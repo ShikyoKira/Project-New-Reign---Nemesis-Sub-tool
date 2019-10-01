@@ -1,105 +1,18 @@
 #include <iostream>
 #include <fstream>
-#include <string>
 #include <thread>
 #include <memory>
-#include <vector>
 #include <algorithm>
 #include <stdlib.h>
 #include <atomic>
+
 #include <boost\date_time\posix_time\posix_time.hpp>
 #include <boost\filesystem.hpp>
 #include <boost\thread.hpp>
-#include "Global.h"
-#include "hkbbehaviorgraph.h"
-#include "hkrootlevelcontainer.h"
-#include "hkbstatemachine.h"
-#include "hkbstatemachinestateinfo.h"
-#include "hkbstatemachineeventpropertyarray.h"
-#include "hkbmanualselectorgenerator.h"
-#include "hkbvariablebindingset.h"
-#include "hkbblendergenerator.h"
-#include "hkbblendergeneratorchild.h"
-#include "hkbclipgenerator.h"
-#include "hkbcliptriggerarray.h"
-#include "hkbstatemachinetransitioninfoarray.h"
-#include "hkbbehaviorgraphdata.h"
-#include "hkbvariablevalueset.h"
-#include "hkbbehaviorgraphstringdata.h"
-#include "hkbblendingtransitioneffect.h"
-#include "hkbmodifiergenerator.h"
-#include "hkbmodifierlist.h"
-#include "hkbboneweightarray.h"
-#include "hkbexpressioncondition.h"
-#include "hkbstringeventpayload.h"
-#include "bsboneswitchgenerator.h"
-#include "bsboneswitchgeneratorbonedata.h"
-#include "bscyclicblendtransitiongenerator.h"
-#include "bsistatetagginggenerator.h"
-#include "hkbtwistmodifier.h"
-#include "hkbeventdrivenmodifier.h"
-#include "bsisactivemodifier.h"
-#include "bslimbikmodifier.h"
-#include "bsinterpvaluemodifier.h"
-#include "bsgettimestepmodifier.h"
-#include "hkbfootikcontrolsmodifier.h"
-#include "hkbgethandleonbonemodifier.h"
-#include "hkbtransformvectormodifier.h"
-#include "hkbproxymodifier.h"
-#include "hkblookatmodifier.h"
-#include "hkbmirrormodifier.h"
-#include "hkbgetworldfrommodelmodifier.h"
-#include "hkbsensehandlemodifier.h"
-#include "hkbevaluateexpressionmodifier.h"
-#include "hkbexpressiondataarray.h"
-#include "hkbevaluatehandlemodifier.h"
-#include "hkbattachmentmodifier.h"
-#include "hkbattributemodifier.h"
-#include "hkbcombinetransformsmodifier.h"
-#include "hkbcomputerotationfromaxisanglemodifier.h"
-#include "hkbcomputerotationtotargetmodifier.h"
-#include "hkbeventsfromrangemodifier.h"
-#include "hkbeventrangedataarray.h"
-#include "hkbmovecharactermodifier.h"
-#include "hkbextractragdollposemodifier.h"
-#include "bsmodifyoncemodifier.h"
-#include "bseventondeactivatemodifier.h"
-#include "bseventeveryneventsmodifier.h"
-#include "bsragdollcontactlistenermodifier.h"
-#include "hkbpoweredragdollcontrolmodifier.h"
-#include "bseventonfalsetotruemodifier.h"
-#include "bsdirectatmodifier.h"
-#include "bsdisttriggermodifier.h"
-#include "bsdecomposevectormodifier.h"
-#include "bscomputeaddboneanimmodifier.h"
-#include "bstweenermodifier.h"
-#include "bsistatemanagermodifier.h"
-#include "hkbtimermodifier.h"
-#include "hkbrotatecharactermodifier.h"
-#include "hkbdampingmodifier.h"
-#include "hkbdelayedmodifier.h"
-#include "hkbgetupmodifier.h"
-#include "hkbkeyframebonesmodifier.h"
-#include "hkbboneindexarray.h"
-#include "hkbcomputedirectionmodifier.h"
-#include "hkbrigidbodyragdollcontrolsmodifier.h"
-#include "bsspeedsamplermodifier.h"
-#include "hkbdetectclosetogroundmodifier.h"
-#include "bslookatmodifier.h"
-#include "bstimermodifier.h"
-#include "bspassbytargettriggermodifier.h"
-#include "hkbhandikcontrolsmodifier.h"
-#include "hkbbehaviorreferencegenerator.h"
-#include "bssynchronizedclipgenerator.h"
-#include "hkbmirroredskeletoninfo.h"
-#include "hkbcharacterstringdata.h"
-#include "hkbfootikdriverinfo.h"
-#include "hkbcharacterdata.h"
-#include "bsoffsetanimationgenerator.h"
-#include "hkbposematchinggenerator.h"
-#include "hkbstringcondition.h"
-#include "src\FillFunction.h"
+
 #include "src\atomiclock.h"
+#include "src\FillFunction.h"
+#include "src\utilities\stringdatalock.h"
 #include "AnimData\animdatacore.h"
 #include "AnimSetData\animsetdatacore.h"
 
@@ -107,6 +20,15 @@ using namespace std;
 
 bool isBehavior = false;
 bool isAnimData = false;
+bool same = false;
+double readtime = 0;
+string checkOri;
+string checkEdit;
+safeStringMap<string> rootNode;;
+boost::atomic_flag clocklock = BOOST_ATOMIC_FLAG_INIT;
+boost::posix_time::ptime time1;
+bool t_lock = false;
+std::mutex cv_m;
 
 string GetClass(string id, bool compare); // get class
 
@@ -152,6 +74,7 @@ void Clearing(string file, bool edited); // clear and store file in vector
 void ClearIgnore(string file1, string file2); // clear serialized ignore
 void ClassIdentifier(string inputfile, string classname, string id, string preaddress, int functionlayer, bool compare); // idenfity class and record function
 void EditClassIdentifier(string classname, string id); // export edited file
+void hkb_Initialize(string originalfile, bool compare);
 void Initialize(string originalfile); // initialize reading original file procedure
 void InitializeComparing(string editedfile); // initialize comparing procedure
 void GetEdits(); // getting edits from editedfile
@@ -284,12 +207,16 @@ void GoToMultiGenerator(T &ptr, string inputfile, string tempadd, string preaddr
 					ClassIdentifier(inputfile, GetClass(nextclass, compare), nextclass, tempadd, GetFunctionLayer(functionlayer, tempadd, preaddress), compare);
 				}
 
-				if (IsBranchOrigin[nextclass] || !IsForeign[nextclass])
+				if (!IsForeign[nextclass]) ++tempint;
+				else
 				{
-					tempint++;
-				}
+					if (IsBranchOrigin[nextclass])
+					{
+						++tempint;
+					}
 
-				IsBranchOrigin.erase(nextclass);
+					IsBranchOrigin.erase(nextclass);
+				}
 			}
 			else
 			{
@@ -428,7 +355,7 @@ void GoToTransitionBlender(T &ptr, string inputfile, string tempadd, string prea
 
 				if (!IsForeign[parent[transition]])
 				{
-					ClassIdentifier(inputfile, "hkbBlendingTransitionEffect", transition, tempadd + to_string(tempint), GetFunctionLayer(functionlayer, tempadd, preaddress), compare);
+					ClassIdentifier(inputfile, "hkbBlendingTransitionEffect", transition, tempadd + to_string(tempint), GetFunctionLayer(0, tempadd, preaddress), compare);
 				}
 				else
 				{
@@ -595,8 +522,38 @@ void Clearing(string filename, bool edited)
 {
 	boost::posix_time::ptime mtime1 = boost::posix_time::microsec_clock::local_time();
 
-	vector<string> storeline;
+	vecstr storeline;
 	GetFunctionLines(filename, storeline);
+
+	string* checker = &(edited ? checkEdit : checkOri);
+
+	for (auto& line : storeline)
+	{
+		checker->append(line);
+	}
+
+	unique_lock<mutex> lk(cv_m);
+
+	if (t_lock)
+	{
+		t_lock = false;
+		lk.unlock();
+	}
+	else
+	{
+		t_lock = true;
+		lk.unlock();
+
+		while (t_lock);
+	}
+
+	if (checkOri == checkEdit)
+	{
+		same = true;
+		checkOri.clear();
+		checkEdit.clear();
+		return;
+	}
 
 	if (Error)
 	{
@@ -633,7 +590,7 @@ void Clearing(string filename, bool edited)
 			}
 			else
 			{
-				cout << "ERROR: Unrecognized file. Fail to read file(File: " << filename << ")" << endl;
+				cout << "ERROR: Unrecognized file. Failed to read file(File: " << filename << ")" << endl;
 				Error = true;
 				return;
 			}
@@ -655,11 +612,20 @@ void Clearing(string filename, bool edited)
 
 			if (isBehavior)
 			{
-				AddBehavior(filename, storeline, edited);
+				try
+				{
+					AddBehavior(filename, storeline, edited);
+				}
+				catch (const exception& ex)
+				{
+					cout << ex.what() << endl;
+					Error = true;
+					return;
+				}
 			}
 			else
 			{
-				cout << "ERROR: Unrecognized file. Fail to read file(File: " << filename << ")" << endl;
+				cout << "ERROR: Unrecognized file. Failed to read file (File: " << filename << ")" << endl;
 				Error = true;
 				return;
 			}
@@ -667,13 +633,18 @@ void Clearing(string filename, bool edited)
 	}
 	else
 	{
-		cout << "ERROR: Fail to open file while clearing(File: " << filename << ")" << endl;
+		cout << "ERROR: Failed to open file while clearing (File: " << filename << ")" << endl;
 		Error = true;
 		return;
 	}
 
 	boost::posix_time::ptime mtime2 = boost::posix_time::microsec_clock::local_time();
 	boost::posix_time::time_duration mdiff = mtime2 - mtime1;
+
+	while (clocklock.test_and_set(boost::memory_order_acquire));
+	double n_readtime = static_cast<double>(mdiff.total_milliseconds());
+	if (readtime < n_readtime) readtime = n_readtime;
+	clocklock.clear(boost::memory_order_release);
 
 	if (Debug)
 	{
@@ -689,16 +660,18 @@ void ClearIgnore(string file1, string file2)
 
 	t1.join();
 
-	if (FunctionLineOriginal.size() == 0 && AnimDataOriginal.size() == 0 && AnimSetDataOriginal.size() == 0)
+	if (same || Error) return;
+
+	if (originalBehavior.size() == 0 && AnimDataOriginal.size() == 0 && AnimSetDataOriginal.size() == 0)
 	{
-		cout << "ERROR: Fail to read file (File: " + file1 + ")" << endl;
+		cout << "ERROR: Failed to read file (File: " + file1 + ")" << endl;
 		Error = true;
 		return;
 	}
 
-	if (FunctionLineEdited.size() == 0 && AnimDataEdited.size() == 0 && AnimSetDataEdited.size() == 0)
+	if (editedBehavior.size() == 0 && AnimDataEdited.size() == 0 && AnimSetDataEdited.size() == 0)
 	{
-		cout << "ERROR: Fail to read file (File: " + file2 + ")" << endl;
+		cout << "ERROR: Failed to read file (File: " + file2 + ")" << endl;
 		Error = true;
 		return;
 	}
@@ -743,7 +716,7 @@ void ClassIdentifier(string inputfile, string classname, string id, string pread
 				{
 					string bonedata = tempptr->GetBoneData(i);
 
-					ClassIdentifier(inputfile, "BSBoneSwitchGeneratorBoneData", bonedata, tempadd + to_string(tempint), GetFunctionLayer(functionlayer, tempadd, preaddress), compare);
+					ClassIdentifier(inputfile, "BSBoneSwitchGeneratorBoneData", bonedata, tempadd + to_string(tempint), GetFunctionLayer(0, tempadd, preaddress), compare);
 
 					if (compare)
 					{
@@ -1261,6 +1234,20 @@ void ClassIdentifier(string inputfile, string classname, string id, string pread
 			GoToMultiPayload(tempptr, inputfile, tempadd, preaddress, functionlayer, compare);
 		}
 	}
+	/*else if (classname.find("hkbFootIkModifier", 0) != string::npos)
+	{
+		hkbfootikmodifier footik(inputfile, id, preaddress, functionlayer, compare);
+		hkbfootikmodifier* tempptr = &footik;
+
+		if (!tempptr->IsNegate())
+		{
+			string tempadd = tempptr->GetAddress();
+
+			GoToVariableBinding(tempptr, inputfile, tempadd, preaddress, functionlayer, compare);
+
+			GoToMultiPayload(tempptr, inputfile, tempadd, preaddress, functionlayer, compare);
+		}
+	}*/
 	else if (classname.find("hkbGetHandleOnBoneModifier", 0) != string::npos)
 	{
 		hkbgethandleonbonemodifier gethandleonbone(inputfile, id, preaddress, functionlayer, compare);
@@ -2119,6 +2106,10 @@ void EditClassIdentifier(string classname, string id)
 	{
 		hkbFootIkControlsModifierExport(id);
 	}
+	/*else if (classname.find("hkbFootIkModifier", 0) != string::npos)
+	{
+		hkbFootIkModifierExport(id);
+	}*/
 	else if (classname.find("hkbGetHandleOnBoneModifier", 0) != string::npos)
 	{
 		hkbGetHandleOnBoneModifierExport(id);
@@ -2341,24 +2332,9 @@ void EditClassIdentifier(string classname, string id)
 
 void NewClassFunction(string id)
 {
-	vector<string> storeline = FunctionLineNew[id];
-
-	NemesisReaderFormat(storeline, true);
-
-	string modID2;
-	while (atomLock.test_and_set(std::memory_order_acquire));
-
-	if (!newID[id].empty())
-	{
-		modID2 = newID[id];
-	}
-	else
-	{
-		modID2 = "#" + modcode + "$" + to_string(functioncount++);
-		newID[id] = modID2;
-	}
-
-	atomLock.clear(std::memory_order_release);
+	vecstr storeline = FunctionLineNew[id];
+	NemesisReaderFormat(stoi(id.substr(1)), storeline);
+	string modID2 = NodeIDCheck(id);
 	ofstream output("mod/" + modcode + "/" + shortFileName + "/" + modID2 + ".txt"); // changing newID to modCode ID
 
 	if (output.is_open())
@@ -2374,9 +2350,41 @@ void NewClassFunction(string id)
 	}
 	else
 	{
-		cout << "ERROR: Fail to paste edited file (ID: " << id << ", ModCode: " << modcode << ")" << endl;
+		cout << "ERROR: Failed to paste edited file (ID: " << id << ", ModCode: " << modcode << ")" << endl;
 		Error = true;
 		return;
+	}
+}
+
+void hkb_Initialize(string originalfilename, bool compare)
+{
+	string search = rootNode[originalfilename];
+
+	hkRefPtr* curBehavior;
+
+	if (compare)
+	{
+		search = "#9" + search;
+		curBehavior = &editedBehavior;
+	}
+	else
+	{
+		search = "#" + search;
+		curBehavior = &originalBehavior;
+	}
+
+	if (!(*curBehavior)[search])
+	{
+		cout << "ERROR: Missing root node" << endl;
+		Error = true;
+		return;
+	}
+
+	(*curBehavior)[search]->connect(originalfilename, "root=", 0, compare, nullptr);
+
+	if (Debug)
+	{
+		cout << "--------------------------------------------------------------" << endl;
 	}
 }
 
@@ -2400,7 +2408,7 @@ void Initialize(string originalfilename)
 	}
 	else
 	{
-		cout << "ERROR: Initialization Input(File: " << originalfilename << ")" << endl;
+		cout << "ERROR: Initialization Input (File: " << originalfilename << ")" << endl;
 		Error = true;
 		return;
 	}
@@ -2421,9 +2429,10 @@ void ContainerClearing()
 	}
 
 	idcount.clear();
-	referencingIDs.clear();
-	exchangeID.clear();
 	IsExist.clear();
+	elements.clear();
+	exchangeID.clear();
+	referencingIDs.clear();
 
 	if (Debug)
 	{
@@ -2460,7 +2469,7 @@ void InitializeComparing(string editedfilename)
 				search = line.substr(tempint, line.length() - tempint - 2);
 				string tempID = search.substr(1, search.length() - 1);
 
-				if (stoi(tempID) < 10000)
+				if (stoi(tempID) < 89999)
 				{
 					search = "#9" + tempID;
 				}
@@ -2471,7 +2480,7 @@ void InitializeComparing(string editedfilename)
 	}
 	else
 	{
-		cout << "ERROR: Initialization Input(File: " << editedfilename << ")" << endl;
+		cout << "ERROR: Initialization Input (File: " << editedfilename << ")" << endl;
 		Error = true;
 		return;
 	}
@@ -2481,6 +2490,103 @@ void InitializeComparing(string editedfilename)
 	if (Debug == true)
 	{
 		cout << "--------------------------------------------------------------" << endl;
+	}
+}
+
+void GetExistingNode(shared_ptr<hkbobject>& ori, shared_ptr<hkbobject>& edit)
+{
+	try
+	{
+		try
+		{
+			ori->match(edit);
+		}
+		catch (const exception& ex)
+		{
+			cout << ex.what() << endl;
+			Error = true;
+		}
+	}
+	catch (...) {}
+}
+
+void GetNewNode(shared_ptr<hkbobject>& node)
+{
+	try
+	{
+		try
+		{
+			node->newNode();
+		}
+		catch (const exception& ex)
+		{
+			cout << ex.what() << endl;
+			Error = true;
+		}
+	}
+	catch (...) {}
+}
+
+void hkx_GetEdits()
+{
+	if ((Debug) && (!Error))
+	{
+		cout << "Identifying changes made to the behavior" << endl;
+	}
+
+	for (auto it = editedBehavior.begin(); it != editedBehavior.end();)
+	{
+		num_stringData = 0;
+		unsigned int threadcount = 0;
+		boost::thread_group multithreads;
+
+		while (threadcount < std::thread::hardware_concurrency() && it != editedBehavior.end())
+		{
+			if (it->second)
+			{
+				try
+				{
+					auto o_obj = originalBehavior[it->first];
+
+					// newly created node
+					if (!o_obj) multithreads.create_thread(boost::bind(GetNewNode, it->second));
+
+					// existing node
+					else
+					{
+						if (o_obj->ID != it->second->ID)
+							threadcount = threadcount;
+
+						if (o_obj->getClassCode() == "b" || o_obj->getClassCode() == "cc") ++num_stringData;
+
+						multithreads.create_thread(boost::bind(GetExistingNode, o_obj, it->second));
+					}
+
+					++threadcount;
+				}
+				catch (const std::exception& ex)
+				{
+					cout << "EXCEPTION: " << ex.what() << endl;
+					Error = true;
+					throw 5;
+				}
+
+				if (Error)
+				{
+					cout << "ERROR detected. Unable to complete task" << endl;
+					throw 5;
+				}
+			}
+
+			++it;
+		}
+
+		multithreads.join_all();
+	}
+
+	if ((Debug) && (!Error))
+	{
+		cout << "Identification of changes is complete" << endl;
 	}
 }
 
@@ -2597,11 +2703,10 @@ void DebugMode()
 	DebugMode();
 }
 
-boost::posix_time::ptime time1;
-
 void start(bool skip)
 {
 	string directory = "mod\\";
+	num_thread = 99;		// block multithreading
 
 	if (!skip)
 	{
@@ -2609,14 +2714,13 @@ void start(bool skip)
 		shortFileName = targetfilename.substr(0, targetfilename.find_last_of("."));
 		targetfilenameedited = "output2.txt";
 		shortFileNameEdited = targetfilenameedited.substr(0, targetfilenameedited.find_last_of("."));
-
 	}
 
 	thread t([=]() {ClearIgnore(targetfilename, targetfilenameedited); return 1; });
 
 	if (Error)
 	{
-		cout << "ERROR: Fail to complete processing files" << endl;
+		cout << "ERROR: Failed to complete processing files" << endl;
 		t.join();
 		return;
 	}
@@ -2637,7 +2741,7 @@ void start(bool skip)
 
 	if (Error)
 	{
-		cout << "ERROR: Fail to complete processing files" << endl;
+		cout << "ERROR: Failed to complete processing files" << endl;
 		t.join();
 		return;
 	}
@@ -2645,9 +2749,15 @@ void start(bool skip)
 	t.join();
 	time1 = boost::posix_time::microsec_clock::local_time();
 
+	if (same)
+	{
+		cout << "Both files are identical" << endl;
+		return;
+	}
+
 	if (Error)
 	{
-		cout << "ERROR: Fail to complete processing files" << endl;
+		cout << "ERROR: Failed to complete processing files" << endl;
 		return;
 	}
 
@@ -2659,16 +2769,53 @@ void start(bool skip)
 			{
 				if (CreateDirectoryA((directory + modcode + "\\" + shortFileName).c_str(), NULL) || ERROR_ALREADY_EXISTS == GetLastError())
 				{
-					Initialize(targetfilename);
+					try
+					{
+						try
+						{
+							hkb_Initialize(targetfilename, false);
+							// Initialize(targetfilename);
+
+						}
+						catch (const exception& ex)
+						{
+							cout << "AN EXCEPTION OCCURRED: " << ex.what() << endl;
+							Error = true;
+							return;
+						}
+					}
+					catch (...) {}
 
 					if (!Error)
 					{
-						InitializeComparing(targetfilenameedited);
+						ContainerClearing();
+
+						if (Debug && !Error)
+						{
+							cout << endl << endl << endl << endl << "Initializing Phase 2....." << endl << endl << endl;
+							Sleep(1000);
+						}
+						
+						try
+						{
+							try
+							{
+								hkb_Initialize(targetfilenameedited, true);
+								// InitializeComparing(targetfilenameedited);
+							}
+							catch (const exception& ex)
+							{
+								cout << "AN EXCEPTION OCCURRED: " << ex.what() << endl;
+								Error = true;
+								return;
+							}
+						}
+						catch (...) {}
 					}
 				}
 				else
 				{
-					cout << "ERROR: Fail to create folder for target file (folder: " << shortFileName << ")" << endl;
+					cout << "ERROR: Failed to create folder for target file (folder: " << shortFileName << ")" << endl;
 					cout << GetLastError() << endl;
 					Error = true;
 					return;
@@ -2682,7 +2829,7 @@ void start(bool skip)
 				}
 				else
 				{
-					cout << "ERROR: Fail to create folder for target file (folder: " << shortFileName << ")" << endl;
+					cout << "ERROR: Failed to create folder for target file (folder: " << shortFileName << ")" << endl;
 					cout << GetLastError() << endl;
 					Error = true;
 					return;
@@ -2696,7 +2843,7 @@ void start(bool skip)
 				}
 				else
 				{
-					cout << "ERROR: Fail to create folder for target file (folder: " << shortFileName << ")" << endl;
+					cout << "ERROR: Failed to create folder for target file (folder: " << shortFileName << ")" << endl;
 					cout << GetLastError() << endl;
 					Error = true;
 					return;
@@ -2705,7 +2852,7 @@ void start(bool skip)
 		}
 		else
 		{
-			cout << "ERROR: Fail to create directory for target modcode (ModCode: " << modcode << ")" << endl;
+			cout << "ERROR: Failed to create directory for target modcode (ModCode: " << modcode << ")" << endl;
 			cout << GetLastError() << endl;
 			Error = true;
 			return;
@@ -2713,7 +2860,7 @@ void start(bool skip)
 	}
 	else
 	{
-		cout << "ERROR: Fail to create mod folder for Nemesis (Folder: " << directory << ")" << endl;
+		cout << "ERROR: Failed to create mod folder for Nemesis (Folder: " << directory << ")" << endl;
 		cout << GetLastError() << endl;
 		Error = true;
 		return;
@@ -2721,13 +2868,18 @@ void start(bool skip)
 	
 	if (Error)
 	{
-		cout << "ERROR: Fail to complete processing files" << endl;
+		cout << "ERROR: Failed to complete processing files" << endl;
 		return;
 	}
 
 	if (isBehavior)
 	{
-		GetEdits();
+		try
+		{
+			hkx_GetEdits();
+			// GetEdits();
+		}
+		catch (...) {}
 	}
 	
 	if (!Error)
@@ -2746,7 +2898,7 @@ void start(bool skip)
 	}
 	else
 	{
-		cout << "ERROR: Fail to complete processing files" << endl;
+		cout << "ERROR: Failed to complete processing files" << endl;
 	}
 }
 
@@ -2792,18 +2944,10 @@ int formatGroupReplace(string& curline, int point)
 
 void test()
 {
-	time1 = boost::posix_time::microsec_clock::local_time();
-	
-	modcode = "test";
-	shortFileName = "test";
-	GetFunctionLines("file.txt", FunctionLineTemp["#0341"]);
-	GetFunctionLines("file2.txt", FunctionLineNew["#0341"]);
-	hkbStateMachineTransitionInfoArrayExport("#0341");
 }
 
 int main(int argc, char* argv[])
 {
-
 	// test();
 
 	if (argc == 4)
@@ -2832,7 +2976,7 @@ int main(int argc, char* argv[])
 		boost::posix_time::ptime time2 = boost::posix_time::microsec_clock::local_time();
 		boost::posix_time::time_duration diff = time2 - time1;
 
-		double duration = double(diff.total_milliseconds());
+		double duration = static_cast<double>(diff.total_milliseconds()) + readtime;
 
 		cout << "Total processing time: " << duration / 1000 << " seconds" << endl;
 	}
