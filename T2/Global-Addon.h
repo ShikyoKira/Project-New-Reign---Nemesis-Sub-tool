@@ -123,8 +123,6 @@ public:
 
 typedef safeStringMap<std::shared_ptr<hkbobject>> hkRefPtr;
 
-void ReferenceReplacementExt(std::string wrongReference, std::string rightReference); // replacement function for foreign principle
-void ReferenceReplacement(std::string wrongReference, std::string rightReference, bool reserve = false);
 void NemesisReaderFormat(int id, vecstr& output);
 void FolderCreate(std::string curBehaviorPath);
 void GetFunctionLines(std::string filename, vecstr& storeline);

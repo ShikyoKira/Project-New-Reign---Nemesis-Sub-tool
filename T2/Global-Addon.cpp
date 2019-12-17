@@ -1,8 +1,9 @@
-#include <boost\process.hpp>
-#include <boost\process\windows.hpp>
 #include "Global-Addon.h"
 #include "Global.h"
+
 #include "src\atomiclock.h"
+
+#include <QtCore\QProcess>
 
 using namespace std;
 
@@ -12,162 +13,6 @@ extern safeStringMap<string> rootNode;
 atomic_flag locker = ATOMIC_FLAG_INIT;
 
 void dataIDChange(string& line, usize tracker);
-
-void ReferenceReplacement(string wrongReference, string rightReference, bool reserve) // replacement function for foreign principle
-{
-	int wrongReferenceInt = stoi(wrongReference.substr(1, wrongReference.length() - 1));
-	int rightReferenceInt = stoi(rightReference.substr(1, rightReference.length() - 1));
-
-	// stage 1
-	// ref replacement
-	if (rightReference.find(wrongReference, 0) == string::npos)
-	{
-		if (!IsExist[rightReference])
-		{
-			if (reserve)
-			{
-				FunctionLineNew[rightReference].push_back(FunctionLineEdited[rightReference][0]);
-			}
-			else
-			{
-				FunctionLineNew[rightReference].push_back(FunctionLineOriginal[rightReference][0]);
-			}
-
-			if (FunctionLineNew[wrongReference].size() > 0)
-			{
-				for (unsigned int i = 1; i < FunctionLineNew[wrongReference].size(); i++)
-				{
-					FunctionLineNew[rightReference].push_back(FunctionLineNew[wrongReference][i]);
-				}
-			}
-			else
-			{
-				cout << "ERROR: ReferenceReplacement Inputfile (oldReference: " << wrongReference << ", newReference: " << rightReference << ")" << endl;
-				Error = true;
-				return;
-			}
-
-			if (elements[wrongReference] != 0)
-			{
-				elements[rightReference] = elements[wrongReference];
-				elements.erase(elements.find(wrongReference));
-			}
-
-			string wrongRef = wrongReference + "T";
-
-			if (elements[wrongRef] != 0)
-			{
-				elements[rightReference + "T"] = elements[wrongRef];
-				elements.erase(elements.find(wrongRef));
-			}
-
-			wrongRef = wrongReference + "R";
-
-			if (elements[wrongRef] != 0)
-			{
-				elements[rightReference + "R"] = elements[wrongRef];
-				elements.erase(elements.find(wrongRef));
-			}
-
-			IsExist[rightReference] = true;
-			idcount.insert(rightReferenceInt); // add rightReference ID
-		}
-		
-		FunctionLineNew.erase(FunctionLineNew.find(wrongReference));
-		IsExist.erase(IsExist.find(wrongReference));
-		idcount.erase(wrongReferenceInt); // remove wrongReference ID
-	}
-
-	// stage 2
-	ReferenceReplacementExt(wrongReference, rightReference);
-}
-
-void ReferenceReplacementExt(string wrongReference, string rightReference)
-{
-	while (locker.test_and_set(memory_order_acquire));
-	int tempint = referencingIDs[wrongReference].size();
-	
-	if (tempint > 0)
-	{
-		for (int i = 0; i < tempint; i++) // referencingIDs update
-		{
-			string tempID = referencingIDs[wrongReference][i];
-
-			if (!exchangeID[tempID].empty())
-			{
-				tempID = exchangeID[tempID];
-			}
-
-			vecstr storeline;
-			storeline.reserve(FunctionLineNew[tempID].size());
-			string line;
-
-			if (FunctionLineNew[tempID].size() > 0)
-			{
-				for (unsigned int k = 0; k < FunctionLineNew[tempID].size(); ++k)
-				{
-					line = FunctionLineNew[tempID][k];
-
-					if (line[line.size() - 1] == '\n')
-					{
-						line.pop_back();
-					}
-
-					if (line.find(wrongReference, 0) != string::npos)
-					{
-						usize size = count(line.begin(), line.end(), '#');
-
-						for (unsigned int j = 0; j < size; ++j)
-						{
-							line.replace(line.find(wrongReference), wrongReference.length(), rightReference);
-
-							if (line.find(wrongReference, 0) == string::npos)
-							{
-								break;
-							}
-						}
-					}
-
-					storeline.push_back(line);
-				}
-			}
-			else
-			{
-				cout << "ERROR: ReferenceReplacementExt Inputfile (oldReference: " << wrongReference << ", newReference: " << rightReference << ", ID: " << tempID << ")" << endl;
-				Error = true;
-				locker.clear(memory_order_release);
-				return;
-			}
-
-			FunctionLineNew[tempID] = storeline;
-			referencingIDs[rightReference].push_back(tempID);
-		}
-
-		referencingIDs.erase(referencingIDs.find(wrongReference));
-	}
-
-	unordered_map<string, string> tempparents;
-
-	for (auto& each : parent)
-	{
-		if (each.second == wrongReference)
-		{
-			each.second = rightReference;
-		}
-		else if (each.first == wrongReference && each.second.length() > 0)
-		{
-			tempparents[wrongReference] = each.second;
-		}
-	}
-
-	for (auto& each : tempparents)
-	{
-		parent.erase(parent.find(each.first));
-		parent[rightReference] = each.second;
-	}
-
-	locker.clear(memory_order_release);
-}
 
 void NemesisReaderFormat(int id, vecstr& output)
 {
@@ -405,23 +250,17 @@ void GetFunctionLines(string filename, vecstr& storeline)
 
 			try
 			{
-				boost::process::pipe p;
-				boost::process::ipstream is;
-
-				if (boost::process::system(cmd, boost::process::windows::hide, boost::process::std_in < p, boost::process::std_out > is) != 0)
+				if (QProcess::execute(QString::fromStdString(cmd)) != 0)
 				{
 					cout << "ERROR: Unable to convert file. (Command: " << cmd << ")" << endl;
 					Error = true;
 					return;
 				}
-				else
+				else if (!boost::filesystem::exists(curfilename + ".hkx"))
 				{
-					if (!boost::filesystem::exists(curfilename + ".hkx"))
-					{
-						cout << "ERROR: Unable to convert file. (Command: " << cmd << ")" << endl;
-						Error = true;
-						return;
-					}
+					cout << "ERROR: Unable to convert file. (Command: " << cmd << ")" << endl;
+					Error = true;
+					return;
 				}
 			}
 			catch (...)
@@ -454,6 +293,36 @@ void GetFunctionLines(string filename, vecstr& storeline)
 	else
 	{
 		curfilename = filename;
+		usize counter = 0;
+		char charline[2000];
+		FILE* file;
+		fopen_s(&file, filename.c_str(), "r");
+
+		if (file)
+		{
+			while (fgets(charline, 2000, file))
+			{
+				if (string(charline).find("<?xml version=\"1.0\" encoding=\"ascii\"?>") != string::npos)
+				{
+					hkx = true;
+					break;
+				}
+
+				if (counter++ > 20)
+				{
+					break;
+				}
+			}
+
+			fclose(file);
+		}
+		else
+		{
+			cout << "ERROR: Unable to open file (File: " << filename << ")" << endl;
+			Error = true;
+			return;
+		}
+
 	}
 
 	string line;
@@ -541,22 +410,7 @@ string NodeIDCheck(string ID)
 
 void FolderCreate(string curBehaviorPath)
 {
-	size_t pos = curBehaviorPath.find("/") + 1;
-	string curFolder = curBehaviorPath.substr(0, pos);
-	__int64 counter = sameWordCount(curBehaviorPath, "/");
-
-	for (int i = 0; i < counter; ++i)
-	{
-		if (CreateDirectory((curFolder).c_str(), NULL) || ERROR_ALREADY_EXISTS == GetLastError())
-		{
-			pos = curBehaviorPath.find("/", pos) + 1;
-
-			if (pos != 0)
-			{
-				curFolder = curBehaviorPath.substr(0, pos);
-			}
-		}
-	}
+	boost::filesystem::create_directories(curBehaviorPath);
 }
 
 bool isOnlyNumber(string line)

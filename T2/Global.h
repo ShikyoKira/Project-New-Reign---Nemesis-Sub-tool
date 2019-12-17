@@ -2,10 +2,12 @@
 #define GLOBAL_H_
 
 #include <set>
-#include <windows.h>
 #include <condition_variable>
-#include <boost\regex.hpp>
+
 #include <sys/stat.h>
+
+#include <boost\regex.hpp>
+
 #include "Global-Addon.h"
 #include "functionwriter.h"
 
@@ -54,14 +56,12 @@ extern int functioncount;
 extern std::vector<unsigned int> eventCount;
 extern std::vector<unsigned int> varCount;
 
-extern inline int sameWordCount(std::string line, std::string word);
-extern inline bool IsFileExist(const std::string& name); // check if file exist
+int sameWordCount(std::string line, std::string word);
+bool IsFileExist(const std::string& name); // check if file exist
 bool IsOldFunction(std::string filename, std::shared_ptr<hkbobject> id, std::string address); // initiate check if it is old or new node
-bool IsOldFunction(std::string filename, std::string id, std::string address); // initiate check if it is old or new node
-extern inline std::string ExePath(); // get exe path
-std::string CrossReferencing(std::string id, std::string address, int functionlayer, bool compare, bool special = false); // whether it is foreign principle or usual cross referencing
+bool createDirectories(std::string directoryPath);
+std::string ExePath(); // get exe path
 std::string CrossReferencing(std::shared_ptr<hkbobject> hkb_object, std::string address, int functionlayer, bool compare, bool special = false); // whether it is foreign principle or usual cross referencing
-std::string conditionOldFunction(std::string id, std::string address, int functionlayer, std::string addline, bool isString); // expressCondition specific check whether it is new or old node
 std::string conditionOldFunction(std::shared_ptr<hkbobject> hkb_object, std::string address, int functionlayer, std::string addline, bool isString); // expressCondition specific check whether it is new or old node
 int FileLineCount(std::string filename); // get the total line count in a file
 void RecordID(std::string id, std::string address, bool compare = false); // record id for IsExist node
