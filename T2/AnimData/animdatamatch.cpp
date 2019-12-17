@@ -376,12 +376,12 @@ bool matchDetailedScoring(vecstr& ori, vecstr& edit, string filename)
 			{
 				double oriindex = stod(boost::regex_replace(string(ori[i]), boost::regex("[^0-9]*([0-9]+(\\.([0-9]+)?)?).*"), string("\\1"))) + 1;
 				double newindex = stod(boost::regex_replace(string(edit[j]), boost::regex("[^0-9]*([0-9]+(\\.([0-9]+)?)?).*"), string("\\1"))) + 1;
-				double max = max(oriindex, newindex);
+				double max = oriindex > newindex ? oriindex : newindex;
 				double difference = max - min(oriindex, newindex);
 				difference = (max - difference) / max;
 				difference = difference * 100;
 				scorelist[i][j] += difference;
-				max = max(i, j);
+				max = i > j ? i : j;
 				difference = max - min(i, j);
 				difference = (max - difference) / max;
 				difference = difference * 100;

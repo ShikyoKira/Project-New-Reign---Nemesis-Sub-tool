@@ -7,7 +7,7 @@ using namespace std;
 
 void ProxyProjectSet(int counter, string folder);
 void ProjectSetProcessing(int i, string folder);
-void AnimSetDataInput(datapack& data, vecstr& output, vecstr& storeline = *new vecstr);
+void AnimSetDataInput(datapack& data, vecstr& output, vecstr& storeline);
 
 void animSetDataProcess()
 {
@@ -173,31 +173,31 @@ void ProxyProjectSet(int counter, string folder)
 			projectname.replace(projectname.find("/"), 1, "~");
 		}
 
-		if ((CreateDirectory((folder + projectname).c_str(), NULL) || ERROR_ALREADY_EXISTS == GetLastError()))
+		if (createDirectories(folder + projectname))
 		{
+			ofstream outputfile(folder + projectname + "\\" + "$header$.txt");
+
+			if (outputfile.is_open())
 			{
-				ofstream outputfile(folder + projectname + "\\" + "$header$.txt");
+				FunctionWriter fwriter(&outputfile);
 
-				if (outputfile.is_open())
+				fwriter << to_string(AnimSetDataEdited[i]->datalist.size()) << "\n";
+
+				for (auto& data : AnimSetDataEdited[i]->datalist)
 				{
-					FunctionWriter fwriter(&outputfile);
-
-					fwriter << to_string(AnimSetDataEdited[i]->datalist.size()) << "\n";
-
-					for (auto& data : AnimSetDataEdited[i]->datalist)
-					{
-						fwriter << data.first << "\n";
-					}
-
-					outputfile.close();
+					fwriter << data.first << "\n";
 				}
-				else
-				{
-					cout << "ERROR: Failed to output animationsetdata header file (Project: " << AnimSetDataEdited[i]->project << ", Header: $header$)" << endl;
-					Error = true;
-					return;
-				}
+
+				outputfile.close();
 			}
+			else
+			{
+				cout << "ERROR: Failed to output animationsetdata header file (Project: " << AnimSetDataEdited[i]->project << ", Header: $header$)" << endl;
+				Error = true;
+				return;
+			}
+
+			outputfile.close();
 
 			for (auto& data : AnimSetDataEdited[i]->datalist)
 			{
@@ -289,7 +289,7 @@ void ProjectSetProcessing(int i, string folder)
 	bool IsEdited = false;
 	bool open = false;
 
-	if ((CreateDirectory((folder + projectname).c_str(), NULL) || ERROR_ALREADY_EXISTS == GetLastError()))
+	if (createDirectories(folder + projectname))
 	{
 		output.push_back(to_string(AnimSetDataOriginal[i]->datalist.size()));
 
@@ -375,8 +375,6 @@ void ProjectSetProcessing(int i, string folder)
 			{
 				FunctionWriter fwriter(&outputfile);
 
-				fwriter << to_string(AnimSetDataEdited[i]->datalist.size()) << "\n";
-
 				for (auto& curline : output)
 				{
 					fwriter << curline << "\n";
@@ -399,15 +397,15 @@ void ProjectSetProcessing(int i, string folder)
 		}
 
 		output.clear();
+		storeline.clear();
 		
 		for (auto& data : AnimSetDataOriginal[i]->datalist)
 		{
 			if (data.second.proxy)		// new data
 			{
-				output.push_back("<!-- MOD_CODE ~" + modcode + "~ OPEN -->");
 				IsEdited = true;
-				AnimSetDataInput(AnimSetDataEdited[i]->datalist[data.first], output);
-				output.push_back("<!-- CLOSE -->");
+				AnimSetDataInput(AnimSetDataEdited[i]->datalist[data.first], storeline, output);
+				storeline.clear();
 			}
 			else if (AnimSetDataEdited[i]->datalist[data.first].proxy)		// deleted data
 			{
@@ -1146,7 +1144,7 @@ void ProjectSetProcessing(int i, string folder)
 
 			if (IsEdited)
 			{
-				ofstream outputfile(folder + projectname + "\\" + data.first);
+				ofstream outputfile(folder + projectname + "\\" + (data.second.proxy ? modcode + "$" : "") + data.first);
 
 				if (outputfile.is_open())
 				{

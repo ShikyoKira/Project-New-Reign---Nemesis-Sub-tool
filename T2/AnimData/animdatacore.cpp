@@ -184,34 +184,34 @@ void ProxyProject(int counter, string folder)
 
 		string projectname = AnimDataEdited[i]->name.substr(0, AnimDataEdited[i]->name.find_last_of("."));
 
-		if ((CreateDirectory((folder + projectname).c_str(), NULL) || ERROR_ALREADY_EXISTS == GetLastError()))
+		if (createDirectories(folder + projectname))
 		{
+			ofstream outputfile(folder + projectname + "\\" + "$header$.txt");
+
+			if (outputfile.is_open())
 			{
-				ofstream outputfile(folder + projectname + "\\" + "$header$.txt");
+				FunctionWriter fwriter(&outputfile);
 
-				if (outputfile.is_open())
+				fwriter << to_string(AnimDataEdited[i]->GetAnimTotalLine()) << "\n";
+				fwriter << AnimDataEdited[i]->unknown1 << "\n";
+				fwriter << to_string(AnimDataEdited[i]->behaviorlist.size()) << "\n";
+
+				for (unsigned int j = 0; j < AnimDataEdited[i]->behaviorlist.size(); ++j)
 				{
-					FunctionWriter fwriter(&outputfile);
-
-					fwriter << to_string(AnimDataEdited[i]->GetAnimTotalLine()) << "\n";
-					fwriter << AnimDataEdited[i]->unknown1 << "\n";
-					fwriter << to_string(AnimDataEdited[i]->behaviorlist.size()) << "\n";
-
-					for (unsigned int j = 0; j < AnimDataEdited[i]->behaviorlist.size(); ++j)
-					{
-						fwriter << AnimDataEdited[i]->behaviorlist[j] << "\n";
-					}
-
-					fwriter << AnimDataEdited[i]->unknown2 << "\n";
-					outputfile.close();
+					fwriter << AnimDataEdited[i]->behaviorlist[j] << "\n";
 				}
-				else
-				{
-					cout << "ERROR: Failed to output animationdata header file (Project: " << AnimDataEdited[i]->name << ", Header: $header$)" << endl;
-					Error = true;
-					return;
-				}
+
+				fwriter << AnimDataEdited[i]->unknown2 << "\n";
+				outputfile.close();
 			}
+			else
+			{
+				cout << "ERROR: Failed to output animationdata header file (Project: " << AnimDataEdited[i]->name << ", Header: $header$)" << endl;
+				Error = true;
+				return;
+			}
+
+			outputfile.close();
 
 			if (AnimDataEdited[i]->unknown2 != "0")
 			{
@@ -309,7 +309,7 @@ void ProjectProcessing(int i, string folder)
 	bool IsEdited = false;
 	bool open = false;
 
-	if ((CreateDirectory((folder + projectname).c_str(), NULL) || ERROR_ALREADY_EXISTS == GetLastError()))
+	if (createDirectories(folder + projectname))
 	{
 		{
 			if (AnimDataOriginal[i]->unknown1 != AnimDataEdited[i]->unknown1)
@@ -884,8 +884,6 @@ void ProjectProcessing(int i, string folder)
 								output.push_back(oriEvents[k]);
 							}
 						}
-
-						output.push_back("");
 					}
 
 					if (open)
