@@ -71,10 +71,7 @@ string VariableId::getID()
 
 	string variableNodeId = graphroot->data->stringData->ID;
 
-	if (IsForeign.find(variableNodeId) == IsForeign.end())
-	{
-		return to_string(id);
-	}
+	if (IsForeign.find(variableNodeId) != IsForeign.end()) return to_string(id);
 
 	if (variablePackNode.find(variableNodeId) == variablePackNode.end())
 	{
@@ -84,6 +81,8 @@ string VariableId::getID()
 	}
 
 	string variableName = getName();
+
+	if (variableName.length() == 0) return "-1";
 
 	return variablePackNode[variableNodeId]->hasVariableName(variableName) ? to_string(variablePackNode[variableNodeId]->getID(variableName)) : ("$variableID[" + variableName + "]$");
 }
@@ -290,40 +289,50 @@ void variablefunc::fillScore(variableinfopack& ori, variableinfopack& edit, usiz
 
 				if (i == j)
 				{
-					curscore += 5;
+					curscore += 10;
 				}
 				else
 				{
 					int oriindex = i + 1;
 					int newindex = j + 1;
 					double difference = max(oriindex, newindex) - min(oriindex, newindex);
-					difference = ((ori.size() - difference) / ori.size()) * 5;
+					difference = ((ori.size() - difference) / ori.size()) * 10;
 					curscore += difference;
 				}
 
-				if (ori[i].proxy == edit[j].proxy)
+				if (j < ori.size())
 				{
-					++curscore;
-				}
+					if (ori[i].proxy == edit[j].proxy)
+					{
+						++curscore;
+					}
 
-				if (ori[i].role.role == edit[j].role.role)
-				{
-					++curscore;
-				}
+					if (ori[i].role.role == edit[j].role.role)
+					{
+						++curscore;
+					}
 
-				if (ori[i].role.flags == edit[j].role.flags)
-				{
-					++curscore;
-				}
+					if (ori[i].role.flags == edit[j].role.flags)
+					{
+						++curscore;
+					}
 
-				if (ori[i].type == edit[j].type)
-				{
-					++curscore;
-				}
+					if (ori[i].type == edit[j].type)
+					{
+						++curscore;
+					}
 
-				if (ori[i].value == edit[j].value)
-				{
-					curscore += 7;
+					if (ori[i].value == edit[j].value)
+					{
+						if (ori[i].value <= 10)
+						{
+							++curscore;
+						}
+						else
+						{
+							curscore += 5;
+						}
+					}
 				}
 
 				if (ori[i].name == edit[j].name)
@@ -338,7 +347,7 @@ void variablefunc::fillScore(variableinfopack& ori, variableinfopack& edit, usiz
 							int oriindex = i + 1;
 							int newindex = j + 1;
 							double difference = max(oriindex, newindex) - min(oriindex, newindex);
-							difference = ((ori.size() - difference) / ori.size()) * 5;
+							difference = ((ori.size() - difference) / ori.size()) * 10;
 							scorelist[i][j] = difference;
 						}
 
@@ -357,69 +366,105 @@ void variablefunc::fillScore(variableinfopack& ori, variableinfopack& edit, usiz
 		// match scoring
 		for (unsigned int i = start; i < cap; ++i)
 		{
+			if (i < edit.size())
+			{
+				if (ori[i].proxy == edit[i].proxy && ori[i].role.role == edit[i].role.role && ori[i].role.flags == edit[i].role.flags && ori[i].type == edit[i].type &&
+					ori[i].value == edit[i].value && ori[i].name == edit[i].name)
+				{
+					scorelist[i][i] = 32;
+
+					if (i + 1 == ori.size())
+					{
+						unsigned int j = 0;
+
+						while (++j < edit.size())
+						{
+							int oriindex = i + 1;
+							int newindex = j + 1;
+							double difference = max(oriindex, newindex) - min(oriindex, newindex);
+							difference = ((ori.size() - difference) / ori.size()) * 10;
+							scorelist[i][j] = difference;
+						}
+
+						break;
+					}
+
+					continue;
+				}
+			}
+
 			for (unsigned int j = 0; j < edit.size(); ++j)
 			{
 				double curscore = 0;
 
 				if (i == j)
 				{
-					curscore += 5;
+					curscore += 10;
 				}
 				else
 				{
 					int oriindex = i + 1;
 					int newindex = j + 1;
 					double difference = max(oriindex, newindex) - min(oriindex, newindex);
-					difference = ((ori.size() - difference) / ori.size()) * 5;
+					difference = ((ori.size() - difference) / ori.size()) * 10;
 					curscore += difference;
 				}
 
-				if (ori[i].proxy == edit[j].proxy)
+				if (j < ori.size())
 				{
-					++curscore;
-				}
+					if (ori[i].proxy == edit[j].proxy)
+					{
+						++curscore;
+					}
 
-				if (ori[i].role.role == edit[j].role.role)
-				{
-					++curscore;
-				}
+					if (ori[i].role.role == edit[j].role.role)
+					{
+						++curscore;
+					}
 
-				if (ori[i].role.flags == edit[j].role.flags)
-				{
-					++curscore;
-				}
+					if (ori[i].role.flags == edit[j].role.flags)
+					{
+						++curscore;
+					}
 
-				if (ori[i].type == edit[j].type)
-				{
-					++curscore;
-				}
+					if (ori[i].type == edit[j].type)
+					{
+						++curscore;
+					}
 
-				if (ori[i].value == edit[j].value)
-				{
-					curscore += 7;
+					if (ori[i].value == edit[j].value)
+					{
+						if (ori[i].value <= 10)
+						{
+							++curscore;
+						}
+						else
+						{
+							curscore += 5;
+						}
+					}
 				}
 
 				if (ori[i].name == edit[j].name)
 				{
 					curscore += 13;
 					scorelist[i][j] = curscore;
-
-					if (i + 1 == ori.size())
-					{
-						while (++j < edit.size())
-						{
-							int oriindex = i + 1;
-							int newindex = j + 1;
-							double difference = max(oriindex, newindex) - min(oriindex, newindex);
-							difference = ((ori.size() - difference) / ori.size()) * 5;
-							scorelist[i][j] = difference;
-						}
-					}
-
 					break;
 				}
 
 				scorelist[i][j] = curscore;
+
+				if (i + 1 == ori.size())
+				{
+					while (++j < edit.size())
+					{
+						int oriindex = i + 1;
+						int newindex = j + 1;
+						double difference = max(oriindex, newindex) - min(oriindex, newindex);
+						difference = ((ori.size() - difference) / ori.size()) * 10;
+						scorelist[i][j] = difference;
+					}
+				}
 			}
 		}
 	}

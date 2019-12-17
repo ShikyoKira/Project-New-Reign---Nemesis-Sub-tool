@@ -11,7 +11,7 @@ struct EventId
 {
 	std::string nodeID;
 	int id;
-	hkbbehaviorgraph* graphroot;
+	hkbbehaviorgraph* graphroot = nullptr;
 
 	EventId() : id(-1) {}
 	EventId(int n_id);

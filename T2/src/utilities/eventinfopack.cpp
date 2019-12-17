@@ -73,10 +73,7 @@ string EventId::getID()
 
 	string eventNodeId = graphroot->data->stringData->ID;
 
-	if (IsForeign.find(eventNodeId) == IsForeign.end())
-	{
-		return to_string(id);
-	}
+	if (IsForeign.find(eventNodeId) != IsForeign.end()) return to_string(id);
 
 	if (eventPackNode.find(eventNodeId) == eventPackNode.end())
 	{
@@ -86,6 +83,8 @@ string EventId::getID()
 	}
 
 	string eventName = getName();
+
+	if (eventName.length() == 0) return "-1";
 
 	return eventPackNode[eventNodeId]->hasEventName(eventName) ? to_string(eventPackNode[eventNodeId]->getID(eventName)) : ("$eventID[" + eventName + "]$");
 }
@@ -292,14 +291,14 @@ void eventfunc::fillScore(eventinfopack& ori, eventinfopack& edit, usize start, 
 
 				if (i == j)
 				{
-					curscore += 5;
+					curscore += 10;
 				}
 				else
 				{
 					int oriindex = i + 1;
 					int newindex = j + 1;
 					double difference = max(oriindex, newindex) - min(oriindex, newindex);
-					difference = ((ori.size() - difference) / ori.size()) * 5;
+					difference = ((ori.size() - difference) / ori.size()) * 10;
 					curscore += difference;
 				}
 
@@ -315,7 +314,7 @@ void eventfunc::fillScore(eventinfopack& ori, eventinfopack& edit, usize start, 
 
 				if (ori[i].name == edit[j].name)
 				{
-					curscore += 10;
+					curscore += 13;
 					scorelist[i][j] = curscore;
 
 					if (i + 1 == ori.size())
@@ -325,7 +324,7 @@ void eventfunc::fillScore(eventinfopack& ori, eventinfopack& edit, usize start, 
 							int oriindex = i + 1;
 							int newindex = j + 1;
 							double difference = max(oriindex, newindex) - min(oriindex, newindex);
-							difference = ((ori.size() - difference) / ori.size()) * 5;
+							difference = ((ori.size() - difference) / ori.size()) * 10;
 							scorelist[i][j] = difference;
 						}
 
@@ -344,20 +343,47 @@ void eventfunc::fillScore(eventinfopack& ori, eventinfopack& edit, usize start, 
 		// match scoring
 		for (unsigned int i = 0; i < ori.size(); ++i)
 		{
+			if (i < edit.size())
+			{
+				if (ori[i].proxy == edit[i].proxy && ori[i].flags.FLAG_SILENT == edit[i].flags.FLAG_SILENT &&
+					ori[i].flags.FLAG_SYNC_POINT == edit[i].flags.FLAG_SYNC_POINT && ori[i].name == edit[i].name)
+				{
+					scorelist[i][i] = 25;
+
+					if (i + 1 == ori.size())
+					{
+						unsigned int j = 0;
+
+						while (++j < edit.size())
+						{
+							int oriindex = i + 1;
+							int newindex = j + 1;
+							double difference = max(oriindex, newindex) - min(oriindex, newindex);
+							difference = ((ori.size() - difference) / ori.size()) * 10;
+							scorelist[i][j] = difference;
+						}
+
+						break;
+					}
+
+					continue;
+				}
+			}
+
 			for (unsigned int j = 0; j < edit.size(); ++j)
 			{
 				double curscore = 0;
 
 				if (i == j)
 				{
-					curscore += 5;
+					curscore += 10;
 				}
 				else
 				{
 					int oriindex = i + 1;
 					int newindex = j + 1;
 					double difference = max(oriindex, newindex) - min(oriindex, newindex);
-					difference = ((ori.size() - difference) / ori.size()) * 5;
+					difference = ((ori.size() - difference) / ori.size()) * 10;
 					curscore += difference;
 				}
 
@@ -373,25 +399,24 @@ void eventfunc::fillScore(eventinfopack& ori, eventinfopack& edit, usize start, 
 
 				if (ori[i].name == edit[j].name)
 				{
-					curscore += 10;
+					curscore += 13;
 					scorelist[i][j] = curscore;
-
-					if (i + 1 == ori.size())
-					{
-						while (++j < edit.size())
-						{
-							int oriindex = i + 1;
-							int newindex = j + 1;
-							double difference = max(oriindex, newindex) - min(oriindex, newindex);
-							difference = ((ori.size() - difference) / ori.size()) * 5;
-							scorelist[i][j] = difference;
-						}
-					}
-
 					break;
 				}
 
 				scorelist[i][j] = curscore;
+
+				if (i + 1 == ori.size())
+				{
+					while (++j < edit.size())
+					{
+						int oriindex = i + 1;
+						int newindex = j + 1;
+						double difference = max(oriindex, newindex) - min(oriindex, newindex);
+						difference = ((ori.size() - difference) / ori.size()) * 10;
+						scorelist[i][j] = difference;
+					}
+				}
 			}
 		}
 	}
