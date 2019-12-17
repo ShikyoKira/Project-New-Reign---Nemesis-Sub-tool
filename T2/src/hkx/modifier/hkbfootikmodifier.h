@@ -10,22 +10,11 @@ struct hkbfootikmodifier : public hkbmodifier, std::enable_shared_from_this<hkbf
 {
 public:
 	hkbfootikmodifier() {}
-	hkbfootikmodifier(std::string filepath, std::string id, std::string preaddress, int functionlayer, bool compare);
-
-	void nonCompare(std::string filepath, std::string id);
-	void Compare(std::string filepath, std::string id);
-	void Dummy(std::string id);
-
-	std::string GetVariableBindingSet();
-	bool IsBindingNull();
 
 	std::string GetAddress();
-	bool IsNegate();
 
 	std::string tempaddress;
-	std::string variablebindingset;
-	bool IsNegated = false;
-	
+
 	// variableBindingSet from hkbmodifier
 	// userData from hkbmodifier
 	// name from hkbmodifier
@@ -95,8 +84,6 @@ private:
 	void matchScoring(std::vector<hkbfootikmodifier::leg>& ori, std::vector<hkbfootikmodifier::leg>& edit, std::string id);
 	std::string getMode();
 };
-
-void hkbFootIkModifierExport(std::string id);
 
 extern safeStringUMap<std::shared_ptr<hkbfootikmodifier>> hkbfootikmodifierList;
 extern safeStringUMap<std::shared_ptr<hkbfootikmodifier>> hkbfootikmodifierList_E;

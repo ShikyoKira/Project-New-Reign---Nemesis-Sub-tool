@@ -13,26 +13,10 @@ struct bslookatmodifier : public hkbmodifier, std::enable_shared_from_this<bsloo
 {
 public:
 	bslookatmodifier() {}
-	bslookatmodifier(std::string filepath, std::string id, std::string preaddress, int functionlayer, bool compare);
-
-	void nonCompare(std::string filepath, std::string id);
-	void Compare(std::string filepath, std::string id);
-	void Dummy(std::string id);
-
-	std::string GetPayload();
-	bool IsPayloadNull();
-
-	std::string GetVariableBindingSet();
-	bool IsBindingNull();
 
 	std::string GetAddress();
-	bool IsNegate();
 
 	std::string tempaddress;
-	std::string payload;
-	std::string variablebindingset;
-	bool IsNegated = false;
-
 
 	struct bone
 	{
@@ -85,8 +69,6 @@ private:
 	void elementNew(vecstr& output, bone& bone, usize& base);
 	void threadedNextNode(std::shared_ptr<hkbobject> hkb_obj, std::string filepath, std::string address, int functionlayer, hkbbehaviorgraph* graphroot);
 };
-
-void BSLookAtModifierExport(std::string id);
 
 extern safeStringUMap<std::shared_ptr<bslookatmodifier>> bslookatmodifierList;
 extern safeStringUMap<std::shared_ptr<bslookatmodifier>> bslookatmodifierList_E;

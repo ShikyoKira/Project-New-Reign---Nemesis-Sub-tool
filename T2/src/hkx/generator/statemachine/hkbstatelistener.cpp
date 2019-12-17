@@ -4,7 +4,7 @@ using namespace std;
 
 namespace statelistener
 {
-	string key = "cm";
+	const string key = "cm";
 }
 
 safeStringUMap<shared_ptr<hkbstatelistener>> hkbstatelistenerList;

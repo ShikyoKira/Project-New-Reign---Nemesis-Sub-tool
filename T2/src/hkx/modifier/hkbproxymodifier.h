@@ -12,22 +12,10 @@ struct hkbproxymodifier : public hkbmodifier, std::enable_shared_from_this<hkbpr
 {
 public:
 	hkbproxymodifier() {}
-	hkbproxymodifier(std::string filepath, std::string id, std::string preaddress, int functionlayer, bool compare);
-
-	void nonCompare(std::string filepath, std::string id);
-	void Compare(std::string filepath, std::string id);
-	void Dummy(std::string id);
-
-	std::string GetVariableBindingSet();
-	bool IsBindingNull();
 
 	std::string GetAddress();
-	bool IsNegate();
 
 	std::string tempaddress;
-	std::string variablebindingset;
-	bool IsNegated = false;
-
 
 	enum phantomtype
 	{
@@ -100,8 +88,6 @@ private:
 	std::string getPhantomType();
 	std::string getLinearVelocityMode();
 };
-
-void hkbProxyModifierExport(std::string id);
 
 extern safeStringUMap<std::shared_ptr<hkbproxymodifier>> hkbproxymodifierList;
 extern safeStringUMap<std::shared_ptr<hkbproxymodifier>> hkbproxymodifierList_E;

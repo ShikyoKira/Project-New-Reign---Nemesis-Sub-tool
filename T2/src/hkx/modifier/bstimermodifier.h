@@ -12,27 +12,11 @@ struct bstimermodifier : public hkbmodifier, std::enable_shared_from_this<bstime
 {
 public:
 	bstimermodifier() {}
-	bstimermodifier(std::string filepath, std::string id, std::string preaddress, int functionlayer, bool compare);
-
-	void nonCompare(std::string filepath, std::string id);
-	void Compare(std::string filepath, std::string id);
-	void Dummy(std::string id);
-
-	std::string GetPayload();
-	bool IsPayloadNull();
-
-	std::string GetVariableBindingSet();
-	bool IsBindingNull();
 
 	std::string GetAddress();
-	bool IsNegate();
 
 	std::string tempaddress;
-	std::string payload;
-	std::string variablebindingset;
-	bool IsNegated = false;
 
-	
 	// variableBindingSet from hkbmodifier
 	// userData from hkbmodifier
 	// name from hkbmodifier

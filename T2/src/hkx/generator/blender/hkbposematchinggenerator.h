@@ -11,30 +11,10 @@ struct hkbposematchinggenerator : public blenderBase, std::enable_shared_from_th
 {
 public:
 	hkbposematchinggenerator() {}
-	hkbposematchinggenerator(std::string filepath, std::string id, std::string preaddress, int functionlayer, bool compare);
-
-	void nonCompare(std::string filepath, std::string id);
-	void Compare(std::string filepath, std::string id);
-	void Dummy(std::string id);
-
-	std::string NextGenerator(int child);
-	int GetChildren();
-
-	std::string GetVariableBindingSet();
-	bool IsBindingNull();
-
-	std::string GetClass(std::string id, std::string inputfile);
 
 	std::string GetAddress();
-	bool IsNegate();
 
 	std::string tempaddress;
-	std::string s_name;
-	vecstr generator;
-	std::string variablebindingset;
-	int i_children;
-	bool IsNegated = false;
-
 
 	enum mode
 	{
@@ -79,8 +59,6 @@ private:
 	std::string getMode();
 	void threadedNextNode(std::shared_ptr<hkbobject> hkb_obj, std::string filepath, std::string address, int functionlayer, hkbbehaviorgraph* graphroot);
 };
-
-void hkbPoseMatchingGeneratorExport(std::string id);
 
 extern safeStringUMap<std::shared_ptr<hkbposematchinggenerator>> hkbposematchinggeneratorList;
 extern safeStringUMap<std::shared_ptr<hkbposematchinggenerator>> hkbposematchinggeneratorList_E;

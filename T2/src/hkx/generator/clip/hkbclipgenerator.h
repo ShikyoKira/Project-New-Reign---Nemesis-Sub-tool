@@ -11,26 +11,10 @@ struct hkbclipgenerator : public hkbgenerator, std::enable_shared_from_this<hkbc
 {
 public:
 	hkbclipgenerator() {}
-	hkbclipgenerator(std::string filepath, std::string id, std::string preaddress, int functionlayer, bool compare);
-
-	void nonCompare(std::string filepath, std::string id);
-	void Compare(std::string filepath, std::string id);
-	void Dummy(std::string id);
-
-	std::string GetVariableBindingSet();
-	bool IsBindingNull();
-
-	std::string GetTriggers();
-	bool IsTriggersNull();
 
 	std::string GetAddress();
-	bool IsNegate();
 	
 	std::string tempaddress;
-	std::string variablebindingset;
-	std::string s_triggers;
-	bool IsNegated = false;
-
 
 	enum playbackmode
 	{
@@ -79,8 +63,6 @@ private:
 	void threadedNextNode(std::shared_ptr<hkbobject> hkb_obj, std::string filepath, std::string address, int functionlayer, hkbbehaviorgraph* graphroot);
 	std::string getMode();
 };
-
-void hkbClipGeneratorExport(std::string id);
 
 extern safeStringUMap<std::shared_ptr<hkbclipgenerator>> hkbclipgeneratorList;
 extern safeStringUMap<std::shared_ptr<hkbclipgenerator>> hkbclipgeneratorList_E;

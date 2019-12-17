@@ -9,18 +9,10 @@ struct hkbexpressioncondition : public hkbcondition, std::enable_shared_from_thi
 {
 public:
 	hkbexpressioncondition() {}
-	hkbexpressioncondition(std::string filepath, std::string id, std::string preaddress, int functionlayer, bool compare);
-
-	void nonCompare(std::string filepath, std::string id);
-	void Compare(std::string filepath, std::string id, int functionlayer);
-	void Dummy(std::string id);
 
 	std::string GetAddress();
-	bool IsNegate();
 
 	std::string tempaddress;
-	bool IsNegated = false;
-
 
 	std::string expression;
 
@@ -35,8 +27,6 @@ private:
 	void parentRefresh() {}
 	void nextNode(std::string filepath, int functionlayer, bool isOld, hkbbehaviorgraph* graphroot) {}
 };
-
-void hkbExpressionConditionExport(std::string id);
 
 extern safeStringUMap<std::shared_ptr<hkbexpressioncondition>> hkbexpressionconditionList;
 extern safeStringUMap<std::shared_ptr<hkbexpressioncondition>> hkbexpressionconditionList_E;

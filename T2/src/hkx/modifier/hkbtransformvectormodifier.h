@@ -11,22 +11,10 @@ struct hkbtransformvectormodifier : public hkbmodifier, std::enable_shared_from_
 {
 public:
 	hkbtransformvectormodifier() {}
-	hkbtransformvectormodifier(std::string filepath, std::string id, std::string preaddress, int functionlayer, bool compare);
-
-	void nonCompare(std::string filepath, std::string id);
-	void Compare(std::string filepath, std::string id);
-	void Dummy(std::string id);
-
-	std::string GetVariableBindingSet();
-	bool IsBindingNull();
 
 	std::string GetAddress();
-	bool IsNegate();
 
 	std::string tempaddress;
-	std::string variablebindingset;
-	bool IsNegated = false;
-
 
 	// variableBindingSet from hkbmodifier
 	// userData from hkbmodifier
@@ -52,8 +40,6 @@ private:
 	void parentRefresh();
 	void nextNode(std::string filepath, int functionlayer, bool isOld, hkbbehaviorgraph* graphroot);
 };
-
-void hkbTransformVectorModifierExport(std::string id);
 
 extern safeStringUMap<std::shared_ptr<hkbtransformvectormodifier>> hkbtransformvectormodifierList;
 extern safeStringUMap<std::shared_ptr<hkbtransformvectormodifier>> hkbtransformvectormodifierList_E;

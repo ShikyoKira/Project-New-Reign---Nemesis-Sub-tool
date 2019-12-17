@@ -13,27 +13,10 @@ struct hkbmodifiergenerator : public hkbgenerator, std::enable_shared_from_this<
 {
 public:
 	hkbmodifiergenerator() {}
-	hkbmodifiergenerator(std::string filepath, std::string id, std::string preaddress, int functionlayer, bool compare);
-
-	void nonCompare(std::string filepath, std::string id);
-	void Compare(std::string filepath, std::string id);
-	void Dummy(std::string id);
-
-	std::string NextGenerator();
-	std::string GetModifier();
-
-	std::string GetVariableBindingSet();
-	bool IsBindingNull();
 
 	std::string GetAddress();
-	bool IsNegate();
 
 	std::string tempaddress;
-	std::string s_generator;
-	std::string variablebindingset;
-	std::string s_modifier;
-	bool IsNegated = false;
-
 
 	// variableBindingSet from hkbgenerator
 	// userData from hkbgenerator
@@ -53,8 +36,6 @@ private:
 	void nextNode(std::string filepath, int functionlayer, bool isOld, hkbbehaviorgraph* graphroot);
 	void threadedNextNode(std::shared_ptr<hkbobject> hkb_obj, std::string filepath, std::string address, int functionlayer, hkbbehaviorgraph* graphroot);
 };
-
-void hkbModifierGeneratorExport(std::string id);
 
 extern safeStringUMap<std::shared_ptr<hkbmodifiergenerator>> hkbmodifiergeneratorList;
 extern safeStringUMap<std::shared_ptr<hkbmodifiergenerator>> hkbmodifiergeneratorList_E;

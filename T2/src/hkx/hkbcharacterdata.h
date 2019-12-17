@@ -30,35 +30,10 @@ struct hkbcharacterdata : public hkbobject, std::enable_shared_from_this<hkbchar
 {
 public:
 	hkbcharacterdata() {}
-	hkbcharacterdata(std::string filepath, std::string id, std::string preaddress, int functionLayer, bool compare);
-
-	void nonCompare(std::string filepath, std::string id);
-	void Compare(std::string filepath, std::string id);
-	void Dummy(std::string id);
-
-	std::string GetStringData();
-	std::string GetSkeletonInfo();
-
-	std::string GetCharPropertyValues();
-	bool HasCharProperty();
-
-	std::string GetFootIK();
-	bool HasFootIK();
-
-	std::string GetHandIK();
-	bool HasHandIK();
 
 	std::string GetAddress();
-	bool IsNegate();
 
 	std::string tempaddress;
-	std::string charPropertyID;
-	std::string footIKID;
-	std::string handIKID;
-	std::string n_stringData;
-	std::string skeleton;
-	bool IsNegated = false;
-
 
 	struct charactercontrollerinfo
 	{
@@ -93,8 +68,6 @@ private:
 	void nextNode(std::string filepath, int functionlayer, bool isOld, hkbbehaviorgraph* graphroot);
 	void threadedNextNode(std::shared_ptr<hkbobject> hkb_obj, std::string filepath, std::string address, int functionlayer, hkbbehaviorgraph* graphroot);
 };
-
-void hkbCharacterDataExport(std::string id);
 
 extern safeStringUMap<std::shared_ptr<hkbcharacterdata>> hkbcharacterdataList;
 extern safeStringUMap<std::shared_ptr<hkbcharacterdata>> hkbcharacterdataList_E;

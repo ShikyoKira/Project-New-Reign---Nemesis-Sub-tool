@@ -12,18 +12,10 @@ struct hkbbehaviorgraphstringdata : public hkbobject, std::enable_shared_from_th
 {
 public:
 	hkbbehaviorgraphstringdata() {}
-	hkbbehaviorgraphstringdata(std::string filepath, std::string id, std::string preaddress, int functionlayer, bool compare);
-
-	void nonCompare(std::string filepath, std::string id);
-	void Compare(std::string filepath, std::string id);
-	void Dummy(std::string id);
 
 	std::string GetAddress();
-	bool IsNegate();
 
 	std::string tempaddress;
-	bool IsNegated = false;
-
 
 	std::shared_ptr<eventinfopack> eventNames;
 	std::shared_ptr<attributeinfopack> attributeNames;
@@ -43,8 +35,6 @@ private:
 	void matchScoring(std::vector<e_datainfo>& ori, std::vector<e_datainfo>& edit, std::string id);
 	void fillScore(std::vector<e_datainfo>& ori, std::vector<e_datainfo>& edit, usize start, usize cap, std::map<int, std::map<int, double>>& scorelist);
 };
-
-void hkbBehaviorGraphStringDataExport(std::string id);
 
 extern safeStringUMap<std::shared_ptr<hkbbehaviorgraphstringdata>> hkbbehaviorgraphstringdataList;
 extern safeStringUMap<std::shared_ptr<hkbbehaviorgraphstringdata>> hkbbehaviorgraphstringdataList_E;

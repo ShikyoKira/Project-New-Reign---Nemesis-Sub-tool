@@ -10,18 +10,10 @@ struct hkbexpressiondataarray : public hkbobject, std::enable_shared_from_this<h
 {
 public:
 	hkbexpressiondataarray() {}
-	hkbexpressiondataarray(std::string filepath, std::string id, std::string preaddress, int functionlayer, bool compare);
-
-	void nonCompare(std::string filepath, std::string id);
-	void Compare(std::string filepath, std::string id);
-	void Dummy(std::string id);
 
 	std::string GetAddress();
-	bool IsNegate();
 
 	std::string tempaddress;
-	bool IsNegated = false;
-
 
 	struct expressiondata
 	{
@@ -63,7 +55,5 @@ private:
 
 extern safeStringUMap<std::shared_ptr<hkbexpressiondataarray>> hkbexpressiondataarrayList;
 extern safeStringUMap<std::shared_ptr<hkbexpressiondataarray>> hkbexpressiondataarrayList_E;
-
-void hkbExpressionDataArrayExport(std::string id);
 
 #endif

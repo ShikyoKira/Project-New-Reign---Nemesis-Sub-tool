@@ -12,18 +12,10 @@ struct hkbvariablebindingset : public hkbobject, std::enable_shared_from_this<hk
 {
 public:
 	hkbvariablebindingset() {}
-	hkbvariablebindingset(std::string filepath, std::string id, std::string preaddress, int functionlayer, bool compare);
-
-	void nonCompare(std::string filepath, std::string id);
-	void Compare(std::string filepath, std::string id);
-	void Dummy(std::string id);
 
 	std::string GetAddress();
-	bool IsNegate();
 
 	std::string tempaddress;
-	bool IsNegated = false;
-
 
 	struct binding
 	{
@@ -61,8 +53,6 @@ private:
 	void nextNode(std::string filepath, int functionlayer, bool isOld, hkbbehaviorgraph* graphroot) {}
 	void matchScoring(std::vector<binding>& ori, std::vector<binding>& edit, std::string id);
 };
-
-void hkbVariableBindingSetExport(std::string id);
 
 extern safeStringUMap<std::shared_ptr<hkbvariablebindingset>> hkbvariablebindingsetList;
 extern safeStringUMap<std::shared_ptr<hkbvariablebindingset>> hkbvariablebindingsetList_E;

@@ -9,18 +9,10 @@ struct hkbstringeventpayload : public hkbobject, std::enable_shared_from_this<hk
 {
 public:
 	hkbstringeventpayload() {}
-	hkbstringeventpayload(std::string filepath, std::string id, std::string preaddress, int functionlayer, bool compare);
-
-	void nonCompare(std::string filepath, std::string id);
-	void Compare(std::string filepath, std::string id);
-	void Dummy(std::string id);
 
 	std::string GetAddress();
-	bool IsNegate();
 
 	std::string tempaddress;
-	bool IsNegated = false;
-
 
 	std::string data;
 
@@ -35,8 +27,6 @@ private:
 	void parentRefresh() {}
 	void nextNode(std::string filepath, int functionlayer, bool isOld, hkbbehaviorgraph* graphroot) {}
 };
-
-void hkbStringEventPayloadExport(std::string id);
 
 extern safeStringUMap<std::shared_ptr<hkbstringeventpayload>> hkbstringeventpayloadList;
 extern safeStringUMap<std::shared_ptr<hkbstringeventpayload>> hkbstringeventpayloadList_E;

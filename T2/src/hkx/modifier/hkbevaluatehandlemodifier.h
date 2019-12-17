@@ -13,22 +13,10 @@ struct hkbevaluatehandlemodifier : public hkbmodifier, std::enable_shared_from_t
 {
 public:
 	hkbevaluatehandlemodifier() {}
-	hkbevaluatehandlemodifier(std::string filepath, std::string id, std::string preaddress, int functionlayer, bool compare);
-
-	void nonCompare(std::string filepath, std::string id);
-	void Compare(std::string filepath, std::string id);
-	void Dummy(std::string id);
-
-	std::string GetVariableBindingSet();
-	bool IsBindingNull();
 
 	std::string GetAddress();
-	bool IsNegate();
 
 	std::string tempaddress;
-	std::string variablebindingset;
-	bool IsNegated = false;
-
 
 	enum handlechangemode
 	{
@@ -61,8 +49,6 @@ private:
 	std::string getHandleChangeMode();
 	void threadedNextNode(std::shared_ptr<hkbobject> hkb_obj, std::string filepath, std::string address, int functionlayer, hkbbehaviorgraph* graphroot);
 };
-
-void hkbEvaluateHandleModifierExport(std::string id);
 
 extern safeStringUMap<std::shared_ptr<hkbevaluatehandlemodifier>> hkbevaluatehandlemodifierList;
 extern safeStringUMap<std::shared_ptr<hkbevaluatehandlemodifier>> hkbevaluatehandlemodifierList_E;

@@ -11,20 +11,10 @@ struct hkrootlevelcontainer : public hkbobject, std::enable_shared_from_this<hkr
 {
 public:
 	hkrootlevelcontainer() {}
-	hkrootlevelcontainer(std::string filepath, std::string id, std::string preaddress, int functionlayer, bool compare);
 
-	void nonCompare(std::string filepath, std::string id);
-	void Compare(std::string filepath, std::string id);
-	void Dummy(std::string id);
-
-	std::string NextGenerator();
 	std::string GetAddress();
-	bool IsNegate();
 
 	std::string tempaddress;
-	std::string generator;
-	bool IsNegated = false;
-
 
 	struct namedvariant
 	{
@@ -52,8 +42,6 @@ private:
 	void nextNode(std::string filepath, int functionlayer, bool isOld, hkbbehaviorgraph* graphroot);
 	void matchScoring(std::vector<namedvariant>& ori, std::vector<namedvariant>& edit, std::string id);
 };
-
-void hkRootLevelContainerExport(std::string id);
 
 extern safeStringUMap<std::shared_ptr<hkrootlevelcontainer>> hkrootlevelcontainerList;
 extern safeStringUMap<std::shared_ptr<hkrootlevelcontainer>> hkrootlevelcontainerList_E;

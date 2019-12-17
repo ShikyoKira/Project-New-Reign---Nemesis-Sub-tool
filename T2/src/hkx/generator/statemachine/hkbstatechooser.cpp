@@ -4,7 +4,7 @@ using namespace std;
 
 namespace statechooser
 {
-	string key = "cl";
+	const string key = "cl";
 }
 
 safeStringUMap<shared_ptr<hkbstatechooser>> hkbstatechooserList;

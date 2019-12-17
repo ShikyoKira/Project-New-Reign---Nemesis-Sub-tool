@@ -12,30 +12,11 @@ struct bsboneswitchgeneratorbonedata : public hkbobject, std::enable_shared_from
 {
 public:
 	bsboneswitchgeneratorbonedata() {}
-	bsboneswitchgeneratorbonedata(std::string filepath, std::string id, std::string preaddress, int functionlayer, bool compare);
-
-	void nonCompare(std::string filepath, std::string id);
-	void Compare(std::string filepath, std::string id);
-	void Dummy(std::string id);
-
-	std::string NextGenerator();
-
-	std::string GetBoneWeights();
-	bool IsBoneWeightsNull();
-
-	std::string GetVariableBindingSet();
-	bool IsBindingNull();
 
 	std::string GetAddress();
-	bool IsNegate();
 
-	std::string nodeID;
 	std::string address;
 	std::string tempaddress;
-	std::string generator;
-	std::string variablebindingset;
-	std::string boneweights;
-	bool IsNegated = false;
 	
 	std::shared_ptr<hkbvariablebindingset> variableBindingSet;
 	std::shared_ptr<hkbgenerator> pGenerator;

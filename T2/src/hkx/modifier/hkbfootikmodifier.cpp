@@ -7,9 +7,9 @@ using namespace std;
 
 namespace footikmodifier
 {
-	string key = "cu";
-	string classname = "hkbFootIkModifier";
-	string signature = "0xed8966c0";
+	const string key = "cu";
+	const string classname = "hkbFootIkModifier";
+	const string signature = "0xed8966c0";
 }
 
 safeStringUMap<shared_ptr<hkbfootikmodifier>> hkbfootikmodifierList;

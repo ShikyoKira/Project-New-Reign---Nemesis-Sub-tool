@@ -4,8 +4,8 @@ using namespace std;
 
 namespace handle_h
 {
-	string key = "cs";
-	string classname = "hkbHandle";
+	const string key = "cs";
+	const string classname = "hkbHandle";
 }
 
 safeStringUMap<shared_ptr<hkbhandle>> hkbhandleList;

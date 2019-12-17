@@ -4,9 +4,9 @@ using namespace std;
 
 namespace attachmentsetup
 {
-	string key = "cq";
-	string classname = "hkbAttachmentSetup";
-	string signature = "0x0774632b";
+	const string key = "cq";
+	const string classname = "hkbAttachmentSetup";
+	const string signature = "0x0774632b";
 }
 
 safeStringUMap<shared_ptr<hkbattachmentsetup>> hkbattachmentsetupList;

@@ -14,39 +14,10 @@ struct hkbstatemachine : public hkbgenerator, std::enable_shared_from_this<hkbst
 {
 public:
 	hkbstatemachine() {}
-	hkbstatemachine(std::string filepath, std::string id, std::string preaddress, int functionlayer, bool compare);
-
-	void nonCompare(std::string filepath, std::string id);
-	void Compare(std::string filepath, std::string id);
-	void Dummy(std::string id);
-
-	std::string NextGenerator(int child);
-	int GetChildren();
-
-	std::string GetPayload();
-	bool IsPayloadNull();
-
-	std::string GetWildcard();
-	bool IsWildcardNull();
-
-	std::string GetVariableBindingSet();
-	bool IsBindingNull();
 
 	std::string GetAddress();
-	bool IsNegate();
-
-	std::shared_ptr<hkbstatemachine> previousSM;
-	bool previousSMExist = false;
 
 	std::string tempaddress;
-	std::string s_name;
-	std::string payload;
-	vecstr generator;
-	std::string variablebindingset;
-	std::string wildcard;
-	int children;
-	bool IsNegated = false;
-
 
 	enum startstatemode
 	{
@@ -96,8 +67,6 @@ private:
 	void matchScoring(std::vector<std::shared_ptr<hkbstatemachinestateinfo>>& ori, std::vector<std::shared_ptr<hkbstatemachinestateinfo>>& edit, std::string id);
 	void threadedNextNode(std::shared_ptr<hkbobject> hkb_obj, std::string filepath, std::string address, int functionlayer, hkbbehaviorgraph* graphroot);
 };
-
-void hkbStateMachineExport(std::string id);
 
 extern safeStringUMap<std::shared_ptr<hkbstatemachine>> hkbstatemachineList;
 extern safeStringUMap<std::shared_ptr<hkbstatemachine>> hkbstatemachineList_E;

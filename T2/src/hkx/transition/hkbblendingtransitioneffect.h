@@ -12,23 +12,10 @@ struct hkbblendingtransitioneffect : public hkbtransitioneffect, std::enable_sha
 {
 public:
 	hkbblendingtransitioneffect() {}
-	hkbblendingtransitioneffect(std::string filepath, std::string id, std::string preaddress, int functionlayer, bool compare);
-
-	void nonCompare(std::string filepath, std::string id);
-	void Compare(std::string filepath, std::string id, int functionlayer);
-	void Dummy(std::string id, bool compare);
-
-	std::string GetVariableBindingSet();
-	bool IsBindingNull();
 
 	std::string GetAddress();
-	bool IsNegate();
 
 	std::string tempaddress;
-	std::string s_name;
-	std::string variablebindingset;
-	bool IsNegated = false;
-
 
 	struct flagbits
 	{
@@ -71,8 +58,6 @@ private:
 	void nextNode(std::string filepath, int functionlayer, bool isOld, hkbbehaviorgraph* graphroot);
 	std::string getEndMode();
 };
-
-void hkbBlendingTransitionEffectExport(std::string id);
 
 extern safeStringUMap<std::shared_ptr<hkbblendingtransitioneffect>> hkbblendingtransitioneffectList;
 extern safeStringUMap<std::shared_ptr<hkbblendingtransitioneffect>> hkbblendingtransitioneffectList_E;

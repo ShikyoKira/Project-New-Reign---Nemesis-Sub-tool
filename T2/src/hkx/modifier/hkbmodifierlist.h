@@ -11,27 +11,10 @@ struct hkbmodifierlist : public hkbmodifier, std::enable_shared_from_this<hkbmod
 {
 public:
 	hkbmodifierlist() {}
-	hkbmodifierlist(std::string filepath, std::string id, std::string preaddress, int functionlayer, bool compare);
-
-	void nonCompare(std::string filepath, std::string id);
-	void Compare(std::string filepath, std::string id);
-	void Dummy(std::string id);
-
-	std::string GetModifier(int child);
-	int GetChildren();
-
-	std::string GetVariableBindingSet();
-	bool IsBindingNull();
 
 	std::string GetAddress();
-	bool IsNegate();
 
 	std::string tempaddress;
-	vecstr modifier;
-	std::string variablebindingset;
-	int children;
-	bool IsNegated = false;
-
 
 	// variableBindingSet from hkbmodifier
 	// userData from hkbmodifier
@@ -52,8 +35,6 @@ private:
 	void matchScoring(std::vector<std::shared_ptr<hkbmodifier>>& ori, std::vector<std::shared_ptr<hkbmodifier>>& edit, std::string id);
 	void threadedNextNode(std::shared_ptr<hkbobject> hkb_obj, std::string filepath, std::string address, int functionlayer, hkbbehaviorgraph* graphroot);
 };
-
-void hkbModifierListExport(std::string id);
 
 extern safeStringUMap<std::shared_ptr<hkbmodifierlist>> hkbmodifierlistList;
 extern safeStringUMap<std::shared_ptr<hkbmodifierlist>> hkbmodifierlistList_E;

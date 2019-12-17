@@ -14,28 +14,11 @@ struct hkbfootikcontrolsmodifier : public hkbmodifier, std::enable_shared_from_t
 {
 public:
 	hkbfootikcontrolsmodifier() {}
-	hkbfootikcontrolsmodifier(std::string filepath, std::string id, std::string preaddress, int functionlayer, bool compare);
-
-	void nonCompare(std::string filepath, std::string id);
-	void Compare(std::string filepath, std::string id);
-	void Dummy(std::string id);
-
-	int GetPayloadCount();
-	std::string GetPayload(int child);
-	bool IsPayloadNull(int child);
-
-	std::string GetVariableBindingSet();
-	bool IsBindingNull();
 
 	std::string GetAddress();
-	bool IsNegate();
 
 	std::string tempaddress;
-	vecstr payload;
-	std::string variablebindingset;
-	bool IsNegated = false;
 
-	
 	struct hkleg
 	{
 		bool proxy;
@@ -77,8 +60,6 @@ private:
 	void matchScoring(std::vector<hkleg>& ori, std::vector<hkleg>& edit, std::string id);
 	void threadedNextNode(std::shared_ptr<hkbobject> hkb_obj, std::string filepath, std::string address, int functionlayer, hkbbehaviorgraph* graphroot);
 };
-
-void hkbFootIkControlsModifierExport(std::string id);
 
 extern safeStringUMap<std::shared_ptr<hkbfootikcontrolsmodifier>> hkbfootikcontrolsmodifierList;
 extern safeStringUMap<std::shared_ptr<hkbfootikcontrolsmodifier>> hkbfootikcontrolsmodifierList_E;

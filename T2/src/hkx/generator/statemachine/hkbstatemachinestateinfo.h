@@ -14,34 +14,10 @@ struct hkbstatemachinestateinfo : public hkbobject, std::enable_shared_from_this
 {
 public:
 	hkbstatemachinestateinfo() {}
-	hkbstatemachinestateinfo(std::string filepath, std::string id, std::string preaddress, int functionlayer, bool compare);
-
-	void nonCompare(std::string filepath, std::string id);
-	void Compare(std::string filepath, std::string id);
-	void Dummy(std::string id);
-
-	std::string NextGenerator();
-
-	std::string GetVariableBindingSet();
-	bool IsBindingNull();
-	std::string GetTransitions();
-	bool IsTransitionsNull();
-	std::string GetEnterNotifyEvent();
-	bool IsEnterNotifyEventNull();
-	std::string GetExitNotifyEvent();
-	bool IsExitNotifyEventNull();
 
 	std::string GetAddress();
-	bool IsNegate();
 
 	std::string tempaddress;
-	std::string s_generator;
-	std::string variablebindingset;
-	std::string s_transitions;
-	std::string enternotifyevent;
-	std::string exitnotifyevent;
-	bool IsNegated = false;
-
 
 	std::shared_ptr<hkbvariablebindingset> variableBindingSet;
 	std::vector<std::shared_ptr<hkbstatelistener>> listeners;
@@ -67,8 +43,6 @@ private:
 	void matchScoring(std::vector<std::shared_ptr<hkbstatelistener>>& ori, std::vector<std::shared_ptr<hkbstatelistener>>& edit, std::string id);
 	void threadedNextNode(std::shared_ptr<hkbobject> hkb_obj, std::string filepath, std::string address, int functionlayer, hkbbehaviorgraph* graphroot);
 };
-
-void hkbStateMachineStateInfoExport(std::string id);
 
 extern safeStringUMap<std::shared_ptr<hkbstatemachinestateinfo>> hkbstatemachinestateinfoList;
 extern safeStringUMap<std::shared_ptr<hkbstatemachinestateinfo>> hkbstatemachinestateinfoList_E;

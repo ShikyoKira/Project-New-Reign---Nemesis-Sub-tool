@@ -9,19 +9,10 @@ struct hkbstringcondition : public hkbcondition, std::enable_shared_from_this<hk
 {
 public:
 	hkbstringcondition() {}
-	hkbstringcondition(std::string filepath, std::string id, std::string preaddress, int functionlayer, bool compare);
-
-	void nonCompare(std::string filepath, std::string id);
-	void Compare(std::string filepath, std::string id, int functionlayer);
-	void Dummy(std::string id);
 
 	std::string GetAddress();
-	bool IsNegate();
 
 	std::string tempaddress;
-	std::string expression;
-	bool IsNegated = false;
-
 
 	std::string conditionString;
 
@@ -36,8 +27,6 @@ private:
 	void parentRefresh() {}
 	void nextNode(std::string filepath, int functionlayer, bool isOld, hkbbehaviorgraph* graphroot) {}
 };
-
-void hkbStringConditionExport(std::string id);
 
 extern safeStringUMap<std::shared_ptr<hkbstringcondition>> hkbstringconditionList;
 extern safeStringUMap<std::shared_ptr<hkbstringcondition>> hkbstringconditionList_E;

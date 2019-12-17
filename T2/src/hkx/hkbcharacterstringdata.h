@@ -10,18 +10,10 @@ struct hkbcharacterstringdata : public hkbobject, std::enable_shared_from_this<h
 {
 public:
 	hkbcharacterstringdata() {}
-	hkbcharacterstringdata(std::string filepath, std::string id, std::string preaddress, int functionLayer, bool compare);
-
-	void nonCompare(std::string filepath, std::string id);
-	void Compare(std::string filepath, std::string id);
-	void Dummy(std::string id);
 
 	std::string GetAddress();
-	bool IsNegate();
 
 	std::string tempaddress;
-	bool IsNegated = false;
-
 
 	vecstr deformableSkinNames;
 	vecstr rigidSkinNames;
@@ -54,10 +46,6 @@ private:
 	void stringEnterNew(vecstr& output, vecstr namelist, std::string listname, usize& base);
 	bool dataNameListEnter(std::string line, vecstr& input);
 };
-
-void hkbCharacterStringDataExport(std::string id);
-inline void process(vecstr storeline1, vecstr storeline2, int curline, int i, bool& IsChanged, int& openpoint, bool& open, bool& IsEdited, vecstr& output);
-inline void postProcess(std::string elementName, vecstr storeline1, vecstr storeline2, int curline, int i, bool& IsChanged, int openpoint, bool& open, bool& IsEdited, vecstr& output);
 
 extern safeStringUMap<std::shared_ptr<hkbcharacterstringdata>> hkbcharacterstringdataList;
 extern safeStringUMap<std::shared_ptr<hkbcharacterstringdata>> hkbcharacterstringdataList_E;

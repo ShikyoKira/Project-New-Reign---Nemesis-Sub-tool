@@ -12,26 +12,10 @@ struct hkbsensehandlemodifier : public hkbmodifier, std::enable_shared_from_this
 {
 public:
 	hkbsensehandlemodifier() {}
-	hkbsensehandlemodifier(std::string filepath, std::string id, std::string preaddress, int functionlayer, bool compare);
-
-	void nonCompare(std::string filepath, std::string id);
-	void Compare(std::string filepath, std::string id);
-	void Dummy(std::string id);
-
-	std::string GetPayload();
-	bool IsPayloadNull();
-
-	std::string GetVariableBindingSet();
-	bool IsBindingNull();
 
 	std::string GetAddress();
-	bool IsNegate();
 
 	std::string tempaddress;
-	std::string payload;
-	std::string variablebindingset;
-	bool IsNegated = false;
-	
 
 	struct range
 	{
@@ -95,8 +79,6 @@ private:
 	std::string getSensingMode();
 	void threadedNextNode(std::shared_ptr<hkbobject> hkb_obj, std::string filepath, std::string address, int functionlayer, hkbbehaviorgraph* graphroot);
 };
-
-void hkbSenseHandleModifierExport(std::string id);
 
 extern safeStringUMap<std::shared_ptr<hkbsensehandlemodifier>> hkbsensehandlemodifierList;
 extern safeStringUMap<std::shared_ptr<hkbsensehandlemodifier>> hkbsensehandlemodifierList_E;

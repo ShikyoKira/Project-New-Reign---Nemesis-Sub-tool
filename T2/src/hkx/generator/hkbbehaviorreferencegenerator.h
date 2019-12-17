@@ -10,22 +10,10 @@ struct hkbbehaviorreferencegenerator : public hkbgenerator, std::enable_shared_f
 {
 public:
 	hkbbehaviorreferencegenerator() {}
-	hkbbehaviorreferencegenerator(std::string filepath, std::string id, std::string preaddress, int functionlayer, bool compare);
-
-	void nonCompare(std::string filepath, std::string id);
-	void Compare(std::string filepath, std::string id);
-	void Dummy(std::string id);
-
-	std::string GetVariableBindingSet();
-	bool IsBindingNull();
 
 	std::string GetAddress();
-	bool IsNegate();
 
 	std::string tempaddress;
-	std::string variablebindingset;
-	bool IsNegated = false;
-
 	
 	// variableBindingSet from hkbgenerator
 	// userData from hkbgenerator
@@ -43,8 +31,6 @@ private:
 	void parentRefresh();
 	void nextNode(std::string filepath, int functionlayer, bool isOld, hkbbehaviorgraph* graphroot);
 };
-
-void hkbBehaviorReferenceGeneratorExport(std::string id);
 
 extern safeStringUMap<std::shared_ptr<hkbbehaviorreferencegenerator>> hkbbehaviorreferencegeneratorList;
 extern safeStringUMap<std::shared_ptr<hkbbehaviorreferencegenerator>> hkbbehaviorreferencegeneratorList_E;

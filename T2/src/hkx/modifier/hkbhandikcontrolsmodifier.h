@@ -15,22 +15,10 @@ struct hkbhandikcontrolsmodifier : public hkbmodifier, std::enable_shared_from_t
 {
 public:
 	hkbhandikcontrolsmodifier() {}
-	hkbhandikcontrolsmodifier(std::string filepath, std::string id, std::string preaddress, int functionlayer, bool compare);
-
-	void nonCompare(std::string filepath, std::string id);
-	void Compare(std::string filepath, std::string id);
-	void Dummy(std::string id);
-
-	std::string GetVariableBindingSet();
-	bool IsBindingNull();
 
 	std::string GetAddress();
-	bool IsNegate();
 
 	std::string tempaddress;
-	std::string variablebindingset;
-	bool IsNegated = false;
-
 
 	struct hkhand
 	{
@@ -87,8 +75,6 @@ private:
 	void matchScoring(std::vector<hkhand>& ori, std::vector<hkhand>& edit, std::string id);
 	void threadedNextNode(std::shared_ptr<hkbobject> hkb_obj, std::string filepath, std::string address, int functionlayer, hkbbehaviorgraph* graphroot);
 };
-
-void hkbHandIkControlsModifierExport(std::string id);
 
 extern safeStringUMap<std::shared_ptr<hkbhandikcontrolsmodifier>> hkbhandikcontrolsmodifierList;
 extern safeStringUMap<std::shared_ptr<hkbhandikcontrolsmodifier>> hkbhandikcontrolsmodifierList_E;

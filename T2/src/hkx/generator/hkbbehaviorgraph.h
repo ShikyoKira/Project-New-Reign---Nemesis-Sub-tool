@@ -12,28 +12,10 @@ struct hkbbehaviorgraph : public hkbgenerator, std::enable_shared_from_this<hkbb
 {
 public:
 	hkbbehaviorgraph() {}
-	hkbbehaviorgraph(std::string filepath, std::string id, std::string preaddress, int functionlayer, bool compare);
-
-	void nonCompare(std::string filepath, std::string id);
-	void Compare(std::string filepath, std::string id);
-	void Dummy(std::string id);
-
-	std::string NextGenerator();
-
-	std::string GetVariableBindingSet();
-	bool IsBindingNull();
-
-	std::string GetData();
 
 	std::string GetAddress();
-	bool IsNegate();
 
 	std::string tempaddress;
-	std::string generator;
-	std::string variablebindingset;
-	std::string s_data;
-	bool IsNegated = false;
-
 
 	enum variablemode
 	{
@@ -61,8 +43,6 @@ private:
 	std::string getVariableMode();
 	void threadedNextNode(std::shared_ptr<hkbobject> hkb_obj, std::string filepath, std::string address, int functionlayer, hkbbehaviorgraph* graphroot);
 };
-
-void hkbBehaviorGraphExport(std::string id);
 
 extern safeStringUMap<std::shared_ptr<hkbbehaviorgraph>> hkbbehaviorgraphList;
 extern safeStringUMap<std::shared_ptr<hkbbehaviorgraph>> hkbbehaviorgraphList_E;

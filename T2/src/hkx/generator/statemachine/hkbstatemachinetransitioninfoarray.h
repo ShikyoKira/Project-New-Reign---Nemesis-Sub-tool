@@ -12,25 +12,10 @@ struct hkbstatemachinetransitioninfoarray : public hkbobject, std::enable_shared
 {
 public:
 	hkbstatemachinetransitioninfoarray() {}
-	hkbstatemachinetransitioninfoarray(std::string filepath, std::string id, std::string preaddress, int functionlayer, bool compare);
-
-	void nonCompare(std::string filepath, std::string id);
-	void Compare(std::string filepath, std::string id);
-	void Dummy(std::string id);
-
-	std::string GetTransition(int number);
-	int GetTransitionCount();
-
-	std::string GetCondition(int number);
-	int GetConditionCount();
 
 	std::string GetAddress();
-	bool IsNegate();
 
 	std::string tempaddress;
-	vecstr transition;
-	vecstr condition;
-	bool IsNegated = false;
 
 	struct transitioninfo
 	{
@@ -102,8 +87,6 @@ private:
 	void matchScoring(std::vector<transitioninfo>& ori, std::vector<transitioninfo>& edit, std::string id);
 	void threadedNextNode(std::shared_ptr<hkbobject> hkb_obj, std::string filepath, std::string address, int functionlayer, hkbbehaviorgraph* graphroot);
 };
-
-void hkbStateMachineTransitionInfoArrayExport(std::string id);
 
 extern safeStringUMap<std::shared_ptr<hkbstatemachinetransitioninfoarray>> hkbstatemachinetransitioninfoarrayList;
 extern safeStringUMap<std::shared_ptr<hkbstatemachinetransitioninfoarray>> hkbstatemachinetransitioninfoarrayList_E;

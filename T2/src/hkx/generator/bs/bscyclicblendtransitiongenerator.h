@@ -14,30 +14,10 @@ struct bscyclicblendtransitiongenerator : public hkbgenerator, std::enable_share
 {
 public:
 	bscyclicblendtransitiongenerator() {}
-	bscyclicblendtransitiongenerator(std::string filepath, std::string id, std::string preaddress, int functionlayer, bool compare);
-
-	void nonCompare(std::string filepath, std::string id);
-	void Compare(std::string filepath, std::string id);
-	void Dummy(std::string id);
-
-	std::string NextGenerator();
-
-	int GetPayloadCount();
-	std::string GetPayload(int child);
-	bool IsPayloadNull(int child);
-
-	std::string GetVariableBindingSet();
-	bool IsBindingNull();
 
 	std::string GetAddress();
-	bool IsNegate();
 
 	std::string tempaddress;
-	std::string generator;
-	vecstr payload;
-	std::string variablebindingset;
-	bool IsNegated = false;
-
 	
 	// variableBindingSet from hkbgenerator
 	// userData from hkbgenerator
@@ -61,8 +41,6 @@ private:
 	void nextNode(std::string filepath, int functionlayer, bool isOld, hkbbehaviorgraph* graphroot);
 	void threadedNextNode(std::shared_ptr<hkbobject> hkb_obj, std::string filepath, std::string address, int functionlayer, hkbbehaviorgraph* graphroot);
 };
-
-void BSCyclicBlendTransitionGeneratorExport(std::string id);
 
 extern safeStringUMap<std::shared_ptr<bscyclicblendtransitiongenerator>> bscyclicblendtransitiongeneratorList;
 extern safeStringUMap<std::shared_ptr<bscyclicblendtransitiongenerator>> bscyclicblendtransitiongeneratorList_E;

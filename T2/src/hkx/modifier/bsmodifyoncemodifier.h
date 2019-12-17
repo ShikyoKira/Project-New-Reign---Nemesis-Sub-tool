@@ -11,27 +11,10 @@ struct bsmodifyoncemodifier : public hkbmodifier, std::enable_shared_from_this<b
 {
 public:
 	bsmodifyoncemodifier() {}
-	bsmodifyoncemodifier(std::string filepath, std::string id, std::string preaddress, int functionlayer, bool compare);
-
-	void nonCompare(std::string filepath, std::string id);
-	void Compare(std::string filepath, std::string id);
-	void Dummy(std::string id);
-
-	std::string GetModifier(int number);
-	bool IsModifierNull(int number);
-
-	std::string GetVariableBindingSet();
-	bool IsBindingNull();
 
 	std::string GetAddress();
-	bool IsNegate();
 
 	std::string tempaddress;
-	std::string modifier1;
-	std::string modifier2;
-	std::string variablebindingset;
-	bool IsNegated = false;
-
 
 	// variableBindingSet from hkbmodifier
 	// userData from hkbmodifier
@@ -52,8 +35,6 @@ private:
 	void nextNode(std::string filepath, int functionlayer, bool isOld, hkbbehaviorgraph* graphroot);
 	void threadedNextNode(std::shared_ptr<hkbobject> hkb_obj, std::string filepath, std::string address, int functionlayer, hkbbehaviorgraph* graphroot);
 };
-
-void BSModifyOnceModifierExport(std::string id);
 
 extern safeStringUMap<std::shared_ptr<bsmodifyoncemodifier>> bsmodifyoncemodifierList;
 extern safeStringUMap<std::shared_ptr<bsmodifyoncemodifier>> bsmodifyoncemodifierList_E;

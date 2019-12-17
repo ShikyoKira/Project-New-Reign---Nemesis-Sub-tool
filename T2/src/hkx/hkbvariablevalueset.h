@@ -26,23 +26,10 @@ struct hkbvariablevalueset : public hkbobject, std::enable_shared_from_this<hkbv
 {
 public:
 	hkbvariablevalueset() {}
-	hkbvariablevalueset(std::string filepath, std::string id, std::string preaddress, int functionLayer, bool compare);
-
-	void nonCompare(std::string filepath, std::string id);
-	void Compare(std::string filepath, std::string id);
-	void Dummy(std::string id);
-
-	int GetBoneCount();
-	std::string GetBoneArray(int order);
 
 	std::string GetAddress();
-	bool IsNegate();
 
 	std::string tempaddress;
-	vecstr boneArray;
-	int boneCount = 0;
-	bool IsNegated = false;
-
 
 	std::shared_ptr<variableinfopack> wordVariableValues;
 	std::vector<coordinate> quadVariableValues;
@@ -60,8 +47,6 @@ private:
 	void nextNode(std::string filepath, int functionlayer, bool isOld, hkbbehaviorgraph* graphroot);
 	void threadedNextNode(std::shared_ptr<hkbobject> hkb_obj, std::string filepath, std::string address, int functionlayer, hkbbehaviorgraph* graphroot);
 };
-
-void hkbVariableValueSetExport(std::string id);
 
 extern safeStringUMap<std::shared_ptr<hkbvariablevalueset>> hkbvariablevaluesetList;
 extern safeStringUMap<std::shared_ptr<hkbvariablevalueset>> hkbvariablevaluesetList_E;

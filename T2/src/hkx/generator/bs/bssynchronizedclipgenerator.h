@@ -10,25 +10,10 @@ struct bssynchronizedclipgenerator : public hkbgenerator, std::enable_shared_fro
 {
 public:
 	bssynchronizedclipgenerator() {}
-	bssynchronizedclipgenerator(std::string filepath, std::string id, std::string preaddress, int functionlayer, bool compare);
-
-	void nonCompare(std::string filepath, std::string id);
-	void Compare(std::string filepath, std::string id);
-	void Dummy(std::string id);
-
-	std::string NextGenerator();
-
-	std::string GetVariableBindingSet();
-	bool IsBindingNull();
 
 	std::string GetAddress();
-	bool IsNegate();
 
 	std::string tempaddress;
-	std::string variablebindingset;
-	std::string generator;
-	bool IsNegated = false;
-
 
 	// variableBindingSet from hkbgenerator
 	// userData from hkbgenerator
@@ -55,8 +40,6 @@ private:
 	void nextNode(std::string filepath, int functionlayer, bool isOld, hkbbehaviorgraph* graphroot);
 	void threadedNextNode(std::shared_ptr<hkbobject> hkb_obj, std::string filepath, std::string address, int functionlayer, hkbbehaviorgraph* graphroot);
 };
-
-void BSSynchronizedClipGeneratorExport(std::string id);
 
 extern safeStringUMap<std::shared_ptr<bssynchronizedclipgenerator>> bssynchronizedclipgeneratorList;
 extern safeStringUMap<std::shared_ptr<bssynchronizedclipgenerator>> bssynchronizedclipgeneratorList_E;

@@ -5,9 +5,9 @@ using namespace std;
 
 namespace generatortransitioneffect
 {
-	string key = "cn";
-	string classname = "hkbGeneratorTransitionEffect";
-	string signature = "0x5f771b12";
+	const string key = "cn";
+	const string classname = "hkbGeneratorTransitionEffect";
+	const string signature = "0x5f771b12";
 }
 
 safeStringUMap<shared_ptr<hkbgeneratortransitioneffect>> hkbgeneratortransitioneffectList;

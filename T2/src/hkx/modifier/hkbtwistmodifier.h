@@ -11,22 +11,10 @@ struct hkbtwistmodifier : public hkbmodifier, std::enable_shared_from_this<hkbtw
 {
 public:
 	hkbtwistmodifier() {}
-	hkbtwistmodifier(std::string filepath, std::string id, std::string preaddress, int functionlayer, bool compare);
-
-	void nonCompare(std::string filepath, std::string id);
-	void Compare(std::string filepath, std::string id);
-	void Dummy(std::string id);
-
-	std::string GetVariableBindingSet();
-	bool IsBindingNull();
 
 	std::string GetAddress();
-	bool IsNegate();
 
 	std::string tempaddress;
-	std::string variablebindingset;
-	bool IsNegated = false;
-
 
 	enum setanglemethod
 	{
@@ -65,8 +53,6 @@ private:
 	std::string getAngleMethod();
 	std::string getRotationAxis();
 };
-
-void hkbTwistModifierExport(std::string id);
 
 extern safeStringUMap<std::shared_ptr<hkbtwistmodifier>> hkbtwistmodifierList;
 extern safeStringUMap<std::shared_ptr<hkbtwistmodifier>> hkbtwistmodifierList_E;

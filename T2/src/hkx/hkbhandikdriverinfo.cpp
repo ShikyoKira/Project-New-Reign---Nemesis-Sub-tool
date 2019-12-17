@@ -6,9 +6,9 @@ using namespace std;
 
 namespace handikdriverinfo
 {
-	string key = "cr";
-	string classname = "hkbHandIkDriverInfo";
-	string signature = "0xc299090a";
+	const string key = "cr";
+	const string classname = "hkbHandIkDriverInfo";
+	const string signature = "0xc299090a";
 }
 
 safeStringUMap<shared_ptr<hkbhandikdriverinfo>> hkbhandikdriverinfoList;

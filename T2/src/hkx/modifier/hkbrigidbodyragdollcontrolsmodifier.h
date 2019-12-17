@@ -13,27 +13,11 @@ struct hkbrigidbodyragdollcontrolsmodifier : public hkbmodifier, std::enable_sha
 {
 public:
 	hkbrigidbodyragdollcontrolsmodifier() {}
-	hkbrigidbodyragdollcontrolsmodifier(std::string filepath, std::string id, std::string preaddress, int functionlayer, bool compare);
-
-	void nonCompare(std::string filepath, std::string id);
-	void Compare(std::string filepath, std::string id);
-	void Dummy(std::string id);
-
-	std::string GetBones();
-	bool IsBonesNull();
-
-	std::string GetVariableBindingSet();
-	bool IsBindingNull();
 
 	std::string GetAddress();
-	bool IsNegate();
 
 	std::string tempaddress;
-	std::string variablebindingset;
-	std::string s_bones;
-	bool IsNegated = false;
 
-	
 	struct controldata
 	{
 		struct keyframehierarchycontroldata
@@ -75,8 +59,6 @@ private:
 	void nextNode(std::string filepath, int functionlayer, bool isOld, hkbbehaviorgraph* graphroot);
 	void threadedNextNode(std::shared_ptr<hkbobject> hkb_obj, std::string filepath, std::string address, int functionlayer, hkbbehaviorgraph* graphroot);
 };
-
-void hkbRigidBodyRagdollControlsModifierExport(std::string id);
 
 extern safeStringUMap<std::shared_ptr<hkbrigidbodyragdollcontrolsmodifier>> hkbrigidbodyragdollcontrolsmodifierList;
 extern safeStringUMap<std::shared_ptr<hkbrigidbodyragdollcontrolsmodifier>> hkbrigidbodyragdollcontrolsmodifierList_E;

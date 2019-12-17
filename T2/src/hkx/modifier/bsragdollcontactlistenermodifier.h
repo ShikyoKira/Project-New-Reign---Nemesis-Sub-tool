@@ -13,30 +13,10 @@ struct bsragdollcontactlistenermodifier : public hkbmodifier, std::enable_shared
 {
 public:
 	bsragdollcontactlistenermodifier() {}
-	bsragdollcontactlistenermodifier(std::string filepath, std::string id, std::string preaddress, int functionlayer, bool compare);
-
-	void nonCompare(std::string filepath, std::string id);
-	void Compare(std::string filepath, std::string id);
-	void Dummy(std::string id);
-
-	std::string GetBone();
-	bool IsBoneNull();
-
-	std::string GetPayload();
-	bool IsPayloadNull();
-
-	std::string GetVariableBindingSet();
-	bool IsBindingNull();
 
 	std::string GetAddress();
-	bool IsNegate();
 
 	std::string tempaddress;
-	std::string payload;
-	std::string variablebindingset;
-	std::string s_bones;
-	bool IsNegated = false;
-
 
 	// variableBindingSet from hkbmodifier
 	// userData from hkbmodifier
@@ -57,8 +37,6 @@ private:
 	void nextNode(std::string filepath, int functionlayer, bool isOld, hkbbehaviorgraph* graphroot);
 	void threadedNextNode(std::shared_ptr<hkbobject> hkb_obj, std::string filepath, std::string address, int functionlayer, hkbbehaviorgraph* graphroot);
 };
-
-void BSRagdollContactListenerModifierExport(std::string id);
 
 extern safeStringUMap<std::shared_ptr<bsragdollcontactlistenermodifier>> bsragdollcontactlistenermodifierList;
 extern safeStringUMap<std::shared_ptr<bsragdollcontactlistenermodifier>> bsragdollcontactlistenermodifierList_E;
