@@ -20,6 +20,7 @@ void AddBehavior(string filename, vecstr& storeline, bool edited)
 	// boost::thread_group multi_t;		removed due to it being ineffective and increase process time instead
 	shared_ptr<hkbobject> node;
 	hkRefPtr* curBehavior = edited ? &editedBehavior : &originalBehavior;
+	unordered_map<string, vecstr> nodeStore;
 	bool virgin = true;
 	bool record = false;
 	bool eventOpen = false;
@@ -75,7 +76,10 @@ void AddBehavior(string filename, vecstr& storeline, bool edited)
 							{
 								(*curBehavior)[tempID] = node;
 								node->regis(tempID, edited);
-								node->dataBake(filename, buffer, edited);
+								
+								if (node->getClassCode() == "b") node->dataBake(filename, buffer, edited);
+								else nodeStore[tempID] = buffer;
+
 								// multi_t.create_thread(boost::bind(&dataFill, node, filename, buffer, edited));
 							}
 
@@ -108,7 +112,13 @@ void AddBehavior(string filename, vecstr& storeline, bool edited)
 	{
 		(*curBehavior)[tempID] = node;
 		node->regis(tempID, edited);
-		node->dataBake(filename, buffer, edited);
+		nodeStore[tempID] = buffer;
+		// node->dataBake(filename, buffer, edited);
+	}
+
+	for (auto& node : nodeStore)
+	{
+		(*curBehavior)[node.first]->dataBake(filename, node.second, edited);
 	}
 
 	// multi_t.join_all();
