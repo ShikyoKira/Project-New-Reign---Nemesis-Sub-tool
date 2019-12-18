@@ -2,7 +2,9 @@
 #define VARIABLEINFOPACK_H_
 
 #include <unordered_map>
+
 #include "Global.h"
+
 #include "src\hkx\hkbvariableinfo.h"
 #include "src\hkx\hkbvariablevalue.h"
 

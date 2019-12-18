@@ -230,7 +230,6 @@
     <ClCompile Include="src\utilities\coordinate.cpp" />
     <ClCompile Include="src\utilities\eventinfopack.cpp" />
     <ClCompile Include="src\utilities\levenshteindistance.cpp" />
-    <ClCompile Include="src\utilities\stringdatalock.cpp" />
     <ClCompile Include="src\utilities\qstransform.cpp" />
     <ClCompile Include="src\utilities\variableinfopack.cpp" />
     <ClCompile Include="src\utilities\voidmatch.cpp" />
@@ -373,7 +372,6 @@
     <ClInclude Include="src\utilities\attributeinfopack.h" />
     <ClInclude Include="src\utilities\coordinate.h" />
     <ClInclude Include="src\utilities\levenshteindistance.h" />
-    <ClInclude Include="src\utilities\stringdatalock.h" />
     <ClInclude Include="src\utilities\qstransform.h" />
     <ClInclude Include="src\utilities\variableinfopack.h" />
     <ClInclude Include="src\utilities\eventinfopack.h" />

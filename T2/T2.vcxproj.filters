@@ -480,9 +480,6 @@
     <ClCompile Include="src\hkx\blendcurve.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\utilities\stringdatalock.cpp">
-      <Filter>Source Files\utilities</Filter>
-    </ClCompile>
     <ClCompile Include="src\utilities\levenshteindistance.cpp">
       <Filter>Source Files\utilities</Filter>
     </ClCompile>
@@ -903,9 +900,6 @@
       <Filter>Header Files\utilities</Filter>
     </ClInclude>
     <ClInclude Include="src\utilities\attributeinfopack.h">
-      <Filter>Header Files\utilities</Filter>
-    </ClInclude>
-    <ClInclude Include="src\utilities\stringdatalock.h">
       <Filter>Header Files\utilities</Filter>
     </ClInclude>
     <ClInclude Include="src\utilities\levenshteindistance.h">
