@@ -1,8 +1,8 @@
-#include <boost\algorithm\string.hpp>
 #include <boost\thread.hpp>
-#include "hkbbehaviorgraphdata.h"
+#include <boost\algorithm\string.hpp>
+
 #include "highestscore.h"
-#include "src\utilities\stringdatalock.h"
+#include "hkbbehaviorgraphdata.h"
 
 using namespace std;
 vector<usize> datapacktracker;
@@ -349,12 +349,6 @@ string hkbbehaviorgraphdata::getClassCode()
 void hkbbehaviorgraphdata::match(shared_ptr<hkbobject> counterpart)
 {
 	if (Error) return;
-
-	if (num_stringData > 0)
-	{
-		unique_lock<mutex> lock(mutex_stringData);
-		cont_stringData.wait(lock, [] {return num_stringData == 0; });
-	}
 
 	bool open = false;
 	bool isEdited = false;
@@ -899,12 +893,6 @@ void hkbbehaviorgraphdata::match(shared_ptr<hkbobject> counterpart)
 
 void hkbbehaviorgraphdata::newNode()
 {
-	if (num_stringData > 0)
-	{
-		unique_lock<mutex> lock(mutex_stringData);
-		cont_stringData.wait(lock, [] {return num_stringData == 0; });
-	}
-
 	string modID = NodeIDCheck(ID);
 	usize base = 2;
 	string filename = "mod/" + modcode + "/" + shortFileName + "/" + modID + ".txt";

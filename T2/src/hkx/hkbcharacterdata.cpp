@@ -1,8 +1,7 @@
-#include <boost\algorithm\string.hpp>
 #include <boost\thread.hpp>
-#include "hkbcharacterdata.h"
+#include <boost\algorithm\string.hpp>
 
-#include "src\utilities\stringdatalock.h"
+#include "hkbcharacterdata.h"
 
 #include "src\hkx\hkbvariablevalueset.h"
 #include "src\hkx\hkbfootikdriverinfo.h"
@@ -403,12 +402,6 @@ void hkbcharacterdata::match(shared_ptr<hkbobject> counterpart)
 {
 	if (Error) return;
 
-	if (num_stringData > 0)
-	{
-		unique_lock<mutex> lock(mutex_stringData);
-		cont_stringData.wait(lock, [] {return num_stringData == 0; });
-	}
-
 	bool open = false;
 	bool isEdited = false;
 	vecstr storeline;
@@ -598,12 +591,6 @@ void hkbcharacterdata::match(shared_ptr<hkbobject> counterpart)
 
 void hkbcharacterdata::newNode()
 {
-	if (num_stringData > 0)
-	{
-		unique_lock<mutex> lock(mutex_stringData);
-		cont_stringData.wait(lock, [] {return num_stringData == 0; });
-	}
-
 	string modID = NodeIDCheck(ID);
 	usize base = 2;
 	string filename = "mod/" + modcode + "/" + shortFileName + "/" + modID + ".txt";

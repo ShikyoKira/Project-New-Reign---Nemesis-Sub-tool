@@ -1,7 +1,7 @@
 #include <boost\thread.hpp>
 #include <boost\algorithm\string.hpp>
+
 #include "hkbvariablevalueset.h"
-#include "src\utilities\stringdatalock.h"
 
 using namespace std;
 
@@ -260,12 +260,6 @@ void hkbvariablevalueset::match(shared_ptr<hkbobject> counterpart)
 {
 	if (Error) return;
 
-	if (num_stringData > 0)
-	{
-		unique_lock<mutex> lock(mutex_stringData);
-		cont_stringData.wait(lock, [] {return num_stringData == 0; });
-	}
-
 	bool open = false;
 	bool isEdited = false;
 	hkbvariablevalueset* ctrpart = static_cast<hkbvariablevalueset*>(counterpart.get());
@@ -473,12 +467,6 @@ void hkbvariablevalueset::match(shared_ptr<hkbobject> counterpart)
 
 void hkbvariablevalueset::newNode()
 {
-	if (num_stringData > 0)
-	{
-		unique_lock<mutex> lock(mutex_stringData);
-		cont_stringData.wait(lock, [] {return num_stringData == 0; });
-	}
-
 	string modID = NodeIDCheck(ID);
 	usize base = 2;
 	usize size = wordVariableValues->size();
