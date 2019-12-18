@@ -13,7 +13,6 @@
 
 #include "src\atomiclock.h"
 #include "src\FillFunction.h"
-#include "src\utilities\stringdatalock.h"
 #include "AnimData\animdatacore.h"
 #include "AnimSetData\animsetdatacore.h"
 
@@ -28,11 +27,10 @@ string checkEdit;
 safeStringMap<string> rootNode;;
 boost::atomic_flag clocklock = BOOST_ATOMIC_FLAG_INIT;
 boost::posix_time::ptime time1;
-bool t_lock = false;
-std::mutex cv_m;
 
 void Clearing(string file, bool edited); // clear and store file in vector
 void ClearIgnore(string file1, string file2); // clear serialized ignore
+void compareNode(string ID, shared_ptr<hkbobject>& edit, boost::thread_group& multithreads);
 void hkb_Initialize(string originalfile, bool compare);
 void ModCode(); // enter author code
 void DebugMode(); // debug on/off
@@ -49,21 +47,6 @@ void Clearing(string filename, bool edited)
 	for (auto& line : storeline)
 	{
 		checker->append(line);
-	}
-
-	unique_lock<mutex> lk(cv_m);
-
-	if (t_lock)
-	{
-		t_lock = false;
-		lk.unlock();
-	}
-	else
-	{
-		t_lock = true;
-		lk.unlock();
-
-		while (t_lock);
 	}
 
 	if (checkOri == checkEdit)
@@ -281,6 +264,54 @@ void GetNewNode(shared_ptr<hkbobject>& node)
 	catch (...) {}
 }
 
+void compareNode(string ID, shared_ptr<hkbobject>& edit)
+{
+	try
+	{
+		auto o_obj = originalBehavior[ID];
+
+		// newly created node
+		if (!o_obj) GetNewNode(edit);			// newly created node
+		else GetExistingNode(o_obj, edit);		// existing node
+	}
+	catch (const std::exception& ex)
+	{
+		cout << "EXCEPTION: " << ex.what() << endl;
+		Error = true;
+		throw 5;
+	}
+
+	if (Error)
+	{
+		cout << "ERROR detected. Unable to complete task" << endl;
+		throw 5;
+	}
+}
+
+void compareNode(string ID, shared_ptr<hkbobject>& edit, boost::thread_group& multithreads)
+{
+	try
+	{
+		auto o_obj = originalBehavior[ID];
+
+		// newly created node
+		if (!o_obj) multithreads.create_thread(boost::bind(GetNewNode, edit));			// newly created node
+		else multithreads.create_thread(boost::bind(GetExistingNode, o_obj, edit));		// existing node
+	}
+	catch (const std::exception& ex)
+	{
+		cout << "EXCEPTION: " << ex.what() << endl;
+		Error = true;
+		throw 5;
+	}
+
+	if (Error)
+	{
+		cout << "ERROR detected. Unable to complete task" << endl;
+		throw 5;
+	}
+}
+
 void hkx_GetEdits()
 {
 	if (Debug && !Error)
@@ -288,15 +319,59 @@ void hkx_GetEdits()
 		cout << "Identifying changes made to the behavior" << endl;
 	}
 
+	// modify new node's ID
+	for (auto node : editedBehavior)
+	{
+		auto o_obj = originalBehavior[node.first];
+
+		if (!o_obj)
+		{
+			NodeIDCheck(node.second->ID);
+		}
+	}
+
+	// clear off all string data first
+	if (hkbbehaviorgraphstringdataList_E.size() > 1)
+	{
+		boost::thread_group multithreads;
+
+		for (auto each : hkbbehaviorgraphstringdataList_E)
+		{
+			compareNode(each.first, static_cast<shared_ptr<hkbobject>>(each.second), multithreads);
+		}
+
+		multithreads.join_all();
+	}
+	else if (hkbbehaviorgraphstringdataList_E.size() == 1)
+	{
+		compareNode(hkbbehaviorgraphstringdataList_E.begin()->first, static_cast<shared_ptr<hkbobject>>(hkbbehaviorgraphstringdataList_E.begin()->second));
+	}
+
+	// clear off all string data first
+	if (hkbcharacterstringdataList_E.size() > 1)
+	{
+		boost::thread_group multithreads;
+
+		for (auto each : hkbcharacterstringdataList_E)
+		{
+			compareNode(each.first, static_cast<shared_ptr<hkbobject>>(each.second), multithreads);
+		}
+
+		multithreads.join_all();
+	}
+	else if (hkbcharacterstringdataList_E.size() == 1)
+	{
+		compareNode(hkbcharacterstringdataList_E.begin()->first, static_cast<shared_ptr<hkbobject>>(hkbcharacterstringdataList_E.begin()->second));
+	}
+
 	for (auto it = editedBehavior.begin(); it != editedBehavior.end();)
 	{
-		num_stringData = 0;
 		unsigned int threadcount = 0;
 		boost::thread_group multithreads;
 
 		while (threadcount < std::thread::hardware_concurrency() && it != editedBehavior.end())
 		{
-			if (it->second)
+			if (it->second && it->second->getClassCode() != "b" || it->second->getClassCode() != "cc")
 			{
 				try
 				{
@@ -305,18 +380,12 @@ void hkx_GetEdits()
 					// newly created node
 					if (!o_obj)
 					{
-						NodeIDCheck(it->second->ID);
 						multithreads.create_thread(boost::bind(GetNewNode, it->second));
 					}
 
 					// existing node
 					else
 					{
-						if (o_obj->ID != it->second->ID)
-							threadcount = threadcount;
-
-						if (o_obj->getClassCode() == "b" || o_obj->getClassCode() == "cc") ++num_stringData;
-
 						multithreads.create_thread(boost::bind(GetExistingNode, o_obj, it->second));
 					}
 
