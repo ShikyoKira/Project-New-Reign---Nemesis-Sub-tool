@@ -1,7 +1,8 @@
 #include <boost\thread.hpp>
-#include "hkbcharacterstringdata.h"
+
 #include "highestscore.h"
-#include "src\utilities\stringdatalock.h"
+#include "hkbcharacterstringdata.h"
+
 #include "src\utilities\levenshteindistance.h"
 
 using namespace std;
@@ -478,8 +479,6 @@ void hkbcharacterstringdata::match(shared_ptr<hkbobject> counterpart)
 	paramMatch("behaviorFilename", behaviorFilename, ctrpart->behaviorFilename, output, storeline, base, true, open, isEdited);
 	output.push_back(closeObject(base));	// 1
 	NemesisReaderFormat(stoi(ID.substr(1)), output);
-	--num_stringData;
-	cont_stringData.notify_all();
 	outputExtraction("mod/" + modcode + "/" + shortFileName + "/" + ID + ".txt", characterstringdata::classname, output, isEdited);
 }
 
@@ -532,8 +531,6 @@ void hkbcharacterstringdata::newNode()
 	output.push_back(autoParam(base, "behaviorFilename", behaviorFilename));
 	output.push_back(closeObject(base));	// 1
 	NemesisReaderFormat(stoi(ID.substr(1)), output);
-	--num_stringData;
-	cont_stringData.notify_all();
 	outputExtraction(filename, characterstringdata::classname, output, true);
 }
 

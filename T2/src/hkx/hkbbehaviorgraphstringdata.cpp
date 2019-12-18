@@ -1,8 +1,9 @@
 #include <boost\thread.hpp>
-#include "hkbbehaviorgraphstringdata.h"
+
 #include "highestscore.h"
 #include "hkrootlevelcontainer.h"
-#include "src\utilities\stringdatalock.h"
+#include "hkbbehaviorgraphstringdata.h"
+
 
 using namespace std;
 boost::atomic_flag datalock = BOOST_ATOMIC_FLAG_INIT;
@@ -410,7 +411,7 @@ void hkbbehaviorgraphstringdata::match(shared_ptr<hkbobject> counterpart)
 		}
 		else output.push_back(openParam(base, "eventNames", size));		// 2
 
-		eventfunc::matchScoring(*eventNames, (*ctrpart->eventNames), ID, behaviorgraphstringdata::classname);
+		eventfunc::matchScoring(*eventNames, *ctrpart->eventNames, ID, behaviorgraphstringdata::classname);
 		size = eventNames->size();
 
 		for (usize i = 0; i < size; ++i)
@@ -487,7 +488,7 @@ void hkbbehaviorgraphstringdata::match(shared_ptr<hkbobject> counterpart)
 		}
 		else output.push_back(openParam(base, "attributeNames", size));		// 2
 
-		attributefunc::matchScoring(*attributeNames, (*ctrpart->attributeNames), ID, behaviorgraphstringdata::classname);
+		attributefunc::matchScoring(*attributeNames, *ctrpart->attributeNames, ID, behaviorgraphstringdata::classname);
 		size = attributeNames->size();
 
 		for (usize i = 0; i < size; ++i)
@@ -564,7 +565,7 @@ void hkbbehaviorgraphstringdata::match(shared_ptr<hkbobject> counterpart)
 		}
 		else output.push_back(openParam(base, "variableNames", size));		// 2
 
-		variablefunc::matchScoring(*variableNames, (*ctrpart->variableNames), ID, behaviorgraphstringdata::classname);
+		variablefunc::matchScoring(*variableNames, *ctrpart->variableNames, ID, behaviorgraphstringdata::classname);
 		size = variableNames->size();
 
 		for (usize i = 0; i < size; ++i)
@@ -641,7 +642,7 @@ void hkbbehaviorgraphstringdata::match(shared_ptr<hkbobject> counterpart)
 		}
 		else output.push_back(openParam(base, "characterPropertyNames", size));		// 2
 
-		variablefunc::matchScoring(*characterPropertyNames, (*ctrpart->characterPropertyNames), ID, behaviorgraphstringdata::classname);
+		variablefunc::matchScoring(*characterPropertyNames, *ctrpart->characterPropertyNames, ID, behaviorgraphstringdata::classname);
 		size = characterPropertyNames->size();
 
 		for (usize i = 0; i < size; ++i)
@@ -706,8 +707,6 @@ void hkbbehaviorgraphstringdata::match(shared_ptr<hkbobject> counterpart)
 
 	output.push_back(closeObject(base));	// 1
 	NemesisReaderFormat(stoi(ID.substr(1)), output);
-	--num_stringData;
-	cont_stringData.notify_all();
 	outputExtraction("mod/" + modcode + "/" + shortFileName + "/" + ID + ".txt", behaviorgraphstringdata::classname, output, isEdited);
 }
 
@@ -847,8 +846,6 @@ void hkbbehaviorgraphstringdata::newNode()
 
 	output.push_back(closeObject(base));	// 1
 	NemesisReaderFormat(stoi(ID.substr(1)), output);
-	--num_stringData;
-	cont_stringData.notify_all();
 	outputExtraction(filename, behaviorgraphstringdata::classname, output, true);
 }
 
