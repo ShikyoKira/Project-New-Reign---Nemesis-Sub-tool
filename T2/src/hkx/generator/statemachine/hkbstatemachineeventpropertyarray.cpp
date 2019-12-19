@@ -250,7 +250,7 @@ void hkbstatemachineeventpropertyarray::match(shared_ptr<hkbobject> counterpart)
 
 			while (i < size)
 			{
-				if (ctrpart->events[i].id.nodeID.length() == 0 && ctrpart->events[i].id.id == -1)
+				if (ctrpart->events[i].id.nodeID.length() != 0 || ctrpart->events[i].id.id != -1)
 				{
 					--i;
 					break;
