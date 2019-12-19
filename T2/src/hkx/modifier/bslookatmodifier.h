@@ -27,7 +27,7 @@ public:
 		double limitAngleDegrees;
 		double onGain;
 		double offGain;
-		bool enable;
+		bool enabled;
 
 		bone() : proxy(true) {}
 		bone(int n_index) : index(n_index), proxy(false) {}

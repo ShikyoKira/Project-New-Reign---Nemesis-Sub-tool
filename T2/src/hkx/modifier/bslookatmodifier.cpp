@@ -135,7 +135,7 @@ void bslookatmodifier::dataBake(string filepath, vecstr& nodelines, bool isEdite
 				}
 				case 11:
 				{
-					if (readParam("enable", line, curbone->back().enable)) type = 6;
+					if (readParam("enabled", line, curbone->back().enabled)) type = 6;
 
 					break;
 				}
@@ -539,7 +539,7 @@ void bslookatmodifier::matchScoring(vector<bone>& ori, vector<bone>& edit, strin
 				++scorelist[i][j];
 			}
 
-			if (ori[i].enable == edit[j].enable)
+			if (ori[i].enabled == edit[j].enabled)
 			{
 				++scorelist[i][j];
 			}
@@ -652,7 +652,7 @@ void bslookatmodifier::elementCompare(vector<bone>& ori, vector<bone>& edit, vec
 			paramMatch("limitAngleDegrees", ori[i].limitAngleDegrees, edit[i].limitAngleDegrees, output, storeline, base, false, open, isEdited);
 			paramMatch("onGain", ori[i].onGain, edit[i].onGain, output, storeline, base, false, open, isEdited);
 			paramMatch("offGain", ori[i].offGain, edit[i].offGain, output, storeline, base, false, open, isEdited);
-			paramMatch("enable", ori[i].enable, edit[i].enable, output, storeline, base, true, open, isEdited);
+			paramMatch("enabled", ori[i].enabled, edit[i].enabled, output, storeline, base, true, open, isEdited);
 			output.push_back(closeObject(base));		// 3
 		}
 	}
@@ -683,7 +683,7 @@ void bslookatmodifier::elementNew(vecstr& output, bone& bone, usize& base)
 	output.push_back(autoParam(base, "limitAngleDegrees", bone.limitAngleDegrees));
 	output.push_back(autoParam(base, "onGain", bone.onGain));
 	output.push_back(autoParam(base, "offGain", bone.offGain));
-	output.push_back(autoParam(base, "enable", bone.enable));
+	output.push_back(autoParam(base, "enabled", bone.enabled));
 	output.push_back(closeObject(base));		// 3
 }
 
