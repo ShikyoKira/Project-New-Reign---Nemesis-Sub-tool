@@ -236,6 +236,7 @@ void bsboneswitchgenerator::match(shared_ptr<hkbobject> counterpart)
 	paramMatch("variableBindingSet", variableBindingSet, ctrpart->variableBindingSet, output, storeline, base, false, open, isEdited);
 	paramMatch("userData", userData, ctrpart->userData, output, storeline, base, false, open, isEdited);
 	paramMatch("name", name, ctrpart->name, output, storeline, base, true, open, isEdited);
+	paramMatch("pDefaultGenerator", pDefaultGenerator, ctrpart->pDefaultGenerator, output, storeline, base, true, open, isEdited);
 	
 	usize size = ChildrenA.size();
 	usize orisize = size;
@@ -304,7 +305,6 @@ void bsboneswitchgenerator::match(shared_ptr<hkbobject> counterpart)
 	}
 	else nemesis::try_close(open, output, storeline);
 
-	paramMatch("pDefaultGenerator", pDefaultGenerator, ctrpart->pDefaultGenerator, output, storeline, base, true, open, isEdited);
 	output.push_back(closeObject(base));		// 1
 	NemesisReaderFormat(stoi(ID.substr(1)), output);
 	outputExtraction("mod/" + modcode + "/" + shortFileName + "/" + ID + ".txt", boneswitchgenerator::classname, output, isEdited);
@@ -322,6 +322,7 @@ void bsboneswitchgenerator::newNode()
 	output.push_back(autoParam(base, "variableBindingSet", variableBindingSet));
 	output.push_back(autoParam(base, "userData", userData));
 	output.push_back(autoParam(base, "name", name));
+	output.push_back(autoParam(base, "pDefaultGenerator", pDefaultGenerator));
 
 	usize size = ChildrenA.size();
 
@@ -339,7 +340,6 @@ void bsboneswitchgenerator::newNode()
 
 	if (size > 0) output.push_back(closeParam(base));		// 2
 
-	output.push_back(autoParam(base, "pDefaultGenerator", pDefaultGenerator));
 	output.push_back(closeObject(base));		// 1
 	NemesisReaderFormat(stoi(ID.substr(1)), output);
 	outputExtraction(filename, boneswitchgenerator::classname, output, true);
