@@ -438,9 +438,6 @@
     <ClCompile Include="src\hkx\generator\statemachine\hkbstatechooser.cpp">
       <Filter>Source Files\hkbclasses\generator\statemachine</Filter>
     </ClCompile>
-    <ClCompile Include="AnimSetData\animsetdatamatch.cpp">
-      <Filter>Source Files\animdata</Filter>
-    </ClCompile>
     <ClCompile Include="src\hkx\hkbobject.cpp">
       <Filter>Source Files\hkbclasses</Filter>
     </ClCompile>
@@ -488,6 +485,9 @@
     </ClCompile>
     <ClCompile Include="src\utilities\qstransform.cpp">
       <Filter>Source Files\utilities</Filter>
+    </ClCompile>
+    <ClCompile Include="AnimSetData\animsetdatamatch.cpp">
+      <Filter>Source Files\animsetdata</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
