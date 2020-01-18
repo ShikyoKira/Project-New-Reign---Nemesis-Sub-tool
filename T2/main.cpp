@@ -41,7 +41,6 @@ void Clearing(string filename, bool edited)
 
 	vecstr storeline;
 	GetFunctionLines(filename, storeline);
-
 	string* checker = &(edited ? checkEdit : checkOri);
 
 	for (auto& line : storeline)
