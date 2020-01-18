@@ -360,51 +360,157 @@ bool matchProjectScoring(vecstr& ori, vecstr& edit, string filename)
 bool matchDetailedScoring(vecstr& ori, vecstr& edit, string filename)
 {
 	map<int, map<int, double>> scorelist;
+	unsigned int curOrder = 0;
+	ori.insert(ori.begin(), "0");
+	edit.insert(edit.begin(), "0");
 
-	// match scoring
-	for (unsigned int i = 0; i < ori.size(); ++i)
+	if (ori.size() < edit.size())
 	{
-		for (unsigned int j = 0; j < edit.size(); ++j)
+		// match scoring
+		for (unsigned int i = 0; i < ori.size(); ++i)
 		{
-			scorelist[i][j] = 0;
+			double highest = 0;
 
-			if (stod(ori[i]) == stod(edit[j]))
+			// setup
+			for (unsigned int j = 0; j < edit.size(); ++j)
 			{
-				scorelist[i][j] += 200;
-			}
-			else
-			{
-				double oriindex = stod(boost::regex_replace(string(ori[i]), boost::regex("[^0-9]*([0-9]+(\\.([0-9]+)?)?).*"), string("\\1"))) + 1;
-				double newindex = stod(boost::regex_replace(string(edit[j]), boost::regex("[^0-9]*([0-9]+(\\.([0-9]+)?)?).*"), string("\\1"))) + 1;
-
-				if (oriindex == 0 && newindex == 0)
-				{
-					scorelist[i][j] += 100;
-				}
-				else
-				{
-					double max = oriindex > newindex ? oriindex : newindex;
-					double difference = max - min(oriindex, newindex);
-					difference = (max - difference) / max;
-					scorelist[i][j] += difference * 100;
-				}
-
 				if (i == 0 && j == 0)
 				{
-					scorelist[i][j] += 100;
+					scorelist[i][j] = 1;
 				}
 				else
 				{
 					double max = i > j ? i : j;
 					double difference = max - min(i, j);
 					difference = (max - difference) / max;
-					scorelist[i][j] += difference * 100;
+					scorelist[i][j] = difference;
 				}
+			}
+
+			for (unsigned int j = curOrder; j < edit.size(); ++j)
+			{
+				double input;
+
+				if (stod(ori[i]) == stod(edit[j]))
+				{
+					input = 10000;
+				}
+				else
+				{
+					double oriindex = stod(boost::regex_replace(string(ori[i]), boost::regex("[^0-9]*([0-9]+(\\.([0-9]+)?)?).*"), string("\\1"))) + 1;
+					double newindex = stod(boost::regex_replace(string(edit[j]), boost::regex("[^0-9]*([0-9]+(\\.([0-9]+)?)?).*"), string("\\1"))) + 1;
+
+					if (oriindex == 0 && newindex == 0)
+					{
+						input = 10000;
+					}
+					else
+					{
+						double max = oriindex > newindex ? oriindex : newindex;
+						double difference = max - min(oriindex, newindex);
+						difference = (max - difference) / max;
+						input = difference * 10000;
+					}
+				}
+
+				if (highest < input)
+				{
+					highest = input;
+					curOrder = j;
+
+					if (input == 10000)
+					{
+						break;
+					}
+				}
+
+
+			}
+
+			if (highest > 0)
+			{
+				scorelist[i][curOrder] = highest;
+			}
+		}
+	}
+	else
+	{
+		// match scoring
+		for (unsigned int i = 0; i < ori.size(); ++i)
+		{
+			double highest = 0;
+
+			// setup
+			for (unsigned int j = 0; j < curOrder; ++j)
+			{
+				scorelist[i][j] = 0;
+			}
+
+			for (unsigned int j = curOrder; j < edit.size(); ++j)
+			{
+				double input;
+
+				if (stod(ori[i]) == stod(edit[j]))
+				{
+					input = 10000;
+				}
+				else
+				{
+					double oriindex = stod(boost::regex_replace(string(ori[i]), boost::regex("[^0-9]*([0-9]+(\\.([0-9]+)?)?).*"), string("\\1"))) + 1;
+					double newindex = stod(boost::regex_replace(string(edit[j]), boost::regex("[^0-9]*([0-9]+(\\.([0-9]+)?)?).*"), string("\\1"))) + 1;
+
+					if (oriindex == 0 && newindex == 0)
+					{
+						input = 10000;
+					}
+					else
+					{
+						double max = oriindex > newindex ? oriindex : newindex;
+						double difference = max - min(oriindex, newindex);
+						difference = (max - difference) / max;
+						input = difference * 10000;
+					}
+				}
+
+				if (highest < input)
+				{
+					highest = input;
+					curOrder = j;
+
+					if (input == 10000)
+					{
+						break;
+					}
+				}
+			}
+
+			if (highest > 0)
+			{
+				scorelist[i][curOrder] = highest;
 			}
 		}
 	}
 
 	vector<orderPair> pairing = highestScore(scorelist, ori.size(), edit.size());
+
+	if (ori.size() < edit.size())
+	{
+		vector<orderPair> repair;
+		map<int, int> remap;
+
+		for (auto& order : pairing)
+		{
+			remap[order.edited] = order.original;
+		}
+
+		for (auto& order : remap)
+		{
+			repair.push_back(orderPair(order.second, order.first));
+		}
+
+		pairing = repair;
+	}
+
 	vecstr newOri;
 	vecstr newEdit;
 	newOri.reserve(ori.size());
@@ -437,6 +543,8 @@ bool matchDetailedScoring(vecstr& ori, vecstr& edit, string filename)
 		}
 	}
 
+	newOri.erase(newOri.begin());
+	newEdit.erase(newEdit.begin());
 	ori = newOri;
 	edit = newEdit;
 	return true;

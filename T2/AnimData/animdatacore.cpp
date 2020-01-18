@@ -7,6 +7,8 @@ using namespace std;
 
 void ProxyProject(int counter, string folder);
 void ProjectProcessing(int i, string folder);
+void closeBracket(vecstr& output, vecstr& storeline, bool& open);
+void datalistProcess(vecstr& oriSource, vecstr& editSource, vecstr& output, vecstr& storeline, bool& IsEdited, bool& open);
 
 void animDataProcess()
 {
@@ -30,6 +32,7 @@ void animDataProcess()
 			{
 				output.push_back("<!-- MOD_CODE ~" + modcode + "~ OPEN -->");
 				IsEdited = true;
+				open = true;
 			}
 
 			while (i < AnimDataOriginal.size())
@@ -51,8 +54,7 @@ void animDataProcess()
 				++i;
 			}
 
-			output.push_back("<!-- CLOSE -->");
-			open = false;
+			closeBracket(output, storeline, open);
 		}
 		else if (AnimDataEdited[i]->proxy)		// deleted project
 		{
@@ -78,35 +80,12 @@ void animDataProcess()
 		}
 		else
 		{
-			if (open)
-			{
-				if (storeline.size() > 0)
-				{
-					output.push_back("<!-- ORIGINAL -->");
-					output.insert(output.end(), storeline.begin(), storeline.end());
-				}
-
-				output.push_back("<!-- CLOSE -->");
-				storeline.clear();
-				open = false;
-			}
-
+			closeBracket(output, storeline, open);
 			output.push_back(AnimDataOriginal[i]->name);
 		}
 	}
 
-	if (open)
-	{
-		if (storeline.size() > 0)
-		{
-			output.push_back("<!-- ORIGINAL -->");
-			output.insert(output.end(), storeline.begin(), storeline.end());
-		}
-
-		output.push_back("<!-- CLOSE -->");
-		storeline.clear();
-		open = false;
-	}
+	closeBracket(output, storeline, open);
 
 	if (IsEdited)
 	{
@@ -340,15 +319,7 @@ void ProjectProcessing(int i, string folder)
 			}
 			else
 			{
-				if (open)
-				{
-					output.push_back("<!-- ORIGINAL -->");
-					output.insert(output.end(), storeline.begin(), storeline.end());
-					output.push_back("<!-- CLOSE -->");
-					storeline.clear();
-					open = false;
-				}
-
+				closeBracket(output, storeline, open);
 				output.push_back(to_string(AnimDataOriginal[i]->behaviorlist.size()));
 			}
 
@@ -381,15 +352,7 @@ void ProjectProcessing(int i, string folder)
 				}
 				else
 				{
-					if (open)
-					{
-						output.push_back("<!-- ORIGINAL -->");
-						output.insert(output.end(), storeline.begin(), storeline.end());
-						output.push_back("<!-- CLOSE -->");
-						storeline.clear();
-						open = false;
-					}
-
+					closeBracket(output, storeline, open);
 					output.push_back(oribehaviorlist[j]);
 				}
 			}
@@ -408,15 +371,7 @@ void ProjectProcessing(int i, string folder)
 			}
 			else
 			{
-				if (open)
-				{
-					output.push_back("<!-- ORIGINAL -->");
-					output.insert(output.end(), storeline.begin(), storeline.end());
-					output.push_back("<!-- CLOSE -->");
-					storeline.clear();
-					open = false;
-				}
-
+				closeBracket(output, storeline, open);
 				output.push_back(AnimDataOriginal[i]->unknown2);
 			}
 		}
@@ -673,15 +628,7 @@ void ProjectProcessing(int i, string folder)
 					}
 					else
 					{
-						if (open)
-						{
-							output.push_back("<!-- ORIGINAL -->");
-							output.insert(output.end(), storeline.begin(), storeline.end());
-							output.push_back("<!-- CLOSE -->");
-							storeline.clear();
-							open = false;
-						}
-
+						closeBracket(output, storeline, open);
 						output.push_back(uniquecode);
 					}
 
@@ -699,15 +646,7 @@ void ProjectProcessing(int i, string folder)
 					}
 					else
 					{
-						if (open)
-						{
-							output.push_back("<!-- ORIGINAL -->");
-							output.insert(output.end(), storeline.begin(), storeline.end());
-							output.push_back("<!-- CLOSE -->");
-							storeline.clear();
-							open = false;
-						}
-
+						closeBracket(output, storeline, open);
 						output.push_back(oriAnimData->unknown1);
 					}
 
@@ -725,15 +664,7 @@ void ProjectProcessing(int i, string folder)
 					}
 					else
 					{
-						if (open)
-						{
-							output.push_back("<!-- ORIGINAL -->");
-							output.insert(output.end(), storeline.begin(), storeline.end());
-							output.push_back("<!-- CLOSE -->");
-							storeline.clear();
-							open = false;
-						}
-
+						closeBracket(output, storeline, open);
 						output.push_back(oriAnimData->unknown2);
 					}
 
@@ -751,15 +682,7 @@ void ProjectProcessing(int i, string folder)
 					}
 					else
 					{
-						if (open)
-						{
-							output.push_back("<!-- ORIGINAL -->");
-							output.insert(output.end(), storeline.begin(), storeline.end());
-							output.push_back("<!-- CLOSE -->");
-							storeline.clear();
-							open = false;
-						}
-
+						closeBracket(output, storeline, open);
 						output.push_back(oriAnimData->unknown3);
 					}
 
@@ -777,15 +700,7 @@ void ProjectProcessing(int i, string folder)
 					}
 					else
 					{
-						if (open)
-						{
-							output.push_back("<!-- ORIGINAL -->");
-							output.insert(output.end(), storeline.begin(), storeline.end());
-							output.push_back("<!-- CLOSE -->");
-							storeline.clear();
-							open = false;
-						}
-
+						closeBracket(output, storeline, open);
 						output.push_back(to_string(oriAnimData->eventname.size()));
 					}
 
@@ -810,6 +725,7 @@ void ProjectProcessing(int i, string folder)
 							{
 								output.push_back("<!-- MOD_CODE ~" + modcode + "~ OPEN -->");
 								IsEdited = true;
+								open = true;
 							}
 
 							while (k < oriEvents.size())
@@ -831,8 +747,7 @@ void ProjectProcessing(int i, string folder)
 								++k;
 							}
 
-							output.push_back("<!-- CLOSE -->");
-							open = false;
+							closeBracket(output, storeline, open);
 						}
 						else if (editEvents[k] == "//* delete this line *//")		// deleted event
 						{
@@ -872,42 +787,16 @@ void ProjectProcessing(int i, string folder)
 							}
 							else
 							{
-								if (open)
-								{
-									output.push_back("<!-- ORIGINAL -->");
-									output.insert(output.end(), storeline.begin(), storeline.end());
-									output.push_back("<!-- CLOSE -->");
-									storeline.clear();
-									open = false;
-								}
-
+								closeBracket(output, storeline, open);
 								output.push_back(oriEvents[k]);
 							}
 						}
 					}
 
-					if (open)
-					{
-						output.push_back("<!-- ORIGINAL -->");
-						output.insert(output.end(), storeline.begin(), storeline.end());
-						output.push_back("<!-- CLOSE -->");
-						storeline.clear();
-						open = false;
-					}
+					closeBracket(output, storeline, open);
 				}
 
-				if (open)
-				{
-					if (storeline.size() > 0)
-					{
-						output.push_back("<!-- ORIGINAL -->");
-						output.insert(output.end(), storeline.begin(), storeline.end());
-						storeline.clear();
-					}
-
-					output.push_back("<!-- CLOSE -->");
-					open = false;
-				}
+				closeBracket(output, storeline, open);
 
 				if (IsEdited)
 				{
@@ -1065,283 +954,35 @@ void ProjectProcessing(int i, string folder)
 					}
 					else
 					{
-						if (open)
-						{
-							if (storeline.size() > 0)
-							{
-								output.push_back("<!-- ORIGINAL -->");
-								output.insert(output.end(), storeline.begin(), storeline.end());
-								storeline.clear();
-							}
-
-							output.push_back("<!-- CLOSE -->");
-							open = false;
-						}
-
+						closeBracket(output, storeline, open);
 						output.push_back(oriInfoData->duration);
 					}
 
-					output.push_back(to_string(oriInfoData->motiondata.size()));
-
 					if (Error)
 					{
 						return;
 					}
 
-					vecstr oriMotionDataList = oriInfoData->motiondata;
-					vecstr editMotionDataList = editInfoData->motiondata;
+					output.push_back(to_string(oriInfoData->motiondata.size()));
+					datalistProcess(oriInfoData->motiondata, editInfoData->motiondata, output, storeline, IsEdited, open);
 
-					if (!matchDetailedScoring(oriMotionDataList, editMotionDataList, targetfilenameedited))
+					if (Error)
 					{
 						return;
-					}
-
-					for (unsigned int k = 0; k < oriMotionDataList.size(); ++k)
-					{
-						if (oriMotionDataList[k] == "//* delete this line *//")		// new motion data
-						{
-							if (!open)
-							{
-								output.push_back("<!-- MOD_CODE ~" + modcode + "~ OPEN -->");
-								IsEdited = true;
-							}
-
-							while (k < oriMotionDataList.size())
-							{
-								if (oriMotionDataList[k] != "//* delete this line *//")
-								{
-									if (storeline.size() > 0)
-									{
-										output.push_back("<!-- ORIGINAL -->");
-										output.insert(output.end(), storeline.begin(), storeline.end());
-										storeline.clear();
-									}
-
-									--k;
-									break;
-								}
-
-								output.push_back(editMotionDataList[k]);
-								++k;
-							}
-
-							if (storeline.size() > 0)
-							{
-								output.push_back("<!-- ORIGINAL -->");
-								output.insert(output.end(), storeline.begin(), storeline.end());
-								storeline.clear();
-							}
-
-							output.push_back("<!-- CLOSE -->");
-							open = false;
-						}
-						else if (editMotionDataList[k] == "//* delete this line *//")		// deleted event
-						{
-							if (!open)
-							{
-								output.push_back("<!-- MOD_CODE ~" + modcode + "~ OPEN -->");
-								IsEdited = true;
-								open = true;
-							}
-
-							while (k < oriMotionDataList.size())
-							{
-								if (editMotionDataList[k] != "//* delete this line *//")
-								{
-									--k;
-									break;
-								}
-
-								output.push_back(editMotionDataList[k]);
-								storeline.push_back(oriMotionDataList[k]);
-								++k;
-							}
-						}
-						else
-						{
-							if (oriMotionDataList[k] != editMotionDataList[k])
-							{
-								if (!open)
-								{
-									output.push_back("<!-- MOD_CODE ~" + modcode + "~ OPEN -->");
-									IsEdited = true;
-									open = true;
-								}
-
-								output.push_back(editMotionDataList[k]);
-								storeline.push_back(oriMotionDataList[k]);
-							}
-							else
-							{
-								if (open)
-								{
-									if (storeline.size() > 0)
-									{
-										output.push_back("<!-- ORIGINAL -->");
-										output.insert(output.end(), storeline.begin(), storeline.end());
-										storeline.clear();
-									}
-
-									output.push_back("<!-- CLOSE -->");
-									open = false;
-								}
-
-								output.push_back(oriMotionDataList[k]);
-							}
-						}
-					}
-
-					if (open)
-					{
-						if (storeline.size() > 0)
-						{
-							output.push_back("<!-- ORIGINAL -->");
-							output.insert(output.end(), storeline.begin(), storeline.end());
-							storeline.clear();
-						}
-
-						output.push_back("<!-- CLOSE -->");
-						open = false;
 					}
 
 					output.push_back(to_string(oriInfoData->rotationdata.size()));
+					datalistProcess(oriInfoData->rotationdata, editInfoData->rotationdata, output, storeline, IsEdited, open);
 
 					if (Error)
 					{
 						return;
-					}
-
-					vecstr oriRotationDataList = oriInfoData->rotationdata;
-					vecstr editRotationDataList = editInfoData->rotationdata;
-
-					if (!matchDetailedScoring(oriRotationDataList, editRotationDataList, targetfilenameedited))
-					{
-						return;
-					}
-
-					for (unsigned int k = 0; k < oriRotationDataList.size(); ++k)
-					{
-						if (oriRotationDataList[k] == "//* delete this line *//")		// new motion data
-						{
-							if (!open)
-							{
-								output.push_back("<!-- MOD_CODE ~" + modcode + "~ OPEN -->");
-								IsEdited = true;
-							}
-
-							while (k < oriRotationDataList.size())
-							{
-								if (oriRotationDataList[k] != "//* delete this line *//")
-								{
-									if (storeline.size() > 0)
-									{
-										output.push_back("<!-- ORIGINAL -->");
-										output.insert(output.end(), storeline.begin(), storeline.end());
-										storeline.clear();
-									}
-
-									--k;
-									break;
-								}
-
-								output.push_back(editRotationDataList[k]);
-								++k;
-							}
-
-							if (storeline.size() > 0)
-							{
-								output.push_back("<!-- ORIGINAL -->");
-								output.insert(output.end(), storeline.begin(), storeline.end());
-								storeline.clear();
-							}
-
-							output.push_back("<!-- CLOSE -->");
-							open = false;
-						}
-						else if (editRotationDataList[k] == "//* delete this line *//")		// deleted event
-						{
-							if (!open)
-							{
-								output.push_back("<!-- MOD_CODE ~" + modcode + "~ OPEN -->");
-								IsEdited = true;
-								open = true;
-							}
-
-							while (k < oriRotationDataList.size())
-							{
-								if (editRotationDataList[k] != "//* delete this line *//")
-								{
-									--k;
-									break;
-								}
-
-								output.push_back(editRotationDataList[k]);
-								storeline.push_back(oriRotationDataList[k]);
-								++k;
-							}
-						}
-						else
-						{
-							if (oriRotationDataList.size() != editRotationDataList.size())
-							{
-								if (!open)
-								{
-									output.push_back("<!-- MOD_CODE ~" + modcode + "~ OPEN -->");
-									IsEdited = true;
-									open = true;
-								}
-
-								output.push_back(editRotationDataList[k]);
-								storeline.push_back(oriRotationDataList[k]);
-							}
-							else
-							{
-								if (open)
-								{
-									if (storeline.size() > 0)
-									{
-										output.push_back("<!-- ORIGINAL -->");
-										output.insert(output.end(), storeline.begin(), storeline.end());
-										storeline.clear();
-									}
-
-									output.push_back("<!-- CLOSE -->");
-									open = false;
-								}
-
-								output.push_back(oriRotationDataList[k]);
-							}
-						}
-					}
-
-					if (open)
-					{
-						if (storeline.size() > 0)
-						{
-							output.push_back("<!-- ORIGINAL -->");
-							output.insert(output.end(), storeline.begin(), storeline.end());
-							storeline.clear();
-						}
-
-						output.push_back("<!-- CLOSE -->");
-						open = false;
 					}
 
 					output.push_back("");
 				}
 
-				if (open)
-				{
-					if (storeline.size() > 0)
-					{
-						output.push_back("<!-- ORIGINAL -->");
-						output.insert(output.end(), storeline.begin(), storeline.end());
-						storeline.clear();
-					}
-
-					output.push_back("<!-- CLOSE -->");
-					open = false;
-				}
+				closeBracket(output, storeline, open);
 
 				if (IsEdited)
 				{
@@ -1393,4 +1034,109 @@ void ProjectProcessing(int i, string folder)
 	{
 		return;
 	}
+}
+
+void closeBracket(vecstr& output, vecstr& storeline, bool& open)
+{
+	if (open)
+	{
+		if (storeline.size() > 0)
+		{
+			output.push_back("<!-- ORIGINAL -->");
+			output.insert(output.end(), storeline.begin(), storeline.end());
+			storeline.clear();
+		}
+
+		output.push_back("<!-- CLOSE -->");
+		open = false;
+	}
+}
+
+void datalistProcess(vecstr& oriSource, vecstr& editSource, vecstr& output, vecstr& storeline, bool& IsEdited, bool& open)
+{
+	vecstr ori = oriSource;
+	vecstr edit = editSource;
+
+	if (!matchDetailedScoring(ori, edit, targetfilenameedited))
+	{
+		return;
+	}
+
+	for (unsigned int k = 0; k < ori.size(); ++k)
+	{
+		if (ori[k] == "//* delete this line *//")		// new motion data
+		{
+			if (!open)
+			{
+				output.push_back("<!-- MOD_CODE ~" + modcode + "~ OPEN -->");
+				IsEdited = true;
+				open = true;
+			}
+
+			while (k < ori.size())
+			{
+				if (ori[k] != "//* delete this line *//")
+				{
+					if (storeline.size() > 0)
+					{
+						output.push_back("<!-- ORIGINAL -->");
+						output.insert(output.end(), storeline.begin(), storeline.end());
+						storeline.clear();
+					}
+
+					--k;
+					break;
+				}
+
+				output.push_back(edit[k]);
+				++k;
+			}
+
+			closeBracket(output, storeline, open);
+		}
+		else if (edit[k] == "//* delete this line *//")		// deleted event
+		{
+			if (!open)
+			{
+				output.push_back("<!-- MOD_CODE ~" + modcode + "~ OPEN -->");
+				IsEdited = true;
+				open = true;
+			}
+
+			while (k < ori.size())
+			{
+				if (edit[k] != "//* delete this line *//")
+				{
+					--k;
+					break;
+				}
+
+				output.push_back(edit[k]);
+				storeline.push_back(ori[k]);
+				++k;
+			}
+		}
+		else
+		{
+			if (ori[k] != edit[k])
+			{
+				if (!open)
+				{
+					output.push_back("<!-- MOD_CODE ~" + modcode + "~ OPEN -->");
+					IsEdited = true;
+					open = true;
+				}
+
+				output.push_back(edit[k]);
+				storeline.push_back(ori[k]);
+			}
+			else
+			{
+				closeBracket(output, storeline, open);
+				output.push_back(ori[k]);
+			}
+		}
+	}
+
+	closeBracket(output, storeline, open);
 }
