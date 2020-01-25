@@ -511,8 +511,8 @@ void hkbstatemachine::newNode()
 	output.push_back(autoParam(base, "syncVariableIndex", syncVariableIndex));
 	output.push_back(autoParam(base, "wrapAroundStateId", wrapAroundStateId));
 	output.push_back(autoParam(base, "maxSimultaneousTransitions", maxSimultaneousTransitions));
-	output.push_back(autoParam(base, "startStateMode", startStateMode));
-	output.push_back(autoParam(base, "selfTransitionMode", selfTransitionMode));
+	output.push_back(autoParam(base, "startStateMode", getStartStateMode()));
+	output.push_back(autoParam(base, "selfTransitionMode", getSelfTransitionMode()));
 
 	usize size = states.size();
 	usize counter = 0;
