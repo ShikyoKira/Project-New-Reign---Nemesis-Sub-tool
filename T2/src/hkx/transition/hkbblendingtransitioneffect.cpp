@@ -1,6 +1,8 @@
-#include <boost\algorithm\string.hpp>
+#include <boost/algorithm/string.hpp>
+
 #include "hkbblendingtransitioneffect.h"
 #include "blendingOldFunction.h"
+#include "src/utilities/hkMap.h"
 
 using namespace std;
 
@@ -9,6 +11,21 @@ namespace blendingtransitioneffect
 	const string key = "j";
 	const string classname = "hkbBlendingTransitionEffect";
 	const string signature = "0xfd8584fe";
+
+	hkMap<string, hkbblendingtransitioneffect::endmode> endMap =
+	{
+		{ "END_MODE_NONE", hkbblendingtransitioneffect::END_MODE_NONE },
+		{ "END_MODE_TRANSITION_UNTIL_END_OF_FROM_GENERATOR", hkbblendingtransitioneffect::END_MODE_TRANSITION_UNTIL_END_OF_FROM_GENERATOR },
+		{ "END_MODE_CAP_DURATION_AT_END_OF_FROM_GENERATOR", hkbblendingtransitioneffect::END_MODE_CAP_DURATION_AT_END_OF_FROM_GENERATOR },
+	};
+
+	hkMap<string, hkbblendingtransitioneffect::flagbits::flag> flagMap =
+	{
+		{ "FLAG_IGNORE_TO_WORLD_FROM_MODEL", hkbblendingtransitioneffect::flagbits::flag::FLAG_IGNORE_TO_WORLD_FROM_MODEL },
+		{ "FLAG_SYNC", hkbblendingtransitioneffect::flagbits::flag::FLAG_SYNC },
+		{ "FLAG_IGNORE_FROM_WORLD_FROM_MODEL", hkbblendingtransitioneffect::flagbits::flag::FLAG_IGNORE_FROM_WORLD_FROM_MODEL },
+		{ "FLAG_NONE", hkbblendingtransitioneffect::flagbits::flag::FLAG_NONE },
+	};
 }
 
 string hkbblendingtransitioneffect::GetAddress()
@@ -67,11 +84,7 @@ void hkbblendingtransitioneffect::dataBake(string filepath, vecstr& nodelines, b
 
 					if (readParam("selfTransitionMode", line, data))
 					{
-						if (data == "SELF_TRANSITION_MODE_CONTINUE_IF_CYCLIC_BLEND_IF_ACYCLIC") selfTransitionMode = SELF_TRANSITION_MODE_CONTINUE_IF_CYCLIC_BLEND_IF_ACYCLIC;
-						else if (data == "SELF_TRANSITION_MODE_CONTINUE") selfTransitionMode = SELF_TRANSITION_MODE_CONTINUE;
-						else if (data == "SELF_TRANSITION_MODE_RESET") selfTransitionMode = SELF_TRANSITION_MODE_RESET;
-						else selfTransitionMode = SELF_TRANSITION_MODE_BLEND;
-
+						selfTransitionMode = selfTransitionMap[data];
 						++type;
 					}
 
@@ -83,11 +96,7 @@ void hkbblendingtransitioneffect::dataBake(string filepath, vecstr& nodelines, b
 
 					if (readParam("eventMode", line, data))
 					{
-						if (data == "EVENT_MODE_DEFAULT") eventMode = EVENT_MODE_DEFAULT;
-						else if (data == "EVENT_MODE_PROCESS_ALL") eventMode = EVENT_MODE_PROCESS_ALL;
-						else if (data == "EVENT_MODE_IGNORE_FROM_GENERATOR") eventMode = EVENT_MODE_IGNORE_FROM_GENERATOR;
-						else eventMode = EVENT_MODE_IGNORE_TO_GENERATOR;
-
+						eventMode = eventMap[data];
 						++type;
 					}
 
@@ -131,10 +140,7 @@ void hkbblendingtransitioneffect::dataBake(string filepath, vecstr& nodelines, b
 
 					if (readParam("endMode", line, data))
 					{
-						if (data == "END_MODE_NONE") endMode = END_MODE_NONE;
-						else if (data == "END_MODE_TRANSITION_UNTIL_END_OF_FROM_GENERATOR") endMode = END_MODE_TRANSITION_UNTIL_END_OF_FROM_GENERATOR;
-						else endMode = END_MODE_CAP_DURATION_AT_END_OF_FROM_GENERATOR;
-
+						endMode = blendingtransitioneffect::endMap[data];
 						++type;
 					}
 
@@ -146,11 +152,7 @@ void hkbblendingtransitioneffect::dataBake(string filepath, vecstr& nodelines, b
 
 					if (readParam("blendCurve", line, data))
 					{
-						if (data == "BLEND_CURVE_SMOOTH") blendCurve = BLEND_CURVE_SMOOTH;
-						else if (data == "BLEND_CURVE_LINEAR") blendCurve = BLEND_CURVE_LINEAR;
-						else if (data == "BLEND_CURVE_LINEAR_TO_SMOOTH") blendCurve = BLEND_CURVE_LINEAR_TO_SMOOTH;
-						else blendCurve = BLEND_CURVE_SMOOTH_TO_LINEAR;
-
+						blendCurve = curveMap[data];
 						++type;
 					}
 				}
@@ -350,23 +352,17 @@ void hkbblendingtransitioneffect::nextNode(string filepath, int functionlayer, b
 
 string hkbblendingtransitioneffect::getEndMode()
 {
-	switch (endMode)
-	{
-		case END_MODE_NONE: return "END_MODE_NONE";
-		case END_MODE_TRANSITION_UNTIL_END_OF_FROM_GENERATOR: return "END_MODE_TRANSITION_UNTIL_END_OF_FROM_GENERATOR";
-		case END_MODE_CAP_DURATION_AT_END_OF_FROM_GENERATOR: return "END_MODE_CAP_DURATION_AT_END_OF_FROM_GENERATOR";
-		default: return "END_MODE_NONE";
-	}
+	return blendingtransitioneffect::endMap[endMode];
 }
 
 string hkbblendingtransitioneffect::flagbits::getflags()
 {
 	string flags;
 
-	if (FLAG_IGNORE_TO_WORLD_FROM_MODEL) flags.append("FLAG_IGNORE_TO_WORLD_FROM_MODEL|");
-	if (FLAG_SYNC) flags.append("FLAG_SYNC|");
-	if (FLAG_IGNORE_FROM_WORLD_FROM_MODEL) flags.append("FLAG_IGNORE_FROM_WORLD_FROM_MODEL|");
-	if (FLAG_NONE) flags.append("FLAG_NONE|");
+	for (auto& flg : blendingtransitioneffect::flagMap)
+	{
+		if (data & ~flg.second) flags.append(flg.first + "|");
+	}
 
 	if (flags.length() == 0) return "0";
 
@@ -376,8 +372,7 @@ string hkbblendingtransitioneffect::flagbits::getflags()
 
 void hkbblendingtransitioneffect::flagbits::update(string flag)
 {
-	if (flag == "FLAG_NONE") FLAG_NONE = true;
-	else if (flag == "FLAG_IGNORE_FROM_WORLD_FROM_MODEL") FLAG_IGNORE_FROM_WORLD_FROM_MODEL = true;
-	else if (flag == "FLAG_SYNC") FLAG_SYNC = true;
-	else if (flag == "FLAG_IGNORE_TO_WORLD_FROM_MODEL") FLAG_IGNORE_TO_WORLD_FROM_MODEL = true;
+	usize data2 = static_cast<usize>(data);
+	data2 |= blendingtransitioneffect::flagMap[flag];
+	data = static_cast<hkbblendingtransitioneffect::flagbits::flag>(data2);
 }

@@ -24,7 +24,7 @@ struct hkbvariableinfo
 
 	struct roleattribute
 	{
-		enum role
+		enum Role
 		{
 			ROLE_DEFAULT,
 			ROLE_FILE_NAME,
@@ -38,13 +38,18 @@ struct hkbvariableinfo
 
 		struct roleflags
 		{
-			bool FLAG_NONE = false;
-			bool FLAG_RAGDOLL = false;
-			bool FLAG_NORMALIZED = false;
-			bool FLAG_NOT_VARIABLE = false;
-			bool FLAG_HIDDEN = false;
-			bool FLAG_OUTPUT = false;
-			bool FLAG_NOT_CHARACTER_PROPERTY = false;
+			enum flags
+			{
+				FLAG_NONE = 0,
+				FLAG_RAGDOLL = 1,
+				FLAG_NORMALIZED = 2,
+				FLAG_NOT_VARIABLE = 4,
+				FLAG_HIDDEN = 8,
+				FLAG_OUTPUT = 16,
+				FLAG_NOT_CHARACTER_PROPERTY = 32,
+			};
+
+			flags data;
 			vecstr UNKNOWN_BITS;
 
 			std::string getflags();
@@ -54,7 +59,7 @@ struct hkbvariableinfo
 			bool operator!=(roleflags& ctrpart);
 		};
 
-		role role;
+		Role role;
 		roleflags flags;
 
 		std::string getRole();

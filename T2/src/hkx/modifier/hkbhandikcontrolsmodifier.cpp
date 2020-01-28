@@ -1,6 +1,7 @@
 #include <boost\thread.hpp>
 #include "hkbhandikcontrolsmodifier.h"
 #include "highestscore.h"
+#include "src/utilities/hkMap.h"
 
 using namespace std;
 
@@ -9,6 +10,12 @@ namespace handikcontrolsmodifier
 	const string key = "by";
 	const string classname = "hkbHandIkControlsModifier";
 	const string signature = "0x9f0488bb";
+
+	hkMap<string, hkbhandikcontrolsmodifier::hkhand::controldata::handlechangemode> modeMap =
+	{
+		{ "HANDLE_CHANGE_MODE_ABRUPT", hkbhandikcontrolsmodifier::hkhand::controldata::HANDLE_CHANGE_MODE_ABRUPT },
+		{ "HANDLE_CHANGE_MODE_CONSTANT_VELOCITY", hkbhandikcontrolsmodifier::hkhand::controldata::HANDLE_CHANGE_MODE_CONSTANT_VELOCITY },
+	};
 }
 
 string hkbhandikcontrolsmodifier::GetAddress()
@@ -18,12 +25,7 @@ string hkbhandikcontrolsmodifier::GetAddress()
 
 string hkbhandikcontrolsmodifier::hkhand::controldata::getHandleChangeMode()
 {
-	switch (handleChangeMode)
-	{
-	case HANDLE_CHANGE_MODE_ABRUPT: return "HANDLE_CHANGE_MODE_ABRUPT";
-	case HANDLE_CHANGE_MODE_CONSTANT_VELOCITY: return "HANDLE_CHANGE_MODE_CONSTANT_VELOCITY";
-	default: return "HANDLE_CHANGE_MODE_ABRUPT";
-	}
+	return handikcontrolsmodifier::modeMap[handleChangeMode];
 }
 
 safeStringUMap<shared_ptr<hkbhandikcontrolsmodifier>> hkbhandikcontrolsmodifierList;
@@ -165,8 +167,7 @@ void hkbhandikcontrolsmodifier::dataBake(string filepath, vecstr& nodelines, boo
 
 					if (readParam("handleChangeMode", line, output))
 					{
-						hands.back().controlData.handleChangeMode = output == "HANDLE_CHANGE_MODE_ABRUPT" ? hkhand::controldata::HANDLE_CHANGE_MODE_ABRUPT :
-							hkhand::controldata::HANDLE_CHANGE_MODE_CONSTANT_VELOCITY;
+						hands.back().controlData.handleChangeMode = handikcontrolsmodifier::modeMap[output];
 						++type;
 					}
 

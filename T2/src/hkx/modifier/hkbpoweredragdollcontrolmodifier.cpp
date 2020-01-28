@@ -1,5 +1,7 @@
-#include <boost\thread.hpp>
+#include <boost/thread.hpp>
+
 #include "hkbpoweredragdollcontrolmodifier.h"
+#include "src/utilities/hkMap.h"
 
 using namespace std;
 
@@ -8,6 +10,15 @@ namespace poweredragdollcontrolmodifier
 	const string key = "bc";
 	const string classname = "hkbPoweredRagdollControlsModifier";
 	const string signature = "0x7cb54065";
+
+	hkMap<string, hkbpoweredragdollcontrolmodifier::worldfrommodelmodedata::worldfrommodelmode> modeMap =
+	{
+		{ "WORLD_FROM_MODEL_MODE_USE_OLD", hkbpoweredragdollcontrolmodifier::worldfrommodelmodedata::WORLD_FROM_MODEL_MODE_USE_OLD },
+		{ "WORLD_FROM_MODEL_MODE_USE_INPUT", hkbpoweredragdollcontrolmodifier::worldfrommodelmodedata::WORLD_FROM_MODEL_MODE_USE_INPUT },
+		{ "WORLD_FROM_MODEL_MODE_COMPUTE", hkbpoweredragdollcontrolmodifier::worldfrommodelmodedata::WORLD_FROM_MODEL_MODE_COMPUTE },
+		{ "WORLD_FROM_MODEL_MODE_NONE", hkbpoweredragdollcontrolmodifier::worldfrommodelmodedata::WORLD_FROM_MODEL_MODE_NONE },
+		{ "WORLD_FROM_MODEL_MODE_RAGDOLL", hkbpoweredragdollcontrolmodifier::worldfrommodelmodedata::WORLD_FROM_MODEL_MODE_RAGDOLL },
+	};
 }
 
 string hkbpoweredragdollcontrolmodifier::GetAddress()
@@ -17,15 +28,7 @@ string hkbpoweredragdollcontrolmodifier::GetAddress()
 
 string hkbpoweredragdollcontrolmodifier::worldfrommodelmodedata::getMode()
 {
-	switch (mode)
-	{
-	case WORLD_FROM_MODEL_MODE_USE_OLD: return "WORLD_FROM_MODEL_MODE_USE_OLD";
-	case WORLD_FROM_MODEL_MODE_USE_INPUT: return "WORLD_FROM_MODEL_MODE_USE_INPUT";
-	case WORLD_FROM_MODEL_MODE_COMPUTE: return "WORLD_FROM_MODEL_MODE_COMPUTE";
-	case WORLD_FROM_MODEL_MODE_NONE: return "WORLD_FROM_MODEL_MODE_NONE";
-	case WORLD_FROM_MODEL_MODE_RAGDOLL: return "WORLD_FROM_MODEL_MODE_RAGDOLL";
-	default: return "WORLD_FROM_MODEL_MODE_USE_OLD";
-	}
+	return poweredragdollcontrolmodifier::modeMap[mode];
 }
 
 safeStringUMap<shared_ptr<hkbpoweredragdollcontrolmodifier>> hkbpoweredragdollcontrolmodifierList;
@@ -142,12 +145,7 @@ void hkbpoweredragdollcontrolmodifier::dataBake(string filepath, vecstr& nodelin
 
 					if (readParam("mode", line, data))
 					{
-						if (data == "WORLD_FROM_MODEL_MODE_USE_OLD") worldFromModelModeData.mode = worldfrommodelmodedata::WORLD_FROM_MODEL_MODE_USE_OLD;
-						else if (data == "WORLD_FROM_MODEL_MODE_USE_INPUT") worldFromModelModeData.mode = worldfrommodelmodedata::WORLD_FROM_MODEL_MODE_USE_INPUT;
-						else if (data == "WORLD_FROM_MODEL_MODE_COMPUTE") worldFromModelModeData.mode = worldfrommodelmodedata::WORLD_FROM_MODEL_MODE_COMPUTE;
-						else if (data == "WORLD_FROM_MODEL_MODE_NONE") worldFromModelModeData.mode = worldfrommodelmodedata::WORLD_FROM_MODEL_MODE_NONE;
-						else worldFromModelModeData.mode = worldfrommodelmodedata::WORLD_FROM_MODEL_MODE_RAGDOLL;
-
+						worldFromModelModeData.mode = poweredragdollcontrolmodifier::modeMap[data];
 						++type;
 					}
 				}

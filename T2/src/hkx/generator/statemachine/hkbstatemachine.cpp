@@ -1,7 +1,10 @@
-#include <boost\thread.hpp>
+#include <boost/thread.hpp>
+
 #include "hkbstatemachine.h"
 #include "generatorlines.h"
-#include "src\stateid.h"
+
+#include "src/stateid.h"
+#include "src/utilities/hkMap.h"
 
 using namespace std;
 
@@ -10,6 +13,21 @@ namespace statemachine
 	const string key = "r";
 	const string classname = "hkbStateMachine";
 	const string signature = "0x816c1dcb";
+	
+	hkMap<string, hkbstatemachine::startstatemode> startModeMap =
+	{
+		{ "START_STATE_MODE_DEFAULT", hkbstatemachine::START_STATE_MODE_DEFAULT },
+		{ "START_STATE_MODE_SYNC", hkbstatemachine::START_STATE_MODE_SYNC },
+		{ "START_STATE_MODE_RANDOM", hkbstatemachine::START_STATE_MODE_RANDOM },
+		{ "START_STATE_MODE_CHOOSER", hkbstatemachine::START_STATE_MODE_CHOOSER },
+	};
+
+	hkMap<string, hkbstatemachine::statemachineselftransitionmode> transitionModeMap =
+	{
+		{ "SELF_TRANSITION_MODE_NO_TRANSITION", hkbstatemachine::SELF_TRANSITION_MODE_NO_TRANSITION },
+		{ "SELF_TRANSITION_MODE_TRANSITION_TO_START_STATE", hkbstatemachine::SELF_TRANSITION_MODE_TRANSITION_TO_START_STATE },
+		{ "SELF_TRANSITION_MODE_FORCE_TRANSITION_TO_START_STATE", hkbstatemachine::SELF_TRANSITION_MODE_FORCE_TRANSITION_TO_START_STATE },
+	};
 }
 
 string hkbstatemachine::GetAddress()
@@ -148,11 +166,7 @@ void hkbstatemachine::dataBake(string filepath, vecstr& nodelines, bool isEdited
 
 					if (readParam("startStateMode", line, data))
 					{
-						if (data == "START_STATE_MODE_DEFAULT") startStateMode = START_STATE_MODE_DEFAULT;
-						else if (data == "START_STATE_MODE_SYNC") startStateMode = START_STATE_MODE_SYNC;
-						else if (data == "START_STATE_MODE_RANDOM") startStateMode = START_STATE_MODE_RANDOM;
-						else startStateMode = START_STATE_MODE_CHOOSER;
-
+						startStateMode = statemachine::startModeMap[data];
 						++type;
 					}
 
@@ -164,10 +178,7 @@ void hkbstatemachine::dataBake(string filepath, vecstr& nodelines, bool isEdited
 
 					if (readParam("selfTransitionMode", line, data))
 					{
-						if (data == "SELF_TRANSITION_MODE_NO_TRANSITION") selfTransitionMode = SELF_TRANSITION_MODE_NO_TRANSITION;
-						else if (data == "SELF_TRANSITION_MODE_TRANSITION_TO_START_STATE") selfTransitionMode = SELF_TRANSITION_MODE_TRANSITION_TO_START_STATE;
-						else selfTransitionMode = SELF_TRANSITION_MODE_FORCE_TRANSITION_TO_START_STATE;
-
+						selfTransitionMode = statemachine::transitionModeMap[data];
 						++type;
 					}
 
@@ -225,6 +236,11 @@ void hkbstatemachine::connect(string filepath, string preaddress, int functionla
 	address = preaddress + statemachine::key + to_string(functionlayer) + ">region";
 	poolAddress.push_back(address);
 	eventToSendWhenStateOrTransitionChanges.id.connectEventInfo(ID, graphroot);
+	returnToPreviousStateEventId.connectEventInfo(ID, graphroot);
+	randomTransitionEventId.connectEventInfo(ID, graphroot);
+	transitionToNextHigherStateEventId.connectEventInfo(ID, graphroot);
+	transitionToNextLowerStateEventId.connectEventInfo(ID, graphroot);
+	syncVariableIndex.connectVariableInfo(ID, graphroot);
 
 	if (IsExist.find(ID) == IsExist.end())
 	{
@@ -621,25 +637,12 @@ void hkbstatemachine::nextNode(string filepath, int functionlayer, bool isOld, h
 
 string hkbstatemachine::getStartStateMode()
 {
-	switch (startStateMode)
-	{
-		case START_STATE_MODE_DEFAULT: return "START_STATE_MODE_DEFAULT";
-		case START_STATE_MODE_SYNC: return "START_STATE_MODE_SYNC";
-		case START_STATE_MODE_RANDOM: return "START_STATE_MODE_RANDOM";
-		case START_STATE_MODE_CHOOSER: return "START_STATE_MODE_CHOOSER";
-		default: return "START_STATE_MODE_DEFAULT";
-	}
+	return statemachine::startModeMap[startStateMode];
 }
 
 string hkbstatemachine::getSelfTransitionMode()
 {
-	switch (selfTransitionMode)
-	{
-		case SELF_TRANSITION_MODE_NO_TRANSITION: return "SELF_TRANSITION_MODE_NO_TRANSITION";
-		case SELF_TRANSITION_MODE_TRANSITION_TO_START_STATE: return "SELF_TRANSITION_MODE_TRANSITION_TO_START_STATE";
-		case SELF_TRANSITION_MODE_FORCE_TRANSITION_TO_START_STATE: return "SELF_TRANSITION_MODE_FORCE_TRANSITION_TO_START_STATE";
-		default: return "SELF_TRANSITION_MODE_NO_TRANSITION";
-	}
+	return statemachine::transitionModeMap[selfTransitionMode];
 }
 
 void hkbstatemachine::matchScoring(vector<shared_ptr<hkbstatemachinestateinfo>>& ori, vector<shared_ptr<hkbstatemachinestateinfo>>& edit, string id)

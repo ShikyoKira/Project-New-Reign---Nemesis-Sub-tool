@@ -1,6 +1,8 @@
-#include <boost\thread.hpp>
+#include <boost/thread.hpp>
+
 #include "hkbsensehandlemodifier.h"
 #include "highestscore.h"
+#include "src/utilities/hkMap.h"
 
 using namespace std;
 
@@ -9,6 +11,25 @@ namespace sensehandlemodifier
 	const string key = "al";
 	const string classname = "hkbSenseHandleModifier";
 	const string signature = "0x2a064d99";
+
+	hkMap<string, hkbsensehandlemodifier::sensingmode> modeMap =
+	{
+		{ "SENSE_IN_NEARBY_RIGID_BODIES", hkbsensehandlemodifier::SENSE_IN_NEARBY_RIGID_BODIES },
+		{ "SENSE_IN_RIGID_BODIES_OUTSIDE_THIS_CHARACTER", hkbsensehandlemodifier::SENSE_IN_RIGID_BODIES_OUTSIDE_THIS_CHARACTER },
+		{ "SENSE_IN_OTHER_CHARACTER_RIGID_BODIES", hkbsensehandlemodifier::SENSE_IN_OTHER_CHARACTER_RIGID_BODIES },
+		{ "SENSE_IN_THIS_CHARACTER_RIGID_BODIES", hkbsensehandlemodifier::SENSE_IN_THIS_CHARACTER_RIGID_BODIES },
+		{ "SENSE_IN_GIVEN_CHARACTER_RIGID_BODIES", hkbsensehandlemodifier::SENSE_IN_GIVEN_CHARACTER_RIGID_BODIES },
+		{ "SENSE_IN_GIVEN_RIGID_BODY", hkbsensehandlemodifier::SENSE_IN_GIVEN_RIGID_BODY },
+		{ "SENSE_IN_OTHER_CHARACTER_SKELETON", hkbsensehandlemodifier::SENSE_IN_OTHER_CHARACTER_SKELETON },
+		{ "SENSE_IN_THIS_CHARACTER_SKELETON", hkbsensehandlemodifier::SENSE_IN_THIS_CHARACTER_SKELETON },
+		{ "SENSE_IN_GIVEN_CHARACTER_SKELETON", hkbsensehandlemodifier::SENSE_IN_GIVEN_CHARACTER_SKELETON },
+		{ "SENSE_IN_GIVEN_LOCAL_FRAME_GROUP", hkbsensehandlemodifier::SENSE_IN_GIVEN_LOCAL_FRAME_GROUP },
+	};
+}
+
+string hkbsensehandlemodifier::getSensingMode()
+{
+	return sensehandlemodifier::modeMap[sensingMode];
 }
 
 string hkbsensehandlemodifier::GetAddress()
@@ -201,17 +222,7 @@ void hkbsensehandlemodifier::dataBake(string filepath, vecstr& nodelines, bool i
 
 					if (readParam("sensingMode", line, data))
 					{
-						if (data == "SENSE_IN_NEARBY_RIGID_BODIES") sensingMode = SENSE_IN_NEARBY_RIGID_BODIES;
-						else if (data == "SENSE_IN_RIGID_BODIES_OUTSIDE_THIS_CHARACTER") sensingMode = SENSE_IN_RIGID_BODIES_OUTSIDE_THIS_CHARACTER;
-						else if (data == "SENSE_IN_OTHER_CHARACTER_RIGID_BODIES") sensingMode = SENSE_IN_OTHER_CHARACTER_RIGID_BODIES;
-						else if (data == "SENSE_IN_THIS_CHARACTER_RIGID_BODIES") sensingMode = SENSE_IN_THIS_CHARACTER_RIGID_BODIES;
-						else if (data == "SENSE_IN_GIVEN_CHARACTER_RIGID_BODIES") sensingMode = SENSE_IN_GIVEN_CHARACTER_RIGID_BODIES;
-						else if (data == "SENSE_IN_GIVEN_RIGID_BODY") sensingMode = SENSE_IN_GIVEN_RIGID_BODY;
-						else if (data == "SENSE_IN_OTHER_CHARACTER_SKELETON") sensingMode = SENSE_IN_OTHER_CHARACTER_SKELETON;
-						else if (data == "SENSE_IN_THIS_CHARACTER_SKELETON") sensingMode = SENSE_IN_THIS_CHARACTER_SKELETON;
-						else if (data == "SENSE_IN_GIVEN_CHARACTER_SKELETON") sensingMode = SENSE_IN_GIVEN_CHARACTER_SKELETON;
-						else sensingMode = SENSE_IN_GIVEN_LOCAL_FRAME_GROUP;
-
+						sensingMode = sensehandlemodifier::modeMap[data];
 						++type;
 					}
 
@@ -723,20 +734,7 @@ void hkbsensehandlemodifier::matchScoring(vector<range>& ori, vector<range>& edi
 
 string hkbsensehandlemodifier::getSensingMode()
 {
-	switch (sensingMode)
-	{
-		case SENSE_IN_NEARBY_RIGID_BODIES: return "SENSE_IN_NEARBY_RIGID_BODIES";
-		case SENSE_IN_RIGID_BODIES_OUTSIDE_THIS_CHARACTER: return "SENSE_IN_RIGID_BODIES_OUTSIDE_THIS_CHARACTER";
-		case SENSE_IN_OTHER_CHARACTER_RIGID_BODIES: return "SENSE_IN_OTHER_CHARACTER_RIGID_BODIES";
-		case SENSE_IN_THIS_CHARACTER_RIGID_BODIES: return "SENSE_IN_THIS_CHARACTER_RIGID_BODIES";
-		case SENSE_IN_GIVEN_CHARACTER_RIGID_BODIES: return "SENSE_IN_GIVEN_CHARACTER_RIGID_BODIES";
-		case SENSE_IN_GIVEN_RIGID_BODY: return "SENSE_IN_GIVEN_RIGID_BODY";
-		case SENSE_IN_OTHER_CHARACTER_SKELETON: return "SENSE_IN_OTHER_CHARACTER_SKELETON";
-		case SENSE_IN_THIS_CHARACTER_SKELETON: return "SENSE_IN_THIS_CHARACTER_SKELETON";
-		case SENSE_IN_GIVEN_CHARACTER_SKELETON: return "SENSE_IN_GIVEN_CHARACTER_SKELETON";
-		case SENSE_IN_GIVEN_LOCAL_FRAME_GROUP: return "SENSE_IN_GIVEN_LOCAL_FRAME_GROUP";
-		default: return "SENSE_IN_NEARBY_RIGID_BODIES";
-	}
+	return sensehandlemodifier::modeMap[sensingMode];
 }
 
 void hkbsensehandlemodifier::threadedNextNode(shared_ptr<hkbobject> hkb_obj, string filepath, string address, int functionlayer, hkbbehaviorgraph* graphroot)

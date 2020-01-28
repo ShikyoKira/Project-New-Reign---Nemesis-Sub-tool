@@ -1,22 +1,59 @@
 #include "hkbvariableinfo.h"
 #include "highestscore.h"
+#include "src/utilities/hkMap.h"
 
 using namespace std;
 
+hkMap<string, hkbvariableinfo::roleattribute::Role> roleMap =
+{
+	{ "ROLE_DEFAULT", hkbvariableinfo::roleattribute::ROLE_DEFAULT },
+	{ "ROLE_FILE_NAME", hkbvariableinfo::roleattribute::ROLE_FILE_NAME },
+	{ "ROLE_BONE_INDEX", hkbvariableinfo::roleattribute::ROLE_BONE_INDEX },
+	{ "ROLE_BONE_INDEX_MAP", hkbvariableinfo::roleattribute::ROLE_BONE_INDEX_MAP },
+	{ "ROLE_EVENT_ID", hkbvariableinfo::roleattribute::ROLE_EVENT_ID },
+	{ "ROLE_VARIABLE_INDEX", hkbvariableinfo::roleattribute::ROLE_VARIABLE_INDEX },
+	{ "ROLE_ATTRIBUTE_INDEX", hkbvariableinfo::roleattribute::ROLE_ATTRIBUTE_INDEX },
+	{ "ROLE_TIME", hkbvariableinfo::roleattribute::ROLE_TIME },
+};
+
+hkMap<string, hkbvariableinfo::variabletype> typeMap =
+{
+	{ "VARIABLE_TYPE_INVALID", hkbvariableinfo::VARIABLE_TYPE_INVALID },
+	{ "VARIABLE_TYPE_BOOL", hkbvariableinfo::VARIABLE_TYPE_BOOL },
+	{ "VARIABLE_TYPE_INT8", hkbvariableinfo::VARIABLE_TYPE_INT8 },
+	{ "VARIABLE_TYPE_INT16", hkbvariableinfo::VARIABLE_TYPE_INT16 },
+	{ "VARIABLE_TYPE_INT32", hkbvariableinfo::VARIABLE_TYPE_INT32 },
+	{ "VARIABLE_TYPE_REAL", hkbvariableinfo::VARIABLE_TYPE_REAL },
+	{ "VARIABLE_TYPE_POINTER", hkbvariableinfo::VARIABLE_TYPE_POINTER },
+	{ "VARIABLE_TYPE_VECTOR3", hkbvariableinfo::VARIABLE_TYPE_VECTOR3 },
+	{ "VARIABLE_TYPE_VECTOR4", hkbvariableinfo::VARIABLE_TYPE_VECTOR4 },
+	{ "VARIABLE_TYPE_QUATERNION", hkbvariableinfo::VARIABLE_TYPE_QUATERNION },
+};
+
+hkMap<string, hkbvariableinfo::roleattribute::roleflags::flags> flagMap =
+{
+	{ "FLAG_NOT_CHARACTER_PROPERTY", hkbvariableinfo::roleattribute::roleflags::FLAG_NOT_CHARACTER_PROPERTY },
+	{ "FLAG_OUTPUT", hkbvariableinfo::roleattribute::roleflags::FLAG_OUTPUT },
+	{ "FLAG_HIDDEN", hkbvariableinfo::roleattribute::roleflags::FLAG_HIDDEN },
+	{ "FLAG_NOT_VARIABLE", hkbvariableinfo::roleattribute::roleflags::FLAG_NOT_VARIABLE },
+	{ "FLAG_NORMALIZED", hkbvariableinfo::roleattribute::roleflags::FLAG_NORMALIZED },
+	{ "FLAG_RAGDOLL", hkbvariableinfo::roleattribute::roleflags::FLAG_RAGDOLL },
+	{ "FLAG_NONE", hkbvariableinfo::roleattribute::roleflags::FLAG_NONE },
+};
 
 string hkbvariableinfo::roleattribute::roleflags::getflags()
 {
 	string flags;
 
-	if (FLAG_NOT_CHARACTER_PROPERTY) flags.append("FLAG_NOT_CHARACTER_PROPERTY|");
-	if (FLAG_OUTPUT) flags.append("FLAG_OUTPUT|");
-	if (FLAG_HIDDEN) flags.append("FLAG_HIDDEN|");
-	if (FLAG_NOT_VARIABLE) flags.append("FLAG_NOT_VARIABLE|");
-	if (FLAG_NORMALIZED) flags.append("FLAG_NORMALIZED|");
-	if (FLAG_RAGDOLL) flags.append("FLAG_RAGDOLL|");
-	if (FLAG_NONE) flags.append("FLAG_NONE|");
+	for (auto& curFlag : flagMap)
+	{
+		if (data & ~curFlag.second)
+		{
+			flags.append(curFlag.first + "|");
+		}
+	}
 
-	if (UNKNOWN_BITS.size())
+	if (UNKNOWN_BITS.size() > 0)
 	{
 		for (auto& bits : UNKNOWN_BITS)
 		{
@@ -32,58 +69,33 @@ string hkbvariableinfo::roleattribute::roleflags::getflags()
 
 void hkbvariableinfo::roleattribute::roleflags::update(string flag)
 {
-	if (flag == "FLAG_NONE") FLAG_NONE = true;
-	else if (flag == "FLAG_RAGDOLL") FLAG_RAGDOLL = true;
-	else if (flag == "FLAG_NORMALIZED") FLAG_NORMALIZED = true;
-	else if (flag == "FLAG_NOT_VARIABLE") FLAG_NOT_VARIABLE = true;
-	else if (flag == "FLAG_HIDDEN") FLAG_HIDDEN = true;
-	else if (flag == "FLAG_OUTPUT") FLAG_OUTPUT = true;
-	else if (flag == "FLAG_NOT_CHARACTER_PROPERTY") FLAG_NOT_CHARACTER_PROPERTY = true;
+	usize data2 = static_cast<usize>(data);
+
+	if (flag == "FLAG_NONE") data2 |= FLAG_NONE;
+	else if (flag == "FLAG_RAGDOLL") data2 |= FLAG_RAGDOLL;
+	else if (flag == "FLAG_NORMALIZED") data2 |= FLAG_NORMALIZED;
+	else if (flag == "FLAG_NOT_VARIABLE") data2 |= FLAG_NOT_VARIABLE;
+	else if (flag == "FLAG_HIDDEN") data2 |= FLAG_HIDDEN;
+	else if (flag == "FLAG_OUTPUT") data2 |= FLAG_OUTPUT;
+	else if (flag == "FLAG_NOT_CHARACTER_PROPERTY") data2 |= FLAG_NOT_CHARACTER_PROPERTY;
 	else if (flag != "0") UNKNOWN_BITS.push_back(flag);
+
+	data = static_cast<flags>(data2);
 }
 
 bool hkbvariableinfo::roleattribute::roleflags::operator==(roleflags& ctrpart)
 {
-	if (FLAG_NONE != ctrpart.FLAG_NONE) return false;
-	else if (FLAG_RAGDOLL != ctrpart.FLAG_RAGDOLL) return false;
-	else if (FLAG_NORMALIZED != ctrpart.FLAG_NORMALIZED) return false;
-	else if (FLAG_NOT_VARIABLE != ctrpart.FLAG_NOT_VARIABLE) return false;
-	else if (FLAG_HIDDEN != ctrpart.FLAG_HIDDEN) return false;
-	else if (FLAG_OUTPUT != ctrpart.FLAG_OUTPUT) return false;
-	else if (FLAG_NOT_CHARACTER_PROPERTY != ctrpart.FLAG_NOT_CHARACTER_PROPERTY) return false;
-	else if (UNKNOWN_BITS != ctrpart.UNKNOWN_BITS) return false;
-
-	return true;
+	return data == ctrpart.data;
 }
 
 bool hkbvariableinfo::roleattribute::roleflags::operator!=(roleflags& ctrpart)
 {
-	if (FLAG_NONE != ctrpart.FLAG_NONE) return true;
-	else if (FLAG_RAGDOLL != ctrpart.FLAG_RAGDOLL) return true;
-	else if (FLAG_NORMALIZED != ctrpart.FLAG_NORMALIZED) return true;
-	else if (FLAG_NOT_VARIABLE != ctrpart.FLAG_NOT_VARIABLE) return true;
-	else if (FLAG_HIDDEN != ctrpart.FLAG_HIDDEN) return true;
-	else if (FLAG_OUTPUT != ctrpart.FLAG_OUTPUT) return true;
-	else if (FLAG_NOT_CHARACTER_PROPERTY != ctrpart.FLAG_NOT_CHARACTER_PROPERTY) return true;
-	else if (UNKNOWN_BITS != ctrpart.UNKNOWN_BITS) return true;
-
-	return false;
+	return data != ctrpart.data;
 }
 
 string hkbvariableinfo::roleattribute::getRole()
 {
-	switch (role)
-	{
-		case ROLE_DEFAULT: return "ROLE_DEFAULT";
-		case ROLE_FILE_NAME: return "ROLE_FILE_NAME";
-		case ROLE_BONE_INDEX: return "ROLE_BONE_INDEX";
-		case ROLE_BONE_INDEX_MAP: return "ROLE_BONE_INDEX_MAP";
-		case ROLE_EVENT_ID: return "ROLE_EVENT_ID";
-		case ROLE_VARIABLE_INDEX: return "ROLE_VARIABLE_INDEX";
-		case ROLE_ATTRIBUTE_INDEX: return "ROLE_ATTRIBUTE_INDEX";
-		case ROLE_TIME: return "ROLE_TIME";
-		default: return "ROLE_DEFAULT";
-	}
+	return roleMap[role];
 }
 
 hkbvariableinfo::roleattribute::roleattribute(string n_role)
@@ -93,44 +105,15 @@ hkbvariableinfo::roleattribute::roleattribute(string n_role)
 
 void hkbvariableinfo::roleattribute::installRole(std::string n_role)
 {
-	if (n_role == "ROLE_DEFAULT") role = ROLE_DEFAULT;
-	else if (n_role == "ROLE_FILE_NAME") role = ROLE_FILE_NAME;
-	else if (n_role == "ROLE_BONE_INDEX") role = ROLE_BONE_INDEX;
-	else if (n_role == "ROLE_BONE_INDEX_MAP") role = ROLE_BONE_INDEX_MAP;
-	else if (n_role == "ROLE_EVENT_ID") role = ROLE_EVENT_ID;
-	else if (n_role == "ROLE_VARIABLE_INDEX") role = ROLE_VARIABLE_INDEX;
-	else if (n_role == "ROLE_ATTRIBUTE_INDEX") role = ROLE_ATTRIBUTE_INDEX;
-	else role = ROLE_TIME;
+	role = roleMap[n_role];
 }
 
 string hkbvariableinfo::getType()
 {
-	switch (type)
-	{
-		case VARIABLE_TYPE_INVALID: return "VARIABLE_TYPE_INVALID";
-		case VARIABLE_TYPE_BOOL: return "VARIABLE_TYPE_BOOL";
-		case VARIABLE_TYPE_INT8: return "VARIABLE_TYPE_INT8";
-		case VARIABLE_TYPE_INT16: return "VARIABLE_TYPE_INT16";
-		case VARIABLE_TYPE_INT32: return "VARIABLE_TYPE_INT32";
-		case VARIABLE_TYPE_REAL: return "VARIABLE_TYPE_REAL";
-		case VARIABLE_TYPE_POINTER: return "VARIABLE_TYPE_POINTER";
-		case VARIABLE_TYPE_VECTOR3: return "VARIABLE_TYPE_VECTOR3";
-		case VARIABLE_TYPE_VECTOR4: return "VARIABLE_TYPE_VECTOR4";
-		case VARIABLE_TYPE_QUATERNION: return "VARIABLE_TYPE_QUATERNION";
-		default: return "VARIABLE_TYPE_INVALID";
-	}
+	return typeMap[type];
 }
 
 void hkbvariableinfo::typeUpdate(string data)
 {
-	if (data == "VARIABLE_TYPE_INVALID") type = VARIABLE_TYPE_INVALID;
-	else if (data == "VARIABLE_TYPE_BOOL") type = VARIABLE_TYPE_BOOL;
-	else if (data == "VARIABLE_TYPE_INT8") type = VARIABLE_TYPE_INT8;
-	else if (data == "VARIABLE_TYPE_INT16") type = VARIABLE_TYPE_INT16;
-	else if (data == "VARIABLE_TYPE_INT32") type = VARIABLE_TYPE_INT32;
-	else if (data == "VARIABLE_TYPE_REAL") type = VARIABLE_TYPE_REAL;
-	else if (data == "VARIABLE_TYPE_POINTER") type = VARIABLE_TYPE_POINTER;
-	else if (data == "VARIABLE_TYPE_VECTOR3") type = VARIABLE_TYPE_VECTOR3;
-	else if (data == "VARIABLE_TYPE_VECTOR4") type = VARIABLE_TYPE_VECTOR4;
-	else type = VARIABLE_TYPE_QUATERNION;
+	type = typeMap[data];
 }

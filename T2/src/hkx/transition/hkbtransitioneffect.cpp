@@ -5,26 +5,28 @@ using namespace std;
 safeStringUMap<shared_ptr<hkbtransitioneffect>> hkbtransitioneffectList;
 safeStringUMap<shared_ptr<hkbtransitioneffect>> hkbtransitioneffectList_E;
 
+hkMap<string, hkbtransitioneffect::selftransitionmode> selfTransitionMap =
+{
+	{ "SELF_TRANSITION_MODE_CONTINUE_IF_CYCLIC_BLEND_IF_ACYCLIC", hkbtransitioneffect::SELF_TRANSITION_MODE_CONTINUE_IF_CYCLIC_BLEND_IF_ACYCLIC },
+	{ "SELF_TRANSITION_MODE_CONTINUE", hkbtransitioneffect::SELF_TRANSITION_MODE_CONTINUE },
+	{ "SELF_TRANSITION_MODE_RESET", hkbtransitioneffect::SELF_TRANSITION_MODE_RESET },
+	{ "SELF_TRANSITION_MODE_BLEND", hkbtransitioneffect::SELF_TRANSITION_MODE_BLEND },
+};
+
+hkMap<string, hkbtransitioneffect::eventmode> eventMap =
+{
+	{ "EVENT_MODE_DEFAULT", hkbtransitioneffect::EVENT_MODE_DEFAULT },
+	{ "EVENT_MODE_PROCESS_ALL", hkbtransitioneffect::EVENT_MODE_PROCESS_ALL },
+	{ "EVENT_MODE_IGNORE_FROM_GENERATOR", hkbtransitioneffect::EVENT_MODE_IGNORE_FROM_GENERATOR },
+	{ "EVENT_MODE_IGNORE_TO_GENERATOR", hkbtransitioneffect::EVENT_MODE_IGNORE_TO_GENERATOR },
+};
+
 string hkbtransitioneffect::getSelfTransitionMode()
 {
-	switch (selfTransitionMode)
-	{
-		case SELF_TRANSITION_MODE_CONTINUE_IF_CYCLIC_BLEND_IF_ACYCLIC: return "SELF_TRANSITION_MODE_CONTINUE_IF_CYCLIC_BLEND_IF_ACYCLIC";
-		case SELF_TRANSITION_MODE_CONTINUE: return "SELF_TRANSITION_MODE_CONTINUE";
-		case SELF_TRANSITION_MODE_RESET: return "SELF_TRANSITION_MODE_RESET";
-		case SELF_TRANSITION_MODE_BLEND: return "SELF_TRANSITION_MODE_BLEND";
-		default: return "SELF_TRANSITION_MODE_CONTINUE_IF_CYCLIC_BLEND_IF_ACYCLIC";
-	}
+	return selfTransitionMap[selfTransitionMode];
 }
 
 string hkbtransitioneffect::getEventMode()
 {
-	switch (eventMode)
-	{
-		case EVENT_MODE_DEFAULT: return "EVENT_MODE_DEFAULT";
-		case EVENT_MODE_PROCESS_ALL: return "EVENT_MODE_PROCESS_ALL";
-		case EVENT_MODE_IGNORE_FROM_GENERATOR: return "EVENT_MODE_IGNORE_FROM_GENERATOR";
-		case EVENT_MODE_IGNORE_TO_GENERATOR: return "EVENT_MODE_IGNORE_TO_GENERATOR";
-		default: return "EVENT_MODE_DEFAULT";
-	}
+	return eventMap[eventMode];
 }

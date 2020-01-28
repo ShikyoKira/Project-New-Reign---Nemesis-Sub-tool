@@ -1,5 +1,7 @@
-#include <boost\thread.hpp>
+#include <boost/thread.hpp>
+
 #include "hkbevaluatehandlemodifier.h"
+#include "src/utilities/hkMap.h"
 
 using namespace std;
 
@@ -8,6 +10,12 @@ namespace evaluatehandlemodifier
 	const string key = "ao";
 	const string classname = "hkbEvaluateHandleModifier";
 	const string signature = "0x79757102";
+
+	hkMap<string, hkbevaluatehandlemodifier::handlechangemode> modeMap =
+	{
+		{ "HANDLE_CHANGE_MODE_ABRUPT",  hkbevaluatehandlemodifier::HANDLE_CHANGE_MODE_ABRUPT},
+		{ "HANDLE_CHANGE_MODE_CONSTANT_VELOCITY",  hkbevaluatehandlemodifier::HANDLE_CHANGE_MODE_CONSTANT_VELOCITY},
+	};
 }
 
 string hkbevaluatehandlemodifier::GetAddress()
@@ -113,33 +121,10 @@ void hkbevaluatehandlemodifier::dataBake(string filepath, vecstr& nodelines, boo
 
 					if (readParam("handleChangeMode", line, output))
 					{
-						handleChangeMode = output == "HANDLE_CHANGE_MODE_ABRUPT" ? HANDLE_CHANGE_MODE_ABRUPT : HANDLE_CHANGE_MODE_CONSTANT_VELOCITY;
+						handleChangeMode = evaluatehandlemodifier::modeMap[output];
 						++type;
 					}
 				}
-			}
-		}
-		if (line.find("<hkparam name=\"") != string::npos)
-		{
-			for (auto& itr = boost::sregex_iterator(line.begin(), line.end(), boost::regex("<hkparam name=\"(.+?)\">(.*?)<\\/hkparam>"));
-				itr != boost::sregex_iterator(); ++itr)
-			{
-				string header = itr->str(1);
-
-				if (header == "variableBindingSet") variableBindingSet = isEdited ? hkbvariablebindingsetList_E[itr->str(2)] : hkbvariablebindingsetList[itr->str(2)];
-				else if (header == "userData") userData = stoi(itr->str(2));
-				else if (header == "name") name = itr->str(2);
-				else if (header == "enable") enable = itr->str(2) == "true" ? true : false;
-				else if (header == "handle") handle = isEdited ? hkbhandleList_E[itr->str(2)] : hkbhandleList[itr->str(2)];
-				else if (header == "handlePositionOut") handlePositionOut.update(itr->str(2));
-				else if (header == "handleRotationOut") handleRotationOut.update(itr->str(2));
-				else if (header == "isValidOut") isValidOut = itr->str(2) == "true" ? true : false;
-				else if (header == "extrapolationTimeStep") extrapolationTimeStep = stod(itr->str(2));
-				else if (header == "handleChangeSpeed") handleChangeSpeed = stod(itr->str(2));
-				else if (header == "handleChangeMode") handleChangeMode = itr->str(2) == "HANDLE_CHANGE_MODE_ABRUPT" ? HANDLE_CHANGE_MODE_ABRUPT :
-					HANDLE_CHANGE_MODE_CONSTANT_VELOCITY;
-
-				break;
 			}
 		}
 	}
@@ -344,12 +329,7 @@ void hkbevaluatehandlemodifier::nextNode(string filepath, int functionlayer, boo
 
 string hkbevaluatehandlemodifier::getHandleChangeMode()
 {
-	switch (handleChangeMode)
-	{
-		case HANDLE_CHANGE_MODE_ABRUPT: return "HANDLE_CHANGE_MODE_ABRUPT";
-		case HANDLE_CHANGE_MODE_CONSTANT_VELOCITY: return "HANDLE_CHANGE_MODE_CONSTANT_VELOCITY";
-		default: return "HANDLE_CHANGE_MODE_ABRUPT";
-	}
+	return evaluatehandlemodifier::modeMap[handleChangeMode];
 }
 
 void hkbevaluatehandlemodifier::threadedNextNode(shared_ptr<hkbobject> hkb_obj, string filepath, string address, int functionlayer, hkbbehaviorgraph* graphroot)

@@ -40,11 +40,11 @@ public:
 	eventproperty eventToSendWhenStateOrTransitionChanges;
 	std::shared_ptr<hkbstatechooser> startStateChooser;
 	int startStateId;
-	int returnToPreviousStateEventId;
-	int randomTransitionEventId;
-	int transitionToNextHigherStateEventId;
-	int transitionToNextLowerStateEventId;
-	int syncVariableIndex;
+	EventId returnToPreviousStateEventId;
+	EventId randomTransitionEventId;
+	EventId transitionToNextHigherStateEventId;
+	EventId transitionToNextLowerStateEventId;
+	VariableId syncVariableIndex;
 	bool wrapAroundStateId;
 	int maxSimultaneousTransitions;
 	startstatemode startStateMode;

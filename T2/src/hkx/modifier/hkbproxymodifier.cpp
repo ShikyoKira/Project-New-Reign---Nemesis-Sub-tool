@@ -1,4 +1,5 @@
 #include "hkbproxymodifier.h"
+#include "src/utilities/hkMap.h"
 
 using namespace std;
 
@@ -7,6 +8,18 @@ namespace proxymodifier
 	const string key = "ai";
 	const string classname = "hkbProxyModifier";
 	const string signature = "0x8a41554f";
+
+	hkMap<string, hkbproxymodifier::phantomtype> typeMap =
+	{
+		{ "PHANTOM_TYPE_SIMPLE", hkbproxymodifier::PHANTOM_TYPE_SIMPLE },
+		{ "PHANTOM_TYPE_CACHING", hkbproxymodifier::PHANTOM_TYPE_CACHING },
+	};
+
+	hkMap<string, hkbproxymodifier::linearvelocitymode> modeMap =
+	{
+		{ "LINEAR_VELOCITY_MODE_WORLD", hkbproxymodifier::LINEAR_VELOCITY_MODE_WORLD },
+		{ "LINEAR_VELOCITY_MODE_MODEL", hkbproxymodifier::LINEAR_VELOCITY_MODE_MODEL },
+	};
 }
 
 string hkbproxymodifier::GetAddress()
@@ -238,7 +251,7 @@ void hkbproxymodifier::dataBake(string filepath, vecstr& nodelines, bool isEdite
 
 					if (readParam("phantomType", line, output))
 					{
-						phantomType = output == "PHANTOM_TYPE_SIMPLE" ? PHANTOM_TYPE_SIMPLE : PHANTOM_TYPE_CACHING;
+						phantomType = proxymodifier::typeMap[output];
 						++type;
 					}
 				}
@@ -248,7 +261,7 @@ void hkbproxymodifier::dataBake(string filepath, vecstr& nodelines, bool isEdite
 
 					if (readParam("linearVelocityMode", line, output))
 					{
-						linearVelocityMode = output == "LINEAR_VELOCITY_MODE_WORLD" ? LINEAR_VELOCITY_MODE_WORLD : LINEAR_VELOCITY_MODE_MODEL;
+						linearVelocityMode = proxymodifier::modeMap[output];
 						++type;
 					}
 				}
@@ -540,20 +553,10 @@ void hkbproxymodifier::nextNode(string filepath, int functionlayer, bool isOld, 
 
 string hkbproxymodifier::getPhantomType()
 {
-	switch (phantomType)
-	{
-		case PHANTOM_TYPE_SIMPLE: return "PHANTOM_TYPE_SIMPLE";
-		case PHANTOM_TYPE_CACHING: return "PHANTOM_TYPE_CACHING";
-		default: return "PHANTOM_TYPE_SIMPLE";
-	}
+	return proxymodifier::typeMap[phantomType];
 }
 
 string hkbproxymodifier::getLinearVelocityMode()
 {
-	switch (linearVelocityMode)
-	{
-		case LINEAR_VELOCITY_MODE_WORLD: return "LINEAR_VELOCITY_MODE_WORLD";
-		case LINEAR_VELOCITY_MODE_MODEL: return "LINEAR_VELOCITY_MODE_MODEL";
-		default: return "LINEAR_VELOCITY_MODE_WORLD";
-	}
+	return proxymodifier::modeMap[linearVelocityMode];
 }

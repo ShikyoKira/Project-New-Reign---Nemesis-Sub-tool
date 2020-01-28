@@ -1,7 +1,9 @@
-#include <boost\thread.hpp>
+#include <boost/thread.hpp>
+
 #include "hkbfootikmodifier.h"
 #include "boolstring.h"
 #include "highestscore.h"
+#include "src/utilities/hkMap.h"
 
 using namespace std;
 
@@ -10,6 +12,12 @@ namespace footikmodifier
 	const string key = "cu";
 	const string classname = "hkbFootIkModifier";
 	const string signature = "0xed8966c0";
+
+	hkMap<string, hkbfootikmodifier::mode> modeMap =
+	{
+		{ "ALIGN_MODE_FORWARD_RIGHT", hkbfootikmodifier::ALIGN_MODE_FORWARD_RIGHT },
+		{ "ALIGN_MODE_FORWARD", hkbfootikmodifier::ALIGN_MODE_FORWARD },
+	};
 }
 
 safeStringUMap<shared_ptr<hkbfootikmodifier>> hkbfootikmodifierList;
@@ -338,9 +346,7 @@ void hkbfootikmodifier::dataBake(string filepath, vecstr& nodelines, bool isEdit
 
 					if (readParam("alignMode", line, output))
 					{
-						if (output == "ALIGN_MODE_FORWARD_RIGHT") alignMode = ALIGN_MODE_FORWARD_RIGHT;
-						else alignMode = ALIGN_MODE_FORWARD;
-
+						alignMode = footikmodifier::modeMap[output];
 						++type;
 					}
 				}
@@ -959,10 +965,5 @@ void hkbfootikmodifier::matchScoring(vector<hkbfootikmodifier::leg>& ori, vector
 
 string hkbfootikmodifier::getMode()
 {
-	switch (alignMode)
-	{
-		case ALIGN_MODE_FORWARD_RIGHT: return "ALIGN_MODE_FORWARD_RIGHT";
-		case ALIGN_MODE_FORWARD: return "MODE_COUNT";
-		default: return "ALIGN_MODE_FORWARD_RIGHT";
-	}
+	return footikmodifier::modeMap[alignMode];
 }

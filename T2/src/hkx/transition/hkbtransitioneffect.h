@@ -1,7 +1,8 @@
 #ifndef HKBTRANSITIONEFFECT_H_
 #define HKBTRANSITIONEFFECT_H_
 
-#include "src\hkx\generator\hkbgenerator.h"
+#include "src/hkx/generator/hkbgenerator.h"
+#include "src/utilities/hkMap.h"
 
 struct hkbtransitioneffect : public hkbgenerator
 {
@@ -33,5 +34,8 @@ protected:
 
 extern safeStringUMap<std::shared_ptr<hkbtransitioneffect>> hkbtransitioneffectList_E;
 extern safeStringUMap<std::shared_ptr<hkbtransitioneffect>> hkbtransitioneffectList;
+
+extern hkMap<std::string, hkbtransitioneffect::selftransitionmode> selfTransitionMap;
+extern hkMap<std::string, hkbtransitioneffect::eventmode> eventMap;
 
 #endif

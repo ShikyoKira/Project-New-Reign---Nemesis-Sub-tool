@@ -1,5 +1,7 @@
-#include <boost\thread.hpp>
+#include <boost/thread.hpp>
+
 #include "hkbbehaviorgraph.h"
+#include "src/utilities/hkMap.h"
 
 using namespace std;
 
@@ -10,6 +12,12 @@ namespace behaviorgraph
 	const string key = "g";
 	const string classname = "hkbBehaviorGraph";
 	const string signature = "0xb1218f86";
+
+	hkMap<string, hkbbehaviorgraph::variablemode> modeMap =
+	{
+		{ "VARIABLE_MODE_DISCARD_WHEN_INACTIVE", hkbbehaviorgraph::VARIABLE_MODE_DISCARD_WHEN_INACTIVE },
+		{ "VARIABLE_MODE_MAINTAIN_VALUES_WHEN_INACTIVE", hkbbehaviorgraph::VARIABLE_MODE_MAINTAIN_VALUES_WHEN_INACTIVE },
+	};
 }
 
 string hkbbehaviorgraph::GetAddress()
@@ -72,7 +80,7 @@ void hkbbehaviorgraph::dataBake(string filepath, vecstr& nodelines, bool isEdite
 
 					if (readParam("variableMode", line, output))
 					{
-						variableMode = output == "VARIABLE_MODE_DISCARD_WHEN_INACTIVE" ? VARIABLE_MODE_DISCARD_WHEN_INACTIVE : VARIABLE_MODE_MAINTAIN_VALUES_WHEN_INACTIVE;
+						variableMode = behaviorgraph::modeMap[output];
 					}
 
 					break;
@@ -99,24 +107,6 @@ void hkbbehaviorgraph::dataBake(string filepath, vecstr& nodelines, bool isEdite
 						++type;
 					}
 				}
-			}
-		}
-		if (line.find("<hkparam name=\"") != string::npos)
-		{
-			for (auto& itr = boost::sregex_iterator(line.begin(), line.end(), boost::regex("<hkparam name=\"(.+?)\">(.*?)<\\/hkparam>"));
-				itr != boost::sregex_iterator(); ++itr)
-			{
-				string header = itr->str(1);
-
-				if (header == "variableBindingSet") variableBindingSet = isEdited ? hkbvariablebindingsetList_E[itr->str(2)] : hkbvariablebindingsetList[itr->str(2)];
-				else if (header == "userData") userData = stoi(itr->str(2));
-				else if (header == "name") name = itr->str(2);
-				else if (header == "variableMode") variableMode = itr->str(2) == "VARIABLE_MODE_DISCARD_WHEN_INACTIVE" ? VARIABLE_MODE_DISCARD_WHEN_INACTIVE :
-					VARIABLE_MODE_MAINTAIN_VALUES_WHEN_INACTIVE;
-				else if (header == "rootGenerator") rootGenerator = isEdited ? hkbgeneratorList_E[itr->str(2)] : hkbgeneratorList[itr->str(2)];
-				else if (header == "data") data = isEdited ? hkbbehaviorgraphdataList_E[itr->str(2)] : hkbbehaviorgraphdataList[itr->str(2)];
-
-				break;
 			}
 		}
 	}
@@ -337,12 +327,7 @@ void hkbbehaviorgraph::nextNode(std::string filepath, int functionlayer, bool is
 
 string hkbbehaviorgraph::getVariableMode()
 {
-	switch (variableMode)
-	{
-		case VARIABLE_MODE_DISCARD_WHEN_INACTIVE: return "VARIABLE_MODE_DISCARD_WHEN_INACTIVE";
-		case VARIABLE_MODE_MAINTAIN_VALUES_WHEN_INACTIVE: return "VARIABLE_MODE_MAINTAIN_VALUES_WHEN_INACTIVE";
-		default: return "VARIABLE_MODE_DISCARD_WHEN_INACTIVE";
-	}
+	return behaviorgraph::modeMap[variableMode];
 }
 
 void hkbbehaviorgraph::threadedNextNode(shared_ptr<hkbobject> hkb_obj, string filepath, string address, int functionlayer, hkbbehaviorgraph* graphroot)

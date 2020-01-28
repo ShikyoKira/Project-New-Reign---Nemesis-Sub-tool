@@ -1,4 +1,5 @@
-#include <boost\thread.hpp>
+#include <boost/thread.hpp>
+
 #include "bsragdollcontactlistenermodifier.h"
 
 using namespace std;

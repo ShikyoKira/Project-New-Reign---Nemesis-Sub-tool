@@ -1,6 +1,8 @@
 #include "hkbexpressiondataarray.h"
 #include "highestscore.h"
 
+#include "src/utilities/hkMap.h"
+
 using namespace std;
 extern vector<usize> datapacktracker;
 
@@ -9,6 +11,14 @@ namespace expressiondataarray
 	const string key = "an";
 	const string classname = "hkbExpressionDataArray";
 	const string signature = "0x4b9ee1a2";
+
+	hkMap<string, hkbexpressiondataarray::expressiondata::eventmode> modeMap =
+	{
+		{ "EVENT_MODE_SEND_ONCE", hkbexpressiondataarray::expressiondata::EVENT_MODE_SEND_ONCE },
+		{ "EVENT_MODE_SEND_ON_TRUE", hkbexpressiondataarray::expressiondata::EVENT_MODE_SEND_ON_TRUE },
+		{ "EVENT_MODE_SEND_ON_FALSE_TO_TRUE", hkbexpressiondataarray::expressiondata::EVENT_MODE_SEND_ON_FALSE_TO_TRUE },
+		{ "EVENT_MODE_SEND_EVERY_FRAME_ONCE_TRUE", hkbexpressiondataarray::expressiondata::EVENT_MODE_SEND_EVERY_FRAME_ONCE_TRUE },
+	};
 }
 
 string hkbexpressiondataarray::GetAddress()
@@ -73,11 +83,7 @@ void hkbexpressiondataarray::dataBake(string filepath, vecstr& nodelines, bool i
 
 				if (readParam("eventMode", line, data))
 				{
-					if (data == "EVENT_MODE_SEND_ONCE") expressionsData.back().eventMode = expressiondata::EVENT_MODE_SEND_ONCE;
-					else if (data == "EVENT_MODE_SEND_ON_TRUE") expressionsData.back().eventMode = expressiondata::EVENT_MODE_SEND_ON_TRUE;
-					else if (data == "EVENT_MODE_SEND_ON_FALSE_TO_TRUE") expressionsData.back().eventMode = expressiondata::EVENT_MODE_SEND_ON_FALSE_TO_TRUE;
-					else expressionsData.back().eventMode = expressiondata::EVENT_MODE_SEND_EVERY_FRAME_ONCE_TRUE;
-
+					expressionsData.back().eventMode = expressiondataarray::modeMap[data];
 					type = 1;
 				}
 			}
@@ -443,12 +449,5 @@ void hkbexpressiondataarray::matchScoring(vector<expressiondata>& ori, vector<ex
 
 string hkbexpressiondataarray::expressiondata::getEventMode()
 {
-	switch (eventMode)
-	{
-		case EVENT_MODE_SEND_ONCE: return "EVENT_MODE_SEND_ONCE";
-		case EVENT_MODE_SEND_ON_TRUE: return "EVENT_MODE_SEND_ON_TRUE";
-		case EVENT_MODE_SEND_ON_FALSE_TO_TRUE: return "EVENT_MODE_SEND_ON_FALSE_TO_TRUE";
-		case EVENT_MODE_SEND_EVERY_FRAME_ONCE_TRUE: return "EVENT_MODE_SEND_EVERY_FRAME_ONCE_TRUE";
-		default: return "EVENT_MODE_SEND_ONCE";
-	}
+	return expressiondataarray::modeMap[eventMode];
 }

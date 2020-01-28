@@ -19,10 +19,15 @@ public:
 
 	struct flagbits
 	{
-		bool FLAG_NONE = false;
-		bool FLAG_IGNORE_FROM_WORLD_FROM_MODEL = false;
-		bool FLAG_SYNC = false;
-		bool FLAG_IGNORE_TO_WORLD_FROM_MODEL = false;
+		enum flag
+		{
+			FLAG_NONE = 0,
+			FLAG_IGNORE_FROM_WORLD_FROM_MODEL = 1,
+			FLAG_SYNC = 2,
+			FLAG_IGNORE_TO_WORLD_FROM_MODEL = 4,
+		};
+
+		flag data;
 
 		std::string getflags();
 		void update(std::string flag);

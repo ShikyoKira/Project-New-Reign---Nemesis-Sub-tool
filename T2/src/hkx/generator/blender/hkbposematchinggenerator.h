@@ -16,7 +16,7 @@ public:
 
 	std::string tempaddress;
 
-	enum mode
+	enum Mode
 	{
 		MODE_MATCH,
 		MODE_PLAY
@@ -38,13 +38,13 @@ public:
 	double minSpeedToSwitch;
 	double minSwitchTimeNoError;
 	double minSwitchTimeFullError;
-	int startPlayingEventId;
-	int startMatchingEventId;
+	EventId startPlayingEventId;
+	EventId startMatchingEventId;
 	int rootBoneIndex;
 	int otherBoneIndex;
 	int anotherBoneIndex;
 	int pelvisIndex;
-	mode mode;
+	Mode mode;
 
 	void regis(std::string id, bool isEdited);
 	void dataBake(std::string filepath, vecstr& nodelines, bool isEdited);

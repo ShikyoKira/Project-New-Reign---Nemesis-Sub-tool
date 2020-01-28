@@ -1,4 +1,5 @@
 #include "hkbtwistmodifier.h"
+#include "src/utilities/hkMap.h"
 
 using namespace std;
 
@@ -7,6 +8,28 @@ namespace twistmodifier
 	const string key = "z";
 	const string classname = "hkbTwistModifier";
 	const string signature = "0xb6b76b32";
+
+	hkMap<string, hkbtwistmodifier::setanglemethod> methodMap =
+	{
+		{ "LINEAR", hkbtwistmodifier::LINEAR },
+		{ "RAMPED", hkbtwistmodifier::RAMPED },
+	};
+
+	hkMap<string, hkbtwistmodifier::rotationaxiscoordinates> axisMap =
+	{
+		{ "ROTATION_AXIS_IN_MODEL_COORDINATES", hkbtwistmodifier::ROTATION_AXIS_IN_MODEL_COORDINATES },
+		{ "ROTATION_AXIS_IN_LOCAL_COORDINATES", hkbtwistmodifier::ROTATION_AXIS_IN_LOCAL_COORDINATES },
+	};
+}
+
+string hkbtwistmodifier::getAngleMethod()
+{
+	return twistmodifier::methodMap[setAngleMethod];
+}
+
+string hkbtwistmodifier::getRotationAxis()
+{
+	return twistmodifier::axisMap[rotationAxisCoordinates];
 }
 
 string hkbtwistmodifier::GetAddress()
@@ -94,7 +117,7 @@ void hkbtwistmodifier::dataBake(string filepath, vecstr& nodelines, bool isEdite
 
 					if (readParam("setAngleMethod", line, output))
 					{
-						setAngleMethod = output == "LINEAR" ? LINEAR : RAMPED;
+						setAngleMethod = twistmodifier::methodMap[output];
 						++type;
 					}
 
@@ -106,8 +129,7 @@ void hkbtwistmodifier::dataBake(string filepath, vecstr& nodelines, bool isEdite
 
 					if (readParam("rotationAxisCoordinates", line, output))
 					{
-						rotationAxisCoordinates = output == "ROTATION_AXIS_IN_MODEL_COORDINATES" ? ROTATION_AXIS_IN_MODEL_COORDINATES :
-							ROTATION_AXIS_IN_LOCAL_COORDINATES;
+						rotationAxisCoordinates = twistmodifier::axisMap[output];
 						++type;
 					}
 
@@ -311,20 +333,10 @@ void hkbtwistmodifier::nextNode(string filepath, int functionlayer, bool isOld, 
 
 string hkbtwistmodifier::getAngleMethod()
 {
-	switch (setAngleMethod)
-	{
-		case LINEAR: return "LINEAR";
-		case RAMPED: return "RAMPED";
-		default: return "LINEAR";
-	}
+	return twistmodifier::methodMap[setAngleMethod];
 }
 
 string hkbtwistmodifier::getRotationAxis()
 {
-	switch (rotationAxisCoordinates)
-	{
-		case ROTATION_AXIS_IN_MODEL_COORDINATES: return "ROTATION_AXIS_IN_MODEL_COORDINATES";
-		case ROTATION_AXIS_IN_LOCAL_COORDINATES: return "ROTATION_AXIS_IN_LOCAL_COORDINATES";
-		default: return "ROTATION_AXIS_IN_MODEL_COORDINATES";
-	}
+	return twistmodifier::axisMap[rotationAxisCoordinates];
 }

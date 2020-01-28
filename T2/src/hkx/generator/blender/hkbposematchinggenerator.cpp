@@ -1,7 +1,9 @@
 #include <boost\algorithm\string.hpp>
 #include <boost\thread.hpp>
+
 #include "hkbposematchinggenerator.h"
 #include "generatorlines.h"
+#include "src/utilities/hkMap.h"
 
 using namespace std;
 
@@ -10,6 +12,12 @@ namespace posematchinggenerator
 	const string key = "cj";
 	const string classname = "hkbPoseMatchingGenerator";
 	const string signature = "0x29e271b4";
+
+	hkMap<string, hkbposematchinggenerator::Mode> modeMap =
+	{
+		{ "MODE_MATCH", hkbposematchinggenerator::MODE_MATCH},
+		{ "MODE_PLAY", hkbposematchinggenerator::MODE_PLAY},
+	};
 }
 
 string hkbposematchinggenerator::GetAddress()
@@ -226,6 +234,8 @@ void hkbposematchinggenerator::connect(string filepath, string preaddress, int f
 	boost::unique_lock<boost::mutex> curLock(nodeMutex);
 	address = preaddress + posematchinggenerator::key + to_string(functionlayer) + ">region";
 	poolAddress.push_back(address);
+	startPlayingEventId.connectEventInfo(ID, graphroot);
+	startMatchingEventId.connectEventInfo(ID, graphroot);
 
 	if (IsExist.find(ID) == IsExist.end())
 	{
@@ -594,12 +604,7 @@ void hkbposematchinggenerator::nextNode(string filepath, int functionlayer, bool
 
 string hkbposematchinggenerator::getMode()
 {
-	switch (mode)
-	{
-		case MODE_MATCH: return "MODE_MATCH";
-		case MODE_PLAY: return "MODE_PLAY";
-		default: return "MODE_MATCH";
-	}
+	return posematchinggenerator::modeMap[mode];
 }
 
 void hkbposematchinggenerator::threadedNextNode(shared_ptr<hkbobject> hkb_obj, string filepath, string address, int functionlayer, hkbbehaviorgraph* graphroot)

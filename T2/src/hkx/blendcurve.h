@@ -3,6 +3,8 @@
 
 #include <string>
 
+#include "src/utilities/hkMap.h"
+
 enum blendcurve
 {
 	BLEND_CURVE_SMOOTH,
@@ -12,5 +14,7 @@ enum blendcurve
 };
 
 std::string getBlendCurve(blendcurve cur);
+
+extern hkMap<std::string, blendcurve> curveMap;
 
 #endif

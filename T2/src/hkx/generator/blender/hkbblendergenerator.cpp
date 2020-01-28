@@ -1,7 +1,9 @@
-#include <boost\algorithm\string.hpp>
-#include <boost\thread.hpp>
+#include <boost/algorithm/string.hpp>
+#include <boost/thread.hpp>
+
 #include "hkbblendergenerator.h"
 #include "generatorlines.h"
+#include "src/utilities/hkMap.h"
 
 using namespace std;
 
@@ -10,6 +12,16 @@ namespace blendergenerator
 	const string key = "i";
 	const string classname = "hkbBlenderGenerator";
 	const string signature = "0x22df7147";
+
+	hkMap<string, hkbblendergenerator::blenderflags> flagMap =
+	{
+		{ "FLAG_SYNC", hkbblendergenerator::FLAG_SYNC },
+		{ "FLAG_SMOOTH_GENERATOR_WEIGHTS", hkbblendergenerator::FLAG_SMOOTH_GENERATOR_WEIGHTS },
+		{ "FLAG_DONT_DEACTIVATE_CHILDREN_WITH_ZERO_WEIGHTS", hkbblendergenerator::FLAG_DONT_DEACTIVATE_CHILDREN_WITH_ZERO_WEIGHTS },
+		{ "FLAG_PARAMETRIC_BLEND", hkbblendergenerator::FLAG_PARAMETRIC_BLEND },
+		{ "FLAG_IS_PARAMETRIC_BLEND_CYCLIC", hkbblendergenerator::FLAG_IS_PARAMETRIC_BLEND_CYCLIC },
+		{ "FLAG_FORCE_DENSE_POSE", hkbblendergenerator::FLAG_FORCE_DENSE_POSE },
+	};
 }
 
 string hkbblendergenerator::GetAddress()
@@ -93,11 +105,29 @@ void hkbblendergenerator::dataBake(string filepath, vecstr& nodelines, bool isEd
 				}
 				case 8:
 				{
-					int output;
+					string output;
 
 					if (readParam("flags", line, output))
 					{
-						flags = static_cast<blenderflags>(output);
+						if (isOnlyNumber(output))
+						{
+							flags = static_cast<blenderflags>(stoi(output));
+						}
+						else
+						{
+							vecstr list;
+							boost::trim_if(output, boost::is_any_of("\t "));
+							boost::split(list, output, boost::is_any_of("|"), boost::token_compress_on);
+							usize data = static_cast<usize>(flags);
+
+							for (auto& flg : list)
+							{
+								data |= blendergenerator::flagMap[flg];
+							}
+
+							flags = static_cast<hkbblendergenerator::blenderflags>(data);
+						}
+
 						++type;
 					}
 

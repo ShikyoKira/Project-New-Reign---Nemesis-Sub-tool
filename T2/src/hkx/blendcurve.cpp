@@ -2,14 +2,15 @@
 
 using namespace std;
 
+hkMap<string, blendcurve> curveMap =
+{
+	{ "BLEND_CURVE_SMOOTH", blendcurve::BLEND_CURVE_SMOOTH },
+	{ "BLEND_CURVE_LINEAR", blendcurve::BLEND_CURVE_LINEAR },
+	{ "BLEND_CURVE_LINEAR_TO_SMOOTH", blendcurve::BLEND_CURVE_LINEAR_TO_SMOOTH },
+	{ "BLEND_CURVE_SMOOTH_TO_LINEAR", blendcurve::BLEND_CURVE_SMOOTH_TO_LINEAR },
+};
+
 string getBlendCurve(blendcurve cur)
 {
-	switch (cur)
-	{
-	case BLEND_CURVE_SMOOTH: return "BLEND_CURVE_SMOOTH";
-	case BLEND_CURVE_LINEAR: return "BLEND_CURVE_LINEAR";
-	case BLEND_CURVE_LINEAR_TO_SMOOTH: return "BLEND_CURVE_LINEAR_TO_SMOOTH";
-	case BLEND_CURVE_SMOOTH_TO_LINEAR: return "BLEND_CURVE_SMOOTH_TO_LINEAR";
-	default: return "BLEND_CURVE_SMOOTH";
-	}
+	return curveMap[cur];
 }

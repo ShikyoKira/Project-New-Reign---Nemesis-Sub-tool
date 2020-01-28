@@ -1,6 +1,8 @@
-#include <boost\thread.hpp>
-#include <boost\algorithm\string.hpp>
+#include <boost/thread.hpp>
+#include <boost/algorithm/string.hpp>
+
 #include "hkbclipgenerator.h"
+#include "src/utilities/hkMap.h"
 
 using namespace std;
 
@@ -9,6 +11,25 @@ namespace clipgenerator
 	const string key = "v";
 	const string classname = "hkbClipGenerator";
 	const string signature = "0x333b85b9";
+
+	hkMap<string, hkbclipgenerator::playbackmode> modeMap =
+	{
+		{ "MODE_SINGLE_PLAY", hkbclipgenerator::MODE_SINGLE_PLAY },
+		{ "MODE_LOOPING", hkbclipgenerator::MODE_LOOPING },
+		{ "MODE_USER_CONTROLLED", hkbclipgenerator::MODE_USER_CONTROLLED },
+		{ "MODE_PING_PONG", hkbclipgenerator::MODE_PING_PONG },
+		{ "MODE_COUNT", hkbclipgenerator::MODE_COUNT },
+	};
+
+	hkMap<string, hkbclipgenerator::clipflags> flagMap =
+	{
+		{ "FLAG_CONTINUE_MOTION_AT_END", hkbclipgenerator::FLAG_CONTINUE_MOTION_AT_END },
+		{ "FLAG_SYNC_HALF_CYCLE_IN_PING_PONG_MODE", hkbclipgenerator::FLAG_SYNC_HALF_CYCLE_IN_PING_PONG_MODE },
+		{ "FLAG_MIRROR", hkbclipgenerator::FLAG_MIRROR },
+		{ "FLAG_FORCE_DENSE_POSE", hkbclipgenerator::FLAG_FORCE_DENSE_POSE },
+		{ "FLAG_DONT_CONVERT_ANNOTATIONS_TO_TRIGGERS", hkbclipgenerator::FLAG_DONT_CONVERT_ANNOTATIONS_TO_TRIGGERS },
+		{ "FLAG_IGNORE_MOTION", hkbclipgenerator::FLAG_IGNORE_MOTION },
+	};
 }
 
 string hkbclipgenerator::GetAddress()
@@ -126,12 +147,7 @@ void hkbclipgenerator::dataBake(string filepath, vecstr& nodelines, bool isEdite
 
 					if (readParam("mode", line, data))
 					{
-						if (data == "MODE_SINGLE_PLAY") mode = MODE_SINGLE_PLAY;
-						else if (data == "MODE_LOOPING") mode = MODE_LOOPING;
-						else if (data == "MODE_USER_CONTROLLED") mode = MODE_USER_CONTROLLED;
-						else if (data == "MODE_PING_PONG") mode = MODE_PING_PONG;
-						else mode = MODE_COUNT;
-
+						mode = clipgenerator::modeMap[data];
 						++type;
 					}
 
@@ -139,11 +155,29 @@ void hkbclipgenerator::dataBake(string filepath, vecstr& nodelines, bool isEdite
 				}
 				case 13:
 				{
-					int output;
+					string output;
 
 					if (readParam("flags", line, output))
 					{
-						flags = static_cast<clipflags>(output);
+						if (isOnlyNumber(output))
+						{
+							flags = static_cast<clipflags>(stoi(output));
+						}
+						else
+						{
+							vecstr list;
+							boost::trim_if(output, boost::is_any_of("\t "));
+							boost::split(list, output, boost::is_any_of("|"), boost::token_compress_on);
+							usize data = static_cast<usize>(flags);
+
+							for (auto& flg : list)
+							{
+								data |= clipgenerator::flagMap[flg];
+							}
+
+							flags = static_cast<hkbclipgenerator::clipflags>(data);
+						}
+
 						++type;
 					}
 				}
@@ -362,13 +396,5 @@ void hkbclipgenerator::threadedNextNode(shared_ptr<hkbobject> hkb_obj, string fi
 
 string hkbclipgenerator::getMode()
 {
-	switch (mode)
-	{
-		case MODE_SINGLE_PLAY: return "MODE_SINGLE_PLAY";
-		case MODE_LOOPING: return "MODE_LOOPING";
-		case MODE_USER_CONTROLLED: return "MODE_USER_CONTROLLED";
-		case MODE_PING_PONG: return "MODE_PING_PONG";
-		case MODE_COUNT: return "MODE_COUNT";
-		default: return "MODE_SINGLE_PLAY";
-	}
+	return clipgenerator::modeMap[mode];
 }
