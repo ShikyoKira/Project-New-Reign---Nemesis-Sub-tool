@@ -233,6 +233,7 @@
     <ClCompile Include="src\utilities\attributeinfopack.cpp" />
     <ClCompile Include="src\utilities\coordinate.cpp" />
     <ClCompile Include="src\utilities\eventinfopack.cpp" />
+    <ClCompile Include="src\utilities\hkMap.cpp" />
     <ClCompile Include="src\utilities\levenshteindistance.cpp" />
     <ClCompile Include="src\utilities\qstransform.cpp" />
     <ClCompile Include="src\utilities\variableinfopack.cpp" />
@@ -375,6 +376,7 @@
     <ClInclude Include="src\stateid.h" />
     <ClInclude Include="src\utilities\attributeinfopack.h" />
     <ClInclude Include="src\utilities\coordinate.h" />
+    <ClInclude Include="src\utilities\hkMap.h" />
     <ClInclude Include="src\utilities\levenshteindistance.h" />
     <ClInclude Include="src\utilities\qstransform.h" />
     <ClInclude Include="src\utilities\variableinfopack.h" />

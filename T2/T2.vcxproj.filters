@@ -489,6 +489,9 @@
     <ClCompile Include="AnimSetData\animsetdatamatch.cpp">
       <Filter>Source Files\animsetdata</Filter>
     </ClCompile>
+    <ClCompile Include="src\utilities\hkMap.cpp">
+      <Filter>Source Files\utilities</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Global.h">
@@ -912,6 +915,9 @@
       <Filter>Header Files\hkbclasses\modifier\base</Filter>
     </ClInclude>
     <ClInclude Include="src\utilities\qstransform.h">
+      <Filter>Header Files\utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="src\utilities\hkMap.h">
       <Filter>Header Files\utilities</Filter>
     </ClInclude>
   </ItemGroup>
