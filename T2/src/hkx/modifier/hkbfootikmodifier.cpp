@@ -13,7 +13,7 @@ namespace footikmodifier
 	const string classname = "hkbFootIkModifier";
 	const string signature = "0xed8966c0";
 
-	hkMap<string, hkbfootikmodifier::mode> modeMap =
+	hkMap<string, hkbfootikmodifier::mode> modeMap
 	{
 		{ "ALIGN_MODE_FORWARD_RIGHT", hkbfootikmodifier::ALIGN_MODE_FORWARD_RIGHT },
 		{ "ALIGN_MODE_FORWARD", hkbfootikmodifier::ALIGN_MODE_FORWARD },

@@ -132,14 +132,15 @@ void hkbbehaviorgraphdata::dataBake(string filepath, vecstr& nodelines, bool isE
 
 				if (readParam("flags", line, output))
 				{
-					vecstr list;
+					(*curVarInfo)[counter].role.flags.strdata = output;
+					/*vecstr list;
 					boost::trim_if(output, boost::is_any_of("\t "));
 					boost::split(list, output, boost::is_any_of("|"), boost::token_compress_on);
 
 					for (auto& each : list)
 					{
 						(*curVarInfo)[counter].role.flags.update(each);
-					}
+					}*/
 
 					++type;
 				}

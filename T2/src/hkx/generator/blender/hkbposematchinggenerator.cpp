@@ -13,7 +13,7 @@ namespace posematchinggenerator
 	const string classname = "hkbPoseMatchingGenerator";
 	const string signature = "0x29e271b4";
 
-	hkMap<string, hkbposematchinggenerator::Mode> modeMap =
+	hkMap<string, hkbposematchinggenerator::Mode> modeMap
 	{
 		{ "MODE_MATCH", hkbposematchinggenerator::MODE_MATCH},
 		{ "MODE_PLAY", hkbposematchinggenerator::MODE_PLAY},

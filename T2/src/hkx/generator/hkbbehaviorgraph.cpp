@@ -13,7 +13,7 @@ namespace behaviorgraph
 	const string classname = "hkbBehaviorGraph";
 	const string signature = "0xb1218f86";
 
-	hkMap<string, hkbbehaviorgraph::variablemode> modeMap =
+	hkMap<string, hkbbehaviorgraph::variablemode> modeMap
 	{
 		{ "VARIABLE_MODE_DISCARD_WHEN_INACTIVE", hkbbehaviorgraph::VARIABLE_MODE_DISCARD_WHEN_INACTIVE },
 		{ "VARIABLE_MODE_MAINTAIN_VALUES_WHEN_INACTIVE", hkbbehaviorgraph::VARIABLE_MODE_MAINTAIN_VALUES_WHEN_INACTIVE },
@@ -81,6 +81,7 @@ void hkbbehaviorgraph::dataBake(string filepath, vecstr& nodelines, bool isEdite
 					if (readParam("variableMode", line, output))
 					{
 						variableMode = behaviorgraph::modeMap[output];
+						++type;
 					}
 
 					break;

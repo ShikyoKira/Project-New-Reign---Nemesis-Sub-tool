@@ -49,8 +49,9 @@ struct hkbvariableinfo
 				FLAG_NOT_CHARACTER_PROPERTY = 32,
 			};
 
-			flags data;
+			flags data = FLAG_NONE;
 			vecstr UNKNOWN_BITS;
+			std::string strdata;
 
 			std::string getflags();
 

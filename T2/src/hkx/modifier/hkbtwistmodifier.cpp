@@ -9,27 +9,17 @@ namespace twistmodifier
 	const string classname = "hkbTwistModifier";
 	const string signature = "0xb6b76b32";
 
-	hkMap<string, hkbtwistmodifier::setanglemethod> methodMap =
+	hkMap<string, hkbtwistmodifier::setanglemethod> methodMap
 	{
 		{ "LINEAR", hkbtwistmodifier::LINEAR },
 		{ "RAMPED", hkbtwistmodifier::RAMPED },
 	};
 
-	hkMap<string, hkbtwistmodifier::rotationaxiscoordinates> axisMap =
+	hkMap<string, hkbtwistmodifier::rotationaxiscoordinates> axisMap
 	{
 		{ "ROTATION_AXIS_IN_MODEL_COORDINATES", hkbtwistmodifier::ROTATION_AXIS_IN_MODEL_COORDINATES },
 		{ "ROTATION_AXIS_IN_LOCAL_COORDINATES", hkbtwistmodifier::ROTATION_AXIS_IN_LOCAL_COORDINATES },
 	};
-}
-
-string hkbtwistmodifier::getAngleMethod()
-{
-	return twistmodifier::methodMap[setAngleMethod];
-}
-
-string hkbtwistmodifier::getRotationAxis()
-{
-	return twistmodifier::axisMap[rotationAxisCoordinates];
 }
 
 string hkbtwistmodifier::GetAddress()

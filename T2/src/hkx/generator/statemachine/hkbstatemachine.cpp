@@ -14,7 +14,7 @@ namespace statemachine
 	const string classname = "hkbStateMachine";
 	const string signature = "0x816c1dcb";
 	
-	hkMap<string, hkbstatemachine::startstatemode> startModeMap =
+	hkMap<string, hkbstatemachine::startstatemode> startModeMap
 	{
 		{ "START_STATE_MODE_DEFAULT", hkbstatemachine::START_STATE_MODE_DEFAULT },
 		{ "START_STATE_MODE_SYNC", hkbstatemachine::START_STATE_MODE_SYNC },
@@ -22,7 +22,7 @@ namespace statemachine
 		{ "START_STATE_MODE_CHOOSER", hkbstatemachine::START_STATE_MODE_CHOOSER },
 	};
 
-	hkMap<string, hkbstatemachine::statemachineselftransitionmode> transitionModeMap =
+	hkMap<string, hkbstatemachine::statemachineselftransitionmode> transitionModeMap
 	{
 		{ "SELF_TRANSITION_MODE_NO_TRANSITION", hkbstatemachine::SELF_TRANSITION_MODE_NO_TRANSITION },
 		{ "SELF_TRANSITION_MODE_TRANSITION_TO_START_STATE", hkbstatemachine::SELF_TRANSITION_MODE_TRANSITION_TO_START_STATE },

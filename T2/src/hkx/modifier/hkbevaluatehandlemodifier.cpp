@@ -11,7 +11,7 @@ namespace evaluatehandlemodifier
 	const string classname = "hkbEvaluateHandleModifier";
 	const string signature = "0x79757102";
 
-	hkMap<string, hkbevaluatehandlemodifier::handlechangemode> modeMap =
+	hkMap<string, hkbevaluatehandlemodifier::handlechangemode> modeMap
 	{
 		{ "HANDLE_CHANGE_MODE_ABRUPT",  hkbevaluatehandlemodifier::HANDLE_CHANGE_MODE_ABRUPT},
 		{ "HANDLE_CHANGE_MODE_CONSTANT_VELOCITY",  hkbevaluatehandlemodifier::HANDLE_CHANGE_MODE_CONSTANT_VELOCITY},

@@ -1,19 +1,56 @@
 #pragma once
 
-#include <unordered_map>
+#include <vector>
 
-template<typename T, typename K>
-class hkMap : public std::unordered_map<T, K>
+template<typename K, typename V>
+class hkMap : public std::vector<std::pair<K, V>>
 {
 public:
-    inline hkMap() {}
-    inline hkMap(std::initializer_list<std::pair<T, K>> list)
-    {
-        for (typename std::initializer_list<std::pair<T, K>>::const_iterator it = list.begin(); it != list.end(); ++it)
-            insert(it->first, it->second);
-    }
+    hkMap() {}
+	hkMap(std::initializer_list<std::pair<K, V>> list) : std::vector<std::pair<K, V>>()
+	{
+		for (std::pair<K, V> it : list)
+		{
+			std::vector<std::pair<K, V>>::push_back(it);
+		}
+	}
 
-    hkMap<T, K>& operator=(std::initializer_list<std::pair<T, K>> list);
-	K& operator[](T& key);
-	T& operator[](K& key);
+	inline hkMap<K, V>& operator=(std::initializer_list<std::pair<K, V>> list)
+	{
+		std::vector<std::pair<K, V>>::clear();
+
+		for (std::pair<K, V> it : list)
+		{
+			std::vector<std::pair<K, V>>::push_back(it);
+		}
+
+		return *this;
+	}
+
+	inline V& operator[](K& key)
+	{
+		for (auto each : *this)
+		{
+			if (each.first == key)
+			{
+				return each.second;
+			}
+		}
+
+		return std::vector<std::pair<K, V>>::begin()->second;
+	}
+
+	inline K operator[](V& key)
+	{
+		for (auto each : *this)
+		{
+			if (each.second == key)
+			{
+				return each.first;
+			}
+		}
+
+		throw "hkMap : Key not found";
+	}
+
 };

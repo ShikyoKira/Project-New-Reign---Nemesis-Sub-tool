@@ -12,7 +12,7 @@ namespace clipgenerator
 	const string classname = "hkbClipGenerator";
 	const string signature = "0x333b85b9";
 
-	hkMap<string, hkbclipgenerator::playbackmode> modeMap =
+	hkMap<string, hkbclipgenerator::playbackmode> modeMap
 	{
 		{ "MODE_SINGLE_PLAY", hkbclipgenerator::MODE_SINGLE_PLAY },
 		{ "MODE_LOOPING", hkbclipgenerator::MODE_LOOPING },
@@ -21,7 +21,7 @@ namespace clipgenerator
 		{ "MODE_COUNT", hkbclipgenerator::MODE_COUNT },
 	};
 
-	hkMap<string, hkbclipgenerator::clipflags> flagMap =
+	hkMap<string, hkbclipgenerator::clipflags> flagMap
 	{
 		{ "FLAG_CONTINUE_MOTION_AT_END", hkbclipgenerator::FLAG_CONTINUE_MOTION_AT_END },
 		{ "FLAG_SYNC_HALF_CYCLE_IN_PING_PONG_MODE", hkbclipgenerator::FLAG_SYNC_HALF_CYCLE_IN_PING_PONG_MODE },
@@ -172,6 +172,8 @@ void hkbclipgenerator::dataBake(string filepath, vecstr& nodelines, bool isEdite
 
 							for (auto& flg : list)
 							{
+								if (flg == "0") continue;
+
 								data |= clipgenerator::flagMap[flg];
 							}
 

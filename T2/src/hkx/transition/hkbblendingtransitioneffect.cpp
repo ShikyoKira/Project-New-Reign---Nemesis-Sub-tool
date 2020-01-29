@@ -12,14 +12,14 @@ namespace blendingtransitioneffect
 	const string classname = "hkbBlendingTransitionEffect";
 	const string signature = "0xfd8584fe";
 
-	hkMap<string, hkbblendingtransitioneffect::endmode> endMap =
+	hkMap<string, hkbblendingtransitioneffect::endmode> endMap
 	{
 		{ "END_MODE_NONE", hkbblendingtransitioneffect::END_MODE_NONE },
 		{ "END_MODE_TRANSITION_UNTIL_END_OF_FROM_GENERATOR", hkbblendingtransitioneffect::END_MODE_TRANSITION_UNTIL_END_OF_FROM_GENERATOR },
 		{ "END_MODE_CAP_DURATION_AT_END_OF_FROM_GENERATOR", hkbblendingtransitioneffect::END_MODE_CAP_DURATION_AT_END_OF_FROM_GENERATOR },
 	};
 
-	hkMap<string, hkbblendingtransitioneffect::flagbits::flag> flagMap =
+	hkMap<string, hkbblendingtransitioneffect::flagbits::flag> flagMap
 	{
 		{ "FLAG_IGNORE_TO_WORLD_FROM_MODEL", hkbblendingtransitioneffect::flagbits::flag::FLAG_IGNORE_TO_WORLD_FROM_MODEL },
 		{ "FLAG_SYNC", hkbblendingtransitioneffect::flagbits::flag::FLAG_SYNC },
@@ -361,10 +361,10 @@ string hkbblendingtransitioneffect::flagbits::getflags()
 
 	for (auto& flg : blendingtransitioneffect::flagMap)
 	{
-		if (data & ~flg.second) flags.append(flg.first + "|");
+		if ((data & flg.second) == flg.second && flg.second != 0) flags.append(flg.first + "|");
 	}
 
-	if (flags.length() == 0) return "0";
+	if (data == 0) return "0";
 
 	flags.pop_back();
 	return flags;
@@ -372,6 +372,8 @@ string hkbblendingtransitioneffect::flagbits::getflags()
 
 void hkbblendingtransitioneffect::flagbits::update(string flag)
 {
+	if (flag == "0") return;
+
 	usize data2 = static_cast<usize>(data);
 	data2 |= blendingtransitioneffect::flagMap[flag];
 	data = static_cast<hkbblendingtransitioneffect::flagbits::flag>(data2);

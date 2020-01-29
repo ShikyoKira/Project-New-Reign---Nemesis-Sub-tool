@@ -4,7 +4,7 @@
 
 using namespace std;
 
-hkMap<string, hkbvariableinfo::roleattribute::Role> roleMap =
+hkMap<string, hkbvariableinfo::roleattribute::Role> roleMap
 {
 	{ "ROLE_DEFAULT", hkbvariableinfo::roleattribute::ROLE_DEFAULT },
 	{ "ROLE_FILE_NAME", hkbvariableinfo::roleattribute::ROLE_FILE_NAME },
@@ -16,7 +16,7 @@ hkMap<string, hkbvariableinfo::roleattribute::Role> roleMap =
 	{ "ROLE_TIME", hkbvariableinfo::roleattribute::ROLE_TIME },
 };
 
-hkMap<string, hkbvariableinfo::variabletype> typeMap =
+hkMap<string, hkbvariableinfo::variabletype> typeMap
 {
 	{ "VARIABLE_TYPE_INVALID", hkbvariableinfo::VARIABLE_TYPE_INVALID },
 	{ "VARIABLE_TYPE_BOOL", hkbvariableinfo::VARIABLE_TYPE_BOOL },
@@ -30,7 +30,7 @@ hkMap<string, hkbvariableinfo::variabletype> typeMap =
 	{ "VARIABLE_TYPE_QUATERNION", hkbvariableinfo::VARIABLE_TYPE_QUATERNION },
 };
 
-hkMap<string, hkbvariableinfo::roleattribute::roleflags::flags> flagMap =
+hkMap<string, hkbvariableinfo::roleattribute::roleflags::flags> flagMap
 {
 	{ "FLAG_NOT_CHARACTER_PROPERTY", hkbvariableinfo::roleattribute::roleflags::FLAG_NOT_CHARACTER_PROPERTY },
 	{ "FLAG_OUTPUT", hkbvariableinfo::roleattribute::roleflags::FLAG_OUTPUT },
@@ -43,11 +43,13 @@ hkMap<string, hkbvariableinfo::roleattribute::roleflags::flags> flagMap =
 
 string hkbvariableinfo::roleattribute::roleflags::getflags()
 {
+	return strdata;
+
 	string flags;
 
 	for (auto& curFlag : flagMap)
 	{
-		if (data & ~curFlag.second)
+		if ((data & curFlag.second) == curFlag.second)
 		{
 			flags.append(curFlag.first + "|");
 		}
@@ -60,8 +62,10 @@ string hkbvariableinfo::roleattribute::roleflags::getflags()
 			flags.append(bits + "|");
 		}
 	}
-
-	if (flags.length() == 0) return "0";
+	else if (data == 0)
+	{
+		return "0";
+	}
 
 	flags.pop_back();
 	return flags;
@@ -69,6 +73,8 @@ string hkbvariableinfo::roleattribute::roleflags::getflags()
 
 void hkbvariableinfo::roleattribute::roleflags::update(string flag)
 {
+	strdata += ((strdata.length() == 0 ? "" : "|") + flag);
+
 	usize data2 = static_cast<usize>(data);
 
 	if (flag == "FLAG_NONE") data2 |= FLAG_NONE;
@@ -85,11 +91,13 @@ void hkbvariableinfo::roleattribute::roleflags::update(string flag)
 
 bool hkbvariableinfo::roleattribute::roleflags::operator==(roleflags& ctrpart)
 {
+	return strdata == ctrpart.strdata;
 	return data == ctrpart.data;
 }
 
 bool hkbvariableinfo::roleattribute::roleflags::operator!=(roleflags& ctrpart)
 {
+	return strdata != ctrpart.strdata;
 	return data != ctrpart.data;
 }
 

@@ -9,13 +9,13 @@ namespace proxymodifier
 	const string classname = "hkbProxyModifier";
 	const string signature = "0x8a41554f";
 
-	hkMap<string, hkbproxymodifier::phantomtype> typeMap =
+	hkMap<string, hkbproxymodifier::phantomtype> typeMap
 	{
 		{ "PHANTOM_TYPE_SIMPLE", hkbproxymodifier::PHANTOM_TYPE_SIMPLE },
 		{ "PHANTOM_TYPE_CACHING", hkbproxymodifier::PHANTOM_TYPE_CACHING },
 	};
 
-	hkMap<string, hkbproxymodifier::linearvelocitymode> modeMap =
+	hkMap<string, hkbproxymodifier::linearvelocitymode> modeMap
 	{
 		{ "LINEAR_VELOCITY_MODE_WORLD", hkbproxymodifier::LINEAR_VELOCITY_MODE_WORLD },
 		{ "LINEAR_VELOCITY_MODE_MODEL", hkbproxymodifier::LINEAR_VELOCITY_MODE_MODEL },

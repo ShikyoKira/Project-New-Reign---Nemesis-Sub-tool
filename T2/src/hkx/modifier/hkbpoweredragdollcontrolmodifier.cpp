@@ -11,7 +11,7 @@ namespace poweredragdollcontrolmodifier
 	const string classname = "hkbPoweredRagdollControlsModifier";
 	const string signature = "0x7cb54065";
 
-	hkMap<string, hkbpoweredragdollcontrolmodifier::worldfrommodelmodedata::worldfrommodelmode> modeMap =
+	hkMap<string, hkbpoweredragdollcontrolmodifier::worldfrommodelmodedata::worldfrommodelmode> modeMap
 	{
 		{ "WORLD_FROM_MODEL_MODE_USE_OLD", hkbpoweredragdollcontrolmodifier::worldfrommodelmodedata::WORLD_FROM_MODEL_MODE_USE_OLD },
 		{ "WORLD_FROM_MODEL_MODE_USE_INPUT", hkbpoweredragdollcontrolmodifier::worldfrommodelmodedata::WORLD_FROM_MODEL_MODE_USE_INPUT },

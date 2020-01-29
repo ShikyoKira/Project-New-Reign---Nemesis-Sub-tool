@@ -489,9 +489,6 @@
     <ClCompile Include="AnimSetData\animsetdatamatch.cpp">
       <Filter>Source Files\animsetdata</Filter>
     </ClCompile>
-    <ClCompile Include="src\utilities\hkMap.cpp">
-      <Filter>Source Files\utilities</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Global.h">

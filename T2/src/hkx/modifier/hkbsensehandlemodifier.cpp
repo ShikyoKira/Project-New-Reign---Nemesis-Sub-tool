@@ -12,7 +12,7 @@ namespace sensehandlemodifier
 	const string classname = "hkbSenseHandleModifier";
 	const string signature = "0x2a064d99";
 
-	hkMap<string, hkbsensehandlemodifier::sensingmode> modeMap =
+	hkMap<string, hkbsensehandlemodifier::sensingmode> modeMap
 	{
 		{ "SENSE_IN_NEARBY_RIGID_BODIES", hkbsensehandlemodifier::SENSE_IN_NEARBY_RIGID_BODIES },
 		{ "SENSE_IN_RIGID_BODIES_OUTSIDE_THIS_CHARACTER", hkbsensehandlemodifier::SENSE_IN_RIGID_BODIES_OUTSIDE_THIS_CHARACTER },
@@ -25,11 +25,6 @@ namespace sensehandlemodifier
 		{ "SENSE_IN_GIVEN_CHARACTER_SKELETON", hkbsensehandlemodifier::SENSE_IN_GIVEN_CHARACTER_SKELETON },
 		{ "SENSE_IN_GIVEN_LOCAL_FRAME_GROUP", hkbsensehandlemodifier::SENSE_IN_GIVEN_LOCAL_FRAME_GROUP },
 	};
-}
-
-string hkbsensehandlemodifier::getSensingMode()
-{
-	return sensehandlemodifier::modeMap[sensingMode];
 }
 
 string hkbsensehandlemodifier::GetAddress()

@@ -27,7 +27,7 @@ public:
 			FLAG_IGNORE_TO_WORLD_FROM_MODEL = 4,
 		};
 
-		flag data;
+		flag data = FLAG_NONE;
 
 		std::string getflags();
 		void update(std::string flag);

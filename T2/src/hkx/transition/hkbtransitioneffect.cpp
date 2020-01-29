@@ -5,7 +5,7 @@ using namespace std;
 safeStringUMap<shared_ptr<hkbtransitioneffect>> hkbtransitioneffectList;
 safeStringUMap<shared_ptr<hkbtransitioneffect>> hkbtransitioneffectList_E;
 
-hkMap<string, hkbtransitioneffect::selftransitionmode> selfTransitionMap =
+hkMap<string, hkbtransitioneffect::selftransitionmode> selfTransitionMap
 {
 	{ "SELF_TRANSITION_MODE_CONTINUE_IF_CYCLIC_BLEND_IF_ACYCLIC", hkbtransitioneffect::SELF_TRANSITION_MODE_CONTINUE_IF_CYCLIC_BLEND_IF_ACYCLIC },
 	{ "SELF_TRANSITION_MODE_CONTINUE", hkbtransitioneffect::SELF_TRANSITION_MODE_CONTINUE },
@@ -13,7 +13,7 @@ hkMap<string, hkbtransitioneffect::selftransitionmode> selfTransitionMap =
 	{ "SELF_TRANSITION_MODE_BLEND", hkbtransitioneffect::SELF_TRANSITION_MODE_BLEND },
 };
 
-hkMap<string, hkbtransitioneffect::eventmode> eventMap =
+hkMap<string, hkbtransitioneffect::eventmode> eventMap
 {
 	{ "EVENT_MODE_DEFAULT", hkbtransitioneffect::EVENT_MODE_DEFAULT },
 	{ "EVENT_MODE_PROCESS_ALL", hkbtransitioneffect::EVENT_MODE_PROCESS_ALL },

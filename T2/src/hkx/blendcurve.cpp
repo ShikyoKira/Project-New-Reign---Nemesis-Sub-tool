@@ -2,7 +2,7 @@
 
 using namespace std;
 
-hkMap<string, blendcurve> curveMap =
+hkMap<string, blendcurve> curveMap
 {
 	{ "BLEND_CURVE_SMOOTH", blendcurve::BLEND_CURVE_SMOOTH },
 	{ "BLEND_CURVE_LINEAR", blendcurve::BLEND_CURVE_LINEAR },

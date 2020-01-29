@@ -758,7 +758,23 @@ bool IsOldRegion(shared_ptr<hkbobject> id, string address, short classcode, bool
 
 		if (IsForeign.find(masterparent->ID) != IsForeign.end())
 		{
-			return false;
+			tempparent = masterparent;
+			masterparent = hkb_parent[masterparent];
+
+			if (!masterparent)
+			{
+				cout << "ERROR: Parent backtracking error (Class: " << tempparent->getClassCode() << ")" << endl;
+				Error = true;
+				throw 5;
+			}
+
+			while (IsForeign.find(masterparent->ID) != IsForeign.end())
+			{
+				tempparent = masterparent;
+				masterparent = hkb_parent[masterparent];
+			}
+
+			if (tempparent->getClassCode() != "h" || masterparent->getClassCode() != "i") return false;
 		}
 
 		string tempadd = address;

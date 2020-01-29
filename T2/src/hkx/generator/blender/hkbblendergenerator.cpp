@@ -13,7 +13,7 @@ namespace blendergenerator
 	const string classname = "hkbBlenderGenerator";
 	const string signature = "0x22df7147";
 
-	hkMap<string, hkbblendergenerator::blenderflags> flagMap =
+	hkMap<string, hkbblendergenerator::blenderflags> flagMap
 	{
 		{ "FLAG_SYNC", hkbblendergenerator::FLAG_SYNC },
 		{ "FLAG_SMOOTH_GENERATOR_WEIGHTS", hkbblendergenerator::FLAG_SMOOTH_GENERATOR_WEIGHTS },
@@ -122,6 +122,8 @@ void hkbblendergenerator::dataBake(string filepath, vecstr& nodelines, bool isEd
 
 							for (auto& flg : list)
 							{
+								if (flg == "0") continue;
+
 								data |= blendergenerator::flagMap[flg];
 							}
 
@@ -180,6 +182,12 @@ void hkbblendergenerator::connect(string filepath, string preaddress, int functi
 	boost::unique_lock<boost::mutex> curLock(nodeMutex);
 	address = preaddress + blendergenerator::key + to_string(functionlayer) + ">region";
 	poolAddress.push_back(address);
+
+
+	if (name == "1HM_Staff_SprintForward_3rdP_Sword")
+	{
+		Error = false;
+	}
 
 	if (IsExist.find(ID) == IsExist.end())
 	{

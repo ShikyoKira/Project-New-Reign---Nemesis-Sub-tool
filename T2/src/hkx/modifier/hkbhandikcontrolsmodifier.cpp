@@ -11,7 +11,7 @@ namespace handikcontrolsmodifier
 	const string classname = "hkbHandIkControlsModifier";
 	const string signature = "0x9f0488bb";
 
-	hkMap<string, hkbhandikcontrolsmodifier::hkhand::controldata::handlechangemode> modeMap =
+	hkMap<string, hkbhandikcontrolsmodifier::hkhand::controldata::handlechangemode> modeMap
 	{
 		{ "HANDLE_CHANGE_MODE_ABRUPT", hkbhandikcontrolsmodifier::hkhand::controldata::HANDLE_CHANGE_MODE_ABRUPT },
 		{ "HANDLE_CHANGE_MODE_CONSTANT_VELOCITY", hkbhandikcontrolsmodifier::hkhand::controldata::HANDLE_CHANGE_MODE_CONSTANT_VELOCITY },

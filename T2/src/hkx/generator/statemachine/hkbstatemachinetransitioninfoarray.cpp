@@ -5,6 +5,7 @@
 #include "hkbstatemachinetransitioninfoarray.h"
 
 #include "src\stateid.h"
+#include "src\utilities\hkMap.h"
 
 using namespace std;
 
@@ -13,6 +14,25 @@ namespace statemachinetransitioninfoarray
 	const string key = "q";
 	const string classname = "hkbStateMachineTransitionInfoArray";
 	const string signature = "0xe397b11e";
+
+	hkMap<string, hkbstatemachinetransitioninfoarray::transitioninfo::transitionflags::flags> flagMap
+	{
+		{ "FLAG_ABUT_AT_END_OF_FROM_GENERATOR", hkbstatemachinetransitioninfoarray::transitioninfo::transitionflags::FLAG_ABUT_AT_END_OF_FROM_GENERATOR },
+		{ "FLAG_TO_NESTED_STATE_ID_IS_VALID", hkbstatemachinetransitioninfoarray::transitioninfo::transitionflags::FLAG_TO_NESTED_STATE_ID_IS_VALID },
+		{ "FLAG_FROM_NESTED_STATE_ID_IS_VALID", hkbstatemachinetransitioninfoarray::transitioninfo::transitionflags::FLAG_FROM_NESTED_STATE_ID_IS_VALID },
+		{ "FLAG_IS_LOCAL_WILDCARD", hkbstatemachinetransitioninfoarray::transitioninfo::transitionflags::FLAG_IS_LOCAL_WILDCARD },
+		{ "FLAG_IS_GLOBAL_WILDCARD", hkbstatemachinetransitioninfoarray::transitioninfo::transitionflags::FLAG_IS_GLOBAL_WILDCARD },
+		{ "FLAG_ALLOW_SELF_TRANSITION_BY_TRANSITION_FROM_ANY_STATE", hkbstatemachinetransitioninfoarray::transitioninfo::transitionflags::FLAG_ALLOW_SELF_TRANSITION_BY_TRANSITION_FROM_ANY_STATE },
+		{ "FLAG_DISABLE_CONDITION", hkbstatemachinetransitioninfoarray::transitioninfo::transitionflags::FLAG_DISABLE_CONDITION },
+		{ "FLAG_DISALLOW_RANDOM_TRANSITION", hkbstatemachinetransitioninfoarray::transitioninfo::transitionflags::FLAG_DISALLOW_RANDOM_TRANSITION },
+		{ "FLAG_DISALLOW_RETURN_TO_PREVIOUS_STATE", hkbstatemachinetransitioninfoarray::transitioninfo::transitionflags::FLAG_DISALLOW_RETURN_TO_PREVIOUS_STATE },
+		{ "FLAG_DISABLED", hkbstatemachinetransitioninfoarray::transitioninfo::transitionflags::FLAG_DISABLED },
+		{ "FLAG_DELAY_STATE_CHANGE", hkbstatemachinetransitioninfoarray::transitioninfo::transitionflags::FLAG_DELAY_STATE_CHANGE },
+		{ "FLAG_UNINTERRUPTIBLE_WHILE_DELAYED", hkbstatemachinetransitioninfoarray::transitioninfo::transitionflags::FLAG_UNINTERRUPTIBLE_WHILE_DELAYED },
+		{ "FLAG_UNINTERRUPTIBLE_WHILE_PLAYING", hkbstatemachinetransitioninfoarray::transitioninfo::transitionflags::FLAG_UNINTERRUPTIBLE_WHILE_PLAYING },
+		{ "FLAG_USE_INITIATE_INTERVAL", hkbstatemachinetransitioninfoarray::transitioninfo::transitionflags::FLAG_USE_INITIATE_INTERVAL },
+		{ "FLAG_USE_TRIGGER_INTERVAL", hkbstatemachinetransitioninfoarray::transitioninfo::transitionflags::FLAG_USE_TRIGGER_INTERVAL },
+	};
 }
 
 string hkbstatemachinetransitioninfoarray::GetAddress()
@@ -766,67 +786,24 @@ void hkbstatemachinetransitioninfoarray::threadedNextNode(shared_ptr<hkbobject> 
 
 bool hkbstatemachinetransitioninfoarray::transitioninfo::transitionflags::operator==(transitionflags& ctrpart)
 {
-	if (FLAG_USE_TRIGGER_INTERVAL != ctrpart.FLAG_USE_TRIGGER_INTERVAL) return false;
-	if (FLAG_USE_INITIATE_INTERVAL != ctrpart.FLAG_USE_INITIATE_INTERVAL) return false;
-	if (FLAG_UNINTERRUPTIBLE_WHILE_PLAYING != ctrpart.FLAG_UNINTERRUPTIBLE_WHILE_PLAYING) return false;
-	if (FLAG_UNINTERRUPTIBLE_WHILE_DELAYED != ctrpart.FLAG_UNINTERRUPTIBLE_WHILE_DELAYED) return false;
-	if (FLAG_DELAY_STATE_CHANGE != ctrpart.FLAG_DELAY_STATE_CHANGE) return false;
-	if (FLAG_DISABLED != ctrpart.FLAG_DISABLED) return false;
-	if (FLAG_DISALLOW_RETURN_TO_PREVIOUS_STATE != ctrpart.FLAG_DISALLOW_RETURN_TO_PREVIOUS_STATE) return false;
-	if (FLAG_DISALLOW_RANDOM_TRANSITION != ctrpart.FLAG_DISALLOW_RANDOM_TRANSITION) return false;
-	if (FLAG_DISABLE_CONDITION != ctrpart.FLAG_DISABLE_CONDITION) return false;
-	if (FLAG_ALLOW_SELF_TRANSITION_BY_TRANSITION_FROM_ANY_STATE != ctrpart.FLAG_ALLOW_SELF_TRANSITION_BY_TRANSITION_FROM_ANY_STATE) return false;
-	if (FLAG_IS_GLOBAL_WILDCARD != ctrpart.FLAG_IS_GLOBAL_WILDCARD) return false;
-	if (FLAG_IS_LOCAL_WILDCARD != ctrpart.FLAG_IS_LOCAL_WILDCARD) return false;
-	if (FLAG_FROM_NESTED_STATE_ID_IS_VALID != ctrpart.FLAG_FROM_NESTED_STATE_ID_IS_VALID) return false;
-	if (FLAG_TO_NESTED_STATE_ID_IS_VALID != ctrpart.FLAG_TO_NESTED_STATE_ID_IS_VALID) return false;
-	if (FLAG_ABUT_AT_END_OF_FROM_GENERATOR != ctrpart.FLAG_ABUT_AT_END_OF_FROM_GENERATOR) return false;
-
-	return true;
+	return data == ctrpart.data;
 }
 
 bool hkbstatemachinetransitioninfoarray::transitioninfo::transitionflags::operator!=(transitionflags& ctrpart)
 {
-	if (FLAG_USE_TRIGGER_INTERVAL != ctrpart.FLAG_USE_TRIGGER_INTERVAL) return true;
-	if (FLAG_USE_INITIATE_INTERVAL != ctrpart.FLAG_USE_INITIATE_INTERVAL) return true;
-	if (FLAG_UNINTERRUPTIBLE_WHILE_PLAYING != ctrpart.FLAG_UNINTERRUPTIBLE_WHILE_PLAYING) return true;
-	if (FLAG_UNINTERRUPTIBLE_WHILE_DELAYED != ctrpart.FLAG_UNINTERRUPTIBLE_WHILE_DELAYED) return true;
-	if (FLAG_DELAY_STATE_CHANGE != ctrpart.FLAG_DELAY_STATE_CHANGE) return true;
-	if (FLAG_DISABLED != ctrpart.FLAG_DISABLED) return true;
-	if (FLAG_DISALLOW_RETURN_TO_PREVIOUS_STATE != ctrpart.FLAG_DISALLOW_RETURN_TO_PREVIOUS_STATE) return true;
-	if (FLAG_DISALLOW_RANDOM_TRANSITION != ctrpart.FLAG_DISALLOW_RANDOM_TRANSITION) return true;
-	if (FLAG_DISABLE_CONDITION != ctrpart.FLAG_DISABLE_CONDITION) return true;
-	if (FLAG_ALLOW_SELF_TRANSITION_BY_TRANSITION_FROM_ANY_STATE != ctrpart.FLAG_ALLOW_SELF_TRANSITION_BY_TRANSITION_FROM_ANY_STATE) return true;
-	if (FLAG_IS_GLOBAL_WILDCARD != ctrpart.FLAG_IS_GLOBAL_WILDCARD) return true;
-	if (FLAG_IS_LOCAL_WILDCARD != ctrpart.FLAG_IS_LOCAL_WILDCARD) return true;
-	if (FLAG_FROM_NESTED_STATE_ID_IS_VALID != ctrpart.FLAG_FROM_NESTED_STATE_ID_IS_VALID) return true;
-	if (FLAG_TO_NESTED_STATE_ID_IS_VALID != ctrpart.FLAG_TO_NESTED_STATE_ID_IS_VALID) return true;
-	if (FLAG_ABUT_AT_END_OF_FROM_GENERATOR != ctrpart.FLAG_ABUT_AT_END_OF_FROM_GENERATOR) return true;
-
-	return false;
+	return data != ctrpart.data;
 }
 
 string hkbstatemachinetransitioninfoarray::transitioninfo::transitionflags::getString()
 {
 	string line;
 
-	if (FLAG_ABUT_AT_END_OF_FROM_GENERATOR) line.append("FLAG_ABUT_AT_END_OF_FROM_GENERATOR|");
-	if (FLAG_TO_NESTED_STATE_ID_IS_VALID) line.append("FLAG_TO_NESTED_STATE_ID_IS_VALID|");
-	if (FLAG_FROM_NESTED_STATE_ID_IS_VALID) line.append("FLAG_FROM_NESTED_STATE_ID_IS_VALID|");
-	if (FLAG_IS_LOCAL_WILDCARD) line.append("FLAG_IS_LOCAL_WILDCARD|");
-	if (FLAG_IS_GLOBAL_WILDCARD) line.append("FLAG_IS_GLOBAL_WILDCARD|");
-	if (FLAG_ALLOW_SELF_TRANSITION_BY_TRANSITION_FROM_ANY_STATE) line.append("FLAG_ALLOW_SELF_TRANSITION_BY_TRANSITION_FROM_ANY_STATE|");
-	if (FLAG_DISABLE_CONDITION) line.append("FLAG_DISABLE_CONDITION|");
-	if (FLAG_DISALLOW_RANDOM_TRANSITION) line.append("FLAG_DISALLOW_RANDOM_TRANSITION|");
-	if (FLAG_DISALLOW_RETURN_TO_PREVIOUS_STATE) line.append("FLAG_DISALLOW_RETURN_TO_PREVIOUS_STATE|");
-	if (FLAG_DISABLED) line.append("FLAG_DISABLED|");
-	if (FLAG_DELAY_STATE_CHANGE) line.append("FLAG_DELAY_STATE_CHANGE|");
-	if (FLAG_UNINTERRUPTIBLE_WHILE_DELAYED) line.append("FLAG_UNINTERRUPTIBLE_WHILE_DELAYED|");
-	if (FLAG_UNINTERRUPTIBLE_WHILE_PLAYING) line.append("FLAG_UNINTERRUPTIBLE_WHILE_PLAYING|");
-	if (FLAG_USE_INITIATE_INTERVAL) line.append("FLAG_USE_INITIATE_INTERVAL|");
-	if (FLAG_USE_TRIGGER_INTERVAL) line.append("FLAG_USE_TRIGGER_INTERVAL|");
+	for (auto& flg : statemachinetransitioninfoarray::flagMap)
+	{
+		if ((data & flg.second) == flg.second) line.append(flg.first + "|");
+	}
 
-	if (line.length() == 0) return "0";
+	if (data == 0) return "0";
 
 	line.pop_back();
 	return line;
@@ -834,19 +811,9 @@ string hkbstatemachinetransitioninfoarray::transitioninfo::transitionflags::getS
 
 void hkbstatemachinetransitioninfoarray::transitioninfo::transitionflags::update(std::string flag)
 {
-	if (flag == "FLAG_USE_TRIGGER_INTERVAL") FLAG_USE_TRIGGER_INTERVAL = true;
-	else if (flag == "FLAG_USE_INITIATE_INTERVAL") FLAG_USE_INITIATE_INTERVAL = true;
-	else if (flag == "FLAG_UNINTERRUPTIBLE_WHILE_PLAYING") FLAG_UNINTERRUPTIBLE_WHILE_PLAYING = true;
-	else if (flag == "FLAG_UNINTERRUPTIBLE_WHILE_DELAYED") FLAG_UNINTERRUPTIBLE_WHILE_DELAYED = true;
-	else if (flag == "FLAG_DELAY_STATE_CHANGE") FLAG_DELAY_STATE_CHANGE = true;
-	else if (flag == "FLAG_DISABLED") FLAG_DISABLED = true;
-	else if (flag == "FLAG_DISALLOW_RETURN_TO_PREVIOUS_STATE") FLAG_DISALLOW_RETURN_TO_PREVIOUS_STATE = true;
-	else if (flag == "FLAG_DISALLOW_RANDOM_TRANSITION") FLAG_DISALLOW_RANDOM_TRANSITION = true;
-	else if (flag == "FLAG_DISABLE_CONDITION") FLAG_DISABLE_CONDITION = true;
-	else if (flag == "FLAG_ALLOW_SELF_TRANSITION_BY_TRANSITION_FROM_ANY_STATE") FLAG_ALLOW_SELF_TRANSITION_BY_TRANSITION_FROM_ANY_STATE = true;
-	else if (flag == "FLAG_IS_GLOBAL_WILDCARD") FLAG_IS_GLOBAL_WILDCARD = true;
-	else if (flag == "FLAG_IS_LOCAL_WILDCARD") FLAG_IS_LOCAL_WILDCARD = true;
-	else if (flag == "FLAG_FROM_NESTED_STATE_ID_IS_VALID") FLAG_FROM_NESTED_STATE_ID_IS_VALID = true;
-	else if (flag == "FLAG_TO_NESTED_STATE_ID_IS_VALID") FLAG_TO_NESTED_STATE_ID_IS_VALID = true;
-	else if (flag == "FLAG_ABUT_AT_END_OF_FROM_GENERATOR") FLAG_ABUT_AT_END_OF_FROM_GENERATOR = true;
+	if (flag == "0") return;
+
+	usize data2 = static_cast<usize>(data);
+	data2 |= statemachinetransitioninfoarray::flagMap[flag];
+	data = static_cast<hkbstatemachinetransitioninfoarray::transitioninfo::transitionflags::flags>(data2);
 }

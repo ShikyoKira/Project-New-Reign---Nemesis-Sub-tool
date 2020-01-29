@@ -4,6 +4,8 @@
 
 using namespace std;
 
+atomic<int> writtenFile = 0;
+
 namespace nemesis
 {
 	string to_string(double num)
@@ -701,6 +703,7 @@ void outputExtraction(string filename, string classname, vecstr& output, bool is
 {
 	if (isEdited)
 	{
+		++writtenFile;
 		ofstream outputfile(filename);
 
 		if (outputfile.is_open())

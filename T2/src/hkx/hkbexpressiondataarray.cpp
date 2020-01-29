@@ -12,7 +12,7 @@ namespace expressiondataarray
 	const string classname = "hkbExpressionDataArray";
 	const string signature = "0x4b9ee1a2";
 
-	hkMap<string, hkbexpressiondataarray::expressiondata::eventmode> modeMap =
+	hkMap<string, hkbexpressiondataarray::expressiondata::eventmode> modeMap
 	{
 		{ "EVENT_MODE_SEND_ONCE", hkbexpressiondataarray::expressiondata::EVENT_MODE_SEND_ONCE },
 		{ "EVENT_MODE_SEND_ON_TRUE", hkbexpressiondataarray::expressiondata::EVENT_MODE_SEND_ON_TRUE },

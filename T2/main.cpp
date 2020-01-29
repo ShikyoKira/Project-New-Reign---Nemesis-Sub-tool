@@ -21,12 +21,14 @@ using namespace std;
 bool isBehavior = false;
 bool isAnimData = false;
 bool same = false;
+atomic<int> doneReading = 0;
 double readtime = 0;
 string checkOri;
 string checkEdit;
 safeStringMap<string> rootNode;;
-boost::atomic_flag clocklock = BOOST_ATOMIC_FLAG_INIT;
 boost::posix_time::ptime time1;
+
+extern atomic<int> writtenFile;
 
 void Clearing(string file, bool edited); // clear and store file in vector
 void ClearIgnore(string file1, string file2); // clear serialized ignore
@@ -37,8 +39,6 @@ void DebugMode(); // debug on/off
 
 void Clearing(string filename, bool edited)
 {
-	boost::posix_time::ptime mtime1 = boost::posix_time::microsec_clock::local_time();
-
 	vecstr storeline;
 	GetFunctionLines(filename, storeline);
 	string* checker = &(edited ? checkEdit : checkOri);
@@ -47,6 +47,10 @@ void Clearing(string filename, bool edited)
 	{
 		checker->append(line);
 	}
+
+	++doneReading;
+
+	while (doneReading != 2);
 
 	if (checkOri == checkEdit)
 	{
@@ -139,27 +143,26 @@ void Clearing(string filename, bool edited)
 		return;
 	}
 
+}
+
+void ClearIgnore(string file1, string file2)
+{
+	boost::posix_time::ptime mtime1 = boost::posix_time::microsec_clock::local_time();
+
+	thread t1([=](){Clearing(file1, false); return 1; });
+	Clearing(file2, true);
+
+	t1.join();
+
 	boost::posix_time::ptime mtime2 = boost::posix_time::microsec_clock::local_time();
 	boost::posix_time::time_duration mdiff = mtime2 - mtime1;
-
-	while (clocklock.test_and_set(boost::memory_order_acquire));
-	double n_readtime = static_cast<double>(mdiff.total_milliseconds());
-	if (readtime < n_readtime) readtime = n_readtime;
-	clocklock.clear(boost::memory_order_release);
+	readtime = static_cast<double>(mdiff.total_milliseconds());
 
 	if (Debug)
 	{
 		cout << "Reading time: " << mdiff.total_milliseconds() << endl;
 		cout << mtime2 << endl << mtime1 << endl << endl;
 	}
-}
-
-void ClearIgnore(string file1, string file2)
-{
-	thread t1([=](){Clearing(file1, false); return 1; });
-	Clearing(file2, true);
-
-	t1.join();
 
 	if (same || Error) return;
 
@@ -539,7 +542,6 @@ void start(bool skip)
 					try
 					{
 						hkb_Initialize(targetfilename, false);
-						// Initialize(targetfilename);
 
 					}
 					catch (const exception& ex)
@@ -566,7 +568,6 @@ void start(bool skip)
 						try
 						{
 							hkb_Initialize(targetfilenameedited, true);
-							// InitializeComparing(targetfilenameedited);
 						}
 						catch (const exception& ex)
 						{
@@ -631,11 +632,26 @@ void start(bool skip)
 		try
 		{
 			hkx_GetEdits();
-			// GetEdits();
 		}
 		catch (...) {}
+
+		if (writtenFile == 0)
+		{
+			cout << "Both files are identical" << endl;
+
+			if (boost::filesystem::exists(directory + modcode + "\\" + shortFileName))
+			{
+				try
+				{
+					boost::filesystem::remove_all(directory + modcode + "\\" + shortFileName);
+				}
+				catch (...) {}
+			}
+
+			return;
+		}
 	}
-	
+
 	if (!Error)
 	{
 		for (int i = 0; i < 15; i++)
