@@ -156,7 +156,7 @@ void hkbfootikcontrolsmodifier::dataBake(string filepath, vecstr& nodelines, boo
 				{
 					string output;
 
-					if (readParam("fwdAxisLS", line, output))
+					if (readParam("groundPosition", line, output))
 					{
 						legs.push_back(output);
 						++type;
@@ -402,7 +402,7 @@ void hkbfootikcontrolsmodifier::match(shared_ptr<hkbobject> counterpart)
 			while (i < size)
 			{
 				output.push_back(openObject(base));		// 3
-				output.push_back(autoParam(base, "fwdAxisLS", ctrpart->legs[i].fwdAxisLS));
+				output.push_back(autoParam(base, "groundPosition", ctrpart->legs[i].groundPosition));
 				output.push_back(openParam(base, "ungroundedEvent"));		// 4
 				output.push_back(openObject(base));		// 5
 				output.push_back(autoParam(base, "id", ctrpart->legs[i].ungroundedEvent.id));
@@ -430,7 +430,7 @@ void hkbfootikcontrolsmodifier::match(shared_ptr<hkbobject> counterpart)
 				}
 
 				storeline.push_back(openObject(base));		// 3
-				storeline.push_back(autoParam(base, "fwdAxisLS", legs[i].fwdAxisLS));
+				storeline.push_back(autoParam(base, "groundPosition", legs[i].groundPosition));
 				storeline.push_back(openParam(base, "ungroundedEvent"));		// 4
 				storeline.push_back(openObject(base));		// 5
 				storeline.push_back(autoParam(base, "id", legs[i].ungroundedEvent.id));
@@ -455,7 +455,7 @@ void hkbfootikcontrolsmodifier::match(shared_ptr<hkbobject> counterpart)
 		{
 			nemesis::try_close(open, output, storeline);
 			output.push_back(openObject(base));		// 3
-			paramMatch("fwdAxisLS", legs[i].fwdAxisLS, ctrpart->legs[i].fwdAxisLS, output, storeline, base, true, open, isEdited);
+			paramMatch("groundPosition", legs[i].groundPosition, ctrpart->legs[i].groundPosition, output, storeline, base, true, open, isEdited);
 			output.push_back(openParam(base, "ungroundedEvent"));		// 4
 			output.push_back(openObject(base));		// 5
 			paramMatch("id", legs[i].ungroundedEvent.id, ctrpart->legs[i].ungroundedEvent.id, output, storeline, base, false, open, isEdited);
@@ -537,7 +537,7 @@ void hkbfootikcontrolsmodifier::newNode()
 	for (auto& leg : legs)
 	{
 		output.push_back(openObject(base));		// 3
-		output.push_back(autoParam(base, "fwdAxisLS", leg.fwdAxisLS));
+		output.push_back(autoParam(base, "groundPosition", leg.groundPosition));
 		output.push_back(openParam(base, "ungroundedEvent"));		// 4
 		output.push_back(openObject(base));		// 5
 		output.push_back(autoParam(base, "id", leg.ungroundedEvent.id));
@@ -633,7 +633,7 @@ void hkbfootikcontrolsmodifier::matchScoring(vector<hkleg>& ori, vector<hkleg>& 
 		{
 			scorelist[i][j] = 0;
 
-			if (ori[i].fwdAxisLS == edit[j].fwdAxisLS)
+			if (ori[i].groundPosition == edit[j].groundPosition)
 			{
 				++scorelist[i][j];
 			}

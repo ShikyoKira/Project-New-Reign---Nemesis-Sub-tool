@@ -23,14 +23,14 @@ public:
 	{
 		bool proxy;
 
-		coordinate fwdAxisLS;
+		coordinate groundPosition;
 		eventproperty ungroundedEvent;
 		double verticalError;
 		bool hitSomething;
 		bool isPlantedMS;
 
 		hkleg() : proxy(true) {}
-		hkleg(std::string line) : proxy(false) { fwdAxisLS.update(line); }
+		hkleg(std::string line) : proxy(false) { groundPosition.update(line); }
 	};
 
 	struct controldata
