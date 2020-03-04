@@ -55,7 +55,7 @@ string VariableId::getName()
 
 	variableinfopack& variableInfos = *graphroot->data->variableInfos;
 
-	if (variableInfos.size() <= id)
+	if (variableInfos.size() <= static_cast<unsigned int>(id))
 	{
 		cout << "Failed to retrieve event name. Variable ID not registered (ID: " << nodeID << ")";
 		Error = true;

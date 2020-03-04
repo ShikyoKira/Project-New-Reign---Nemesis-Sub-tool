@@ -57,7 +57,7 @@ string EventId::getName()
 
 	eventinfopack& eventInfos = *graphroot->data->eventInfos;
 
-	if (eventInfos.size() <= id)
+	if (eventInfos.size() <= static_cast<unsigned int>(id))
 	{
 		cout << "Failed to retrieve event name. Event ID not registered (ID: " << nodeID << ")";
 		Error = true;
