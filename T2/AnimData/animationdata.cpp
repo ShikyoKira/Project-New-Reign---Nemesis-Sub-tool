@@ -64,7 +64,7 @@ void BehaviorListProcess(AnimDataProject& storeline, int& startline, vecstr& ani
 
 	int i = startline + 1;
 
-	if (i + 4 >= int(animdatafile.size()))
+	if (i + 3 >= int(animdatafile.size()))
 	{
 		cout << "Missing project information for a project in \"animationdatasinglefile.txt\"" << endl << "Project: " << project << endl;
 		Error = true;
