@@ -29,7 +29,7 @@ public:
 
 	inline V& operator[](K& key)
 	{
-		for (auto each : *this)
+		for (auto& each : *this)
 		{
 			if (each.first == key)
 			{

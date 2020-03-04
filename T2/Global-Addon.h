@@ -111,10 +111,10 @@ public:
 	iterator find(const std::string& _Keyval)
 	{
 		nodelock locker(&locker);
-		return lower_bound(_Keyval);
+		return std::unordered_map<std::string, subclass>::find(_Keyval);
 	}
 
-	iterator end() _NOEXCEPT
+	iterator end()
 	{
 		nodelock locker(&locker);
 		return _List.end();

@@ -4,9 +4,9 @@ void nemesis::try_open(bool& open, bool& isEdited, vecstr& output)
 {
 	if (!open)
 	{
-		open = true;
-		isEdited = true;
 		output.push_back("<!-- MOD_CODE ~" + modcode + "~ OPEN -->");
+		isEdited = true;
+		open = true;
 	}
 }
 
