@@ -13,6 +13,7 @@ using namespace std;
 void ProxyProject(int counter, string folder);
 void ProjectProcessing(int i, string folder);
 void datalistProcess(vecstr& oriSource, vecstr& editSource, vecstr& output, vecstr& storeline, bool& IsEdited, bool& open);
+void generalDataCompare(vecstr& ori, vecstr& edit, vecstr& output, vecstr& storeline, bool& IsEdited, bool& open);
 
 void animDataProcess()
 {
@@ -262,23 +263,14 @@ void ProjectProcessing(int i, string folder)
 		nemesis::try_open(open, IsEdited, output);
 		output.push_back(AnimDataEdited[i]->unknown1);
 		storeline.push_back(AnimDataOriginal[i]->unknown1);
+		nemesis::try_close(open, output, storeline);
 	}
 	else
 	{
 		output.push_back(AnimDataOriginal[i]->unknown1);
 	}
 
-	if (AnimDataOriginal[i]->behaviorlist.size() != AnimDataEdited[i]->behaviorlist.size())
-	{
-		nemesis::try_open(open, IsEdited, output);
-		output.push_back(to_string(AnimDataEdited[i]->behaviorlist.size()));
-		storeline.push_back(to_string(AnimDataOriginal[i]->behaviorlist.size()));
-	}
-	else
-	{
-		nemesis::try_close(open, output, storeline);
-		output.push_back(to_string(AnimDataOriginal[i]->behaviorlist.size()));
-	}
+	output.push_back(to_string(AnimDataOriginal[i]->behaviorlist.size()));
 
 	if (Error) return;
 
@@ -595,17 +587,8 @@ void ProjectProcessing(int i, string folder)
 					output.push_back(oriAnimData->unknown3);
 				}
 
-				if (oriAnimData->eventname.size() != editAnimData->eventname.size())
-				{
-					nemesis::try_open(open, IsEdited, output);
-					output.push_back(to_string(editAnimData->eventname.size()));
-					storeline.push_back(to_string(oriAnimData->eventname.size()));
-				}
-				else
-				{
-					nemesis::try_close(open, output, storeline);
-					output.push_back(to_string(oriAnimData->eventname.size()));
-				}
+				nemesis::try_close(open, output, storeline);
+				output.push_back(to_string(oriAnimData->eventname.size()));
 
 				if (Error) return;
 
@@ -614,67 +597,7 @@ void ProjectProcessing(int i, string folder)
 
 				if (!matchProjectScoring(oriEvents, editEvents, targetfilenameedited)) return;
 
-				for (unsigned int k = 0; k < oriEvents.size(); ++k)
-				{
-					if (oriEvents[k] == "//* delete this line *//")		// new event
-					{
-						nemesis::try_open(open, IsEdited, output);
-
-						while (k < oriEvents.size())
-						{
-							if (oriEvents[k] != "//* delete this line *//")
-							{
-								if (storeline.size() > 0)
-								{
-									output.push_back("<!-- ORIGINAL -->");
-									output.insert(output.end(), storeline.begin(), storeline.end());
-									storeline.clear();
-								}
-
-								--k;
-								break;
-							}
-
-							output.push_back(editEvents[k]);
-							++k;
-						}
-
-						nemesis::try_close(open, output, storeline);
-					}
-					else if (editEvents[k] == "//* delete this line *//")		// deleted event
-					{
-						nemesis::try_open(open, IsEdited, output);
-
-						while (k < oriEvents.size())
-						{
-							if (editEvents[k] != "//* delete this line *//")
-							{
-								--k;
-								break;
-							}
-
-							output.push_back(editEvents[k]);
-							storeline.push_back(oriEvents[k]);
-							++k;
-						}
-					}
-					else
-					{
-						if (oriEvents[k] != editEvents[k])
-						{
-							nemesis::try_open(open, IsEdited, output);
-							output.push_back(editEvents[k]);
-							storeline.push_back(oriEvents[k]);
-						}
-						else
-						{
-							nemesis::try_close(open, output, storeline);
-							output.push_back(oriEvents[k]);
-						}
-					}
-				}
-
-				nemesis::try_close(open, output, storeline);
+				generalDataCompare(oriEvents, editEvents, output, storeline, IsEdited, open);
 			}
 
 			nemesis::try_close(open, output, storeline);
@@ -747,16 +670,16 @@ void ProjectProcessing(int i, string folder)
 				output.push_back(editInfoData->duration);
 				output.push_back(to_string(editInfoData->motiondata.size()));
 
-				for (unsigned int k = 0; k < editInfoData->motiondata.size(); ++k)
+				for (auto data : editInfoData->motiondata)
 				{
-					output.push_back(editInfoData->motiondata[k]);
+					output.push_back(data);
 				}
 
 				output.push_back(to_string(editInfoData->rotationdata.size()));
 
-				for (unsigned int k = 0; k < editInfoData->rotationdata.size(); ++k)
+				for (auto data : editInfoData->rotationdata)
 				{
-					output.push_back(editInfoData->rotationdata[k]);
+					output.push_back(data);
 				}
 
 				output.push_back("");
@@ -777,17 +700,17 @@ void ProjectProcessing(int i, string folder)
 				storeline.push_back(oriInfoData->duration);
 				storeline.push_back(to_string(oriInfoData->motiondata.size()));
 
-				for (unsigned int k = 0; k < oriInfoData->motiondata.size(); ++k)
+				for (auto data : oriInfoData->motiondata)
 				{
-					storeline.push_back(oriInfoData->motiondata[k]);
+					storeline.push_back(data);
 					output.push_back("//* delete this line *//");
 				}
 
 				storeline.push_back(to_string(oriInfoData->rotationdata.size()));
 
-				for (unsigned int k = 0; k < oriInfoData->rotationdata.size(); ++k)
+				for (auto data : oriInfoData->rotationdata)
 				{
-					storeline.push_back(oriInfoData->rotationdata[k]);
+					storeline.push_back(data);
 					output.push_back("//* delete this line *//");
 				}
 
@@ -897,6 +820,11 @@ void datalistProcess(vecstr& oriSource, vecstr& editSource, vecstr& output, vecs
 
 	if (!matchDetailedScoring(ori, edit, targetfilenameedited)) return;
 
+	generalDataCompare(ori, edit, output, storeline, IsEdited, open);
+}
+
+void generalDataCompare(vecstr& ori, vecstr& edit, vecstr& output, vecstr& storeline, bool& IsEdited, bool& open)
+{
 	for (unsigned int k = 0; k < ori.size(); ++k)
 	{
 		if (ori[k] == "//* delete this line *//")		// new motion data
