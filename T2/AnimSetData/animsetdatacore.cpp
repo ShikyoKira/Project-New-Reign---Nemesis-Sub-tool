@@ -360,23 +360,12 @@ void ProjectSetProcessing(int i, string folder)
 			{
 				if (data.second.equiplist[j].proxy)		// new equip
 				{
-					if (!open)
-					{
-						output.push_back("<!-- MOD_CODE ~" + modcode + "~ OPEN -->");
-						IsEdited = true;
-					}
+					nemesis::try_open(open, IsEdited, output);
 
 					while (j < data.second.equiplist.size())
 					{
 						if (!data.second.equiplist[j].proxy)
 						{
-							if (storeline.size() > 0)
-							{
-								output.push_back("<!-- ORIGINAL -->");
-								output.insert(output.end(), storeline.begin(), storeline.end());
-								storeline.clear();
-							}
-
 							--j;
 							break;
 						}
@@ -385,8 +374,7 @@ void ProjectSetProcessing(int i, string folder)
 						++j;
 					}
 
-					output.push_back("<!-- CLOSE -->");
-					open = false;
+					nemesis::try_close(open, output, storeline);
 				}
 				else if (AnimSetDataEdited[i]->datalist[data.first].equiplist[j].proxy)		// deleted equip
 				{
@@ -439,23 +427,12 @@ void ProjectSetProcessing(int i, string folder)
 			{
 				if (data.second.typelist[j].proxy)		// new typelist
 				{
-					if (!open)
-					{
-						output.push_back("<!-- MOD_CODE ~" + modcode + "~ OPEN -->");
-						IsEdited = true;
-					}
+					nemesis::try_open(open, IsEdited, output);
 
 					while (j < data.second.typelist.size())
 					{
 						if (!data.second.typelist[j].proxy)
 						{
-							if (storeline.size() > 0)
-							{
-								output.push_back("<!-- ORIGINAL -->");
-								output.insert(output.end(), storeline.begin(), storeline.end());
-								storeline.clear();
-							}
-
 							--j;
 							break;
 						}
@@ -466,8 +443,7 @@ void ProjectSetProcessing(int i, string folder)
 						++j;
 					}
 
-					output.push_back("<!-- CLOSE -->");
-					open = false;
+					nemesis::try_close(open, output, storeline);
 				}
 				else if (AnimSetDataEdited[i]->datalist[data.first].typelist[j].proxy)		// deleted typelist
 				{
@@ -549,23 +525,12 @@ void ProjectSetProcessing(int i, string folder)
 			{
 				if (data.second.animlist[j].proxy)		// new animlist
 				{
-					if (!open)
-					{
-						output.push_back("<!-- MOD_CODE ~" + modcode + "~ OPEN -->");
-						IsEdited = true;
-					}
+					nemesis::try_open(open, IsEdited, output);
 
 					while (j < data.second.animlist.size())
 					{
 						if (!data.second.animlist[j].proxy)
 						{
-							if (storeline.size() > 0)
-							{
-								output.push_back("<!-- ORIGINAL -->");
-								output.insert(output.end(), storeline.begin(), storeline.end());
-								storeline.clear();
-							}
-
 							--j;
 							break;
 						}
@@ -582,8 +547,7 @@ void ProjectSetProcessing(int i, string folder)
 						++j;
 					}
 
-					output.push_back("<!-- CLOSE -->");
-					open = false;
+					nemesis::try_close(open, output, storeline);
 				}
 				else if (AnimSetDataEdited[i]->datalist[data.first].animlist[j].proxy)		// deleted animlist
 				{
@@ -648,23 +612,12 @@ void ProjectSetProcessing(int i, string folder)
 					{
 						if (data.second.animlist[j].attack[k].proxy)		// new attack
 						{
-							if (!open)
-							{
-								output.push_back("<!-- MOD_CODE ~" + modcode + "~ OPEN -->");
-								IsEdited = true;
-							}
+							nemesis::try_open(open, IsEdited, output);
 
 							while (k < data.second.animlist[j].attack.size())
 							{
 								if (!data.second.animlist[j].attack[k].proxy)
 								{
-									if (storeline.size() > 0)
-									{
-										output.push_back("<!-- ORIGINAL -->");
-										output.insert(output.end(), storeline.begin(), storeline.end());
-										storeline.clear();
-									}
-
 									--k;
 									break;
 								}
@@ -673,8 +626,7 @@ void ProjectSetProcessing(int i, string folder)
 								++k;
 							}
 
-							output.push_back("<!-- CLOSE -->");
-							open = false;
+							nemesis::try_close(open, output, storeline);
 						}
 						else if (AnimSetDataEdited[i]->datalist[data.first].animlist[j].attack[k].proxy)		// deleted attack
 						{
@@ -722,23 +674,12 @@ void ProjectSetProcessing(int i, string folder)
 			{
 				if (data.second.crc32list[j].proxy)		// new crc32list
 				{
-					if (!open)
-					{
-						output.push_back("<!-- MOD_CODE ~" + modcode + "~ OPEN -->");
-						IsEdited = true;
-					}
+					nemesis::try_open(open, IsEdited, output);
 
 					while (j < data.second.crc32list.size())
 					{
 						if (!data.second.crc32list[j].proxy)
 						{
-							if (storeline.size() > 0)
-							{
-								output.push_back("<!-- ORIGINAL -->");
-								output.insert(output.end(), storeline.begin(), storeline.end());
-								storeline.clear();
-							}
-
 							--j;
 							break;
 						}
@@ -749,8 +690,7 @@ void ProjectSetProcessing(int i, string folder)
 						++j;
 					}
 
-					output.push_back("<!-- CLOSE -->");
-					open = false;
+					nemesis::try_close(open, output, storeline);
 				}
 				else if (AnimSetDataEdited[i]->datalist[data.first].crc32list[j].proxy)		// deleted crc32list
 				{
