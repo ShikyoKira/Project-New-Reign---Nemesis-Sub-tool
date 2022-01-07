@@ -582,7 +582,8 @@ void hkbcharacterdata::match(shared_ptr<hkbobject> counterpart)
 	paramMatch("footIkDriverInfo", footIkDriverInfo, ctrpart->footIkDriverInfo, output, storeline, base, false, open, isEdited);
 	paramMatch("handIkDriverInfo", handIkDriverInfo, ctrpart->handIkDriverInfo, output, storeline, base, false, open, isEdited);
 	paramMatch("stringData", stringData, ctrpart->stringData, output, storeline, base, false, open, isEdited);
-	paramMatch("mirroredSkeletonInfo", mirroredSkeletonInfo, ctrpart->mirroredSkeletonInfo, output, storeline, base, true, open, isEdited);
+	paramMatch("mirroredSkeletonInfo", mirroredSkeletonInfo, ctrpart->mirroredSkeletonInfo, output, storeline, base, false, open, isEdited);
+	paramMatch("scale", scale, ctrpart->scale, output, storeline, base, true, open, isEdited);
 
 	output.push_back(closeObject(base));	// 1
 	NemesisReaderFormat(stoi(ID.substr(1)), output);
@@ -655,6 +656,7 @@ void hkbcharacterdata::newNode()
 	output.push_back(autoParam(base, "handIkDriverInfo", handIkDriverInfo));
 	output.push_back(autoParam(base, "stringData", stringData));
 	output.push_back(autoParam(base, "mirroredSkeletonInfo", mirroredSkeletonInfo));
+	output.push_back(autoParam(base, "scale", scale));
 
 	output.push_back(closeObject(base));		// 1
 	NemesisReaderFormat(stoi(ID.substr(1)), output);
