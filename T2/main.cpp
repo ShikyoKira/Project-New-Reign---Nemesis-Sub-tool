@@ -439,6 +439,11 @@ void ModCode()
 	cout << "Enter your unique mod code: ";
 	cin >> tempcode;
 
+	transform(tempcode.begin(), tempcode.end(), tempcode.begin(), [](unsigned char c)
+			  {
+				  return tolower(c);
+			  });
+
 	if (tempcode == "-1")
 	{
 		modcode = tempcode;
